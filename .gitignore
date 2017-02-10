@@ -1,0 +1,7 @@
+in-toto
+
+# exclude everything
+sessions/*
+
+# exception to the rule
+!sessions/.gitkeep

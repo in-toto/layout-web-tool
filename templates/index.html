@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <title>In-Toto Layout Tool</title>
+</head>
+<body>
+  <h1>In-Toto Layout Tool</h1>
+  <div>
+    <h2>Unique URL to access your layout</h2>
+    <a href="{{ url_for('show_layout', session_id=session_id, _external=True) }}">
+      {{ url_for('show_layout', session_id=session_id, _external=True)}}
+    </a>
+  </div>
+  <div>
+    <h2>Load existing layout</h2>
+    <form action="{{ url_for('show_layout', session_id=session_id) }}" method="GET">
+      <select name="layout_name">
+        <option disabled selected>Chose a layout from your session directory</option>
+        {% for choice in layout_choices %}
+        <option value="{{ choice | urlencode}}"
+            {{ "selected" if choice == layout_name}}>{{choice}}</option>
+        {% endfor %}
+      </select>
+      <input type="submit" value="Load Layout">
+    </form>
+  </div>
+  {% if layout %}
+  <div>
+    <h2>Layout '{{layout_name}}'</h2>
+    <h3>Expiration date</h3>
+    <div>{{layout.expires}}</div>
+    <h3>Functionaries</h3>
+    {% for keyid in layout.keys %}
+    <div>{{keyid}}</div>
+    {% endfor %}
+    <h3>Layout signatures</h3>
+
+    {% for signature in layout.signatures %}
+    <div>{{signature["keyid"]}}</div>
+    {% endfor %}
+
+    <div>
+      <h3>Layout Steps</h3>
+      {% for step in layout.steps %}
+      <div>
+        <h4>{{step.name}}</h4>
+        <h5>Authorized functionaries</h5>
+        {% for keyid in step.pubkeys %}
+        <div>{{keyid}}</div>
+        {% endfor %}
+        <h5>Expected command</h5>
+        <div>{{step.expected_command}}</div>
+        <h5>Material rules</h5>
+        {% for rule in step.material_matchrules %}
+        <div>{{" ".join(rule)}}</div>
+        {% endfor %}
+        <h5>Product rules</h5>
+        {% for rule in step.product_matchrules %}
+        <div>{{" ".join(rule)}}</div>
+         {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div>
+      <h3>Layout Inspections</h3>
+      {% for inspection in layout.inspect %}
+      <div>
+        <h4>{{inspection.name}}</h4>
+        <h5>Inspection command</h5>
+        {{inspection.run}}
+        <h5>Material rules</h5>
+        {% for rule in inspection.material_matchrules %}
+        <div>{{" ".join(rule)}}</div>
+        {% endfor %}
+        <h5>Product rules</h5>
+        {% for rule in inspection.product_matchrules %}
+        <div>{{" ".join(rule)}}</div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+</body>
+</html>
