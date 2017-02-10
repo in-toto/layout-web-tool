@@ -21,8 +21,20 @@
       {{ url_for('show_layout', session_id=session_id, _external=True)}}
     </a>
   </div>
+
+  <div>
+    <h2>Create layout</h2>
+    <div>Create a new empty layout. You can fill it with content below.</div>
+    <form action="{{ url_for('create_layout', session_id=session_id) }}" method="POST">
+      <input type="text" name="layout_name" placeholder="e.g.: 'root.layout'">
+      <input type="submit" value="Create Layout">
+    </form>
+  </div>
+
   <div>
     <h2>Upload layout</h2>
+    <div>Upload and existing layout. You can modify the content below.</div>
+
     <form action="{{ url_for('add_layout', session_id=session_id) }}"
         method="POST" enctype=multipart/form-data>
       <input type="file" name="layout-file">
@@ -33,9 +45,10 @@
   {% if layout_choices %}
   <div>
     <h2>Pick layout</h2>
+    <div>Chose one of the layouts you created or uploaded from your session directory.</div>
     <form action="{{ url_for('show_layout', session_id=session_id) }}" method="GET">
       <select name="layout_name">
-        <option disabled selected>Chose a layout from your session directory</option>
+        <option disabled selected>Chose a layout from your session directory to show and modify the contents.</option>
         {% for choice in layout_choices %}
         <option value="{{ choice | urlencode}}"
             {{ "selected" if choice == layout_name}}>{{choice}}</option>
@@ -45,6 +58,9 @@
     </form>
   </div>
   {% endif %}
+
+
+
 
   {% if layout %}
   <div>

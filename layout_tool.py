@@ -187,5 +187,30 @@ def add_layout(session_id):
   return redirect(url_for("show_layout", session_id=session["id"],
       layout_name=layout_name))
 
+
+@app.route("/<md5:session_id>/create-layout", methods=["POST"])
+def create_layout(session_id):
+  """
+  <Purpose>
+    Adds a posted public key to the layout
+
+  <Returns>
+    Redirects to show layout page
+
+  """
+  session_path = _session_path(session_id)
+  layout_name = request.form.get("layout_name")
+
+  if not layout_name:
+    flash("No layout name specified.")
+    return redirect(url_for("show_layout", session_id=session["id"]))
+
+  layout = in_toto.models.layout.Layout()
+  layout_path = os.path.join(session_path,  secure_filename(layout_name))
+  layout.dump(layout_path)
+
+  return redirect(url_for("show_layout", session_id=session["id"],
+      layout_name=layout_name))
+
 if __name__ == "__main__":
   app.run()
