@@ -39,6 +39,30 @@ app.config.update(dict(
     SESSIONS_DIR=os.path.join(os.path.dirname(os.path.abspath(__file__)), "sessions")
 ))
 
+class Md5HexValidator(BaseConverter):
+  """Custom converter to validate if a string is an MD5 hexdigest. Used as
+  validator for session ids in paths.
+  `to_python` and `to_url` have to be implemented by subclasses of
+  BaseConverter. """
+  def to_python(self, value):
+    try:
+      # MD5 Hex Digests  should 32 byte long
+      if len(value) != 32:
+        raise ValueError
+      # and hex
+      int(value, 16)
+    except ValueError:
+      raise ValidationError()
+    else:
+      return str(value)
+
+  def to_url(self, value):
+      return str(value)
+
+# Add custom converter (validator)
+app.url_map.converters['md5'] = Md5HexValidator
+
+
 def _session_path(session_id):
   return os.path.join(app.config["SESSIONS_DIR"], session_id)
 
@@ -81,7 +105,7 @@ def index():
   return redirect(url_for("show_layout", session_id=session["id"]))
 
 
-@app.route("/<session_id>", methods=['GET'])
+@app.route("/<md5:session_id>", methods=['GET'])
 def show_layout(session_id):
   """
   <Purpose>
