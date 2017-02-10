@@ -5,6 +5,16 @@
 </head>
 <body>
   <h1>In-Toto Layout Tool</h1>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class=flashes>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
   <div>
     <h2>Unique URL to access your layout</h2>
     <a href="{{ url_for('show_layout', session_id=session_id, _external=True) }}">
@@ -12,7 +22,17 @@
     </a>
   </div>
   <div>
-    <h2>Load existing layout</h2>
+    <h2>Upload layout</h2>
+    <form action="{{ url_for('add_layout', session_id=session_id) }}"
+        method="POST" enctype=multipart/form-data>
+      <input type="file" name="layout-file">
+      <input type="submit" value="Upload Layout">
+    </form>
+  </div>
+
+  {% if layout_choices %}
+  <div>
+    <h2>Pick layout</h2>
     <form action="{{ url_for('show_layout', session_id=session_id) }}" method="GET">
       <select name="layout_name">
         <option disabled selected>Chose a layout from your session directory</option>
@@ -21,9 +41,11 @@
             {{ "selected" if choice == layout_name}}>{{choice}}</option>
         {% endfor %}
       </select>
-      <input type="submit" value="Load Layout">
+      <input type="submit" value="Pick Layout">
     </form>
   </div>
+  {% endif %}
+
   {% if layout %}
   <div>
     <h2>Layout '{{layout_name}}'</h2>

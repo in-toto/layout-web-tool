@@ -27,8 +27,11 @@ import urllib
 
 import in_toto.models.layout
 
-from flask import Flask, render_template, session, redirect, url_for, request
+from flask import (Flask, render_template, session, redirect, url_for, request,
+    flash)
 from werkzeug.routing import BaseConverter, ValidationError
+from werkzeug.utils import secure_filename
+
 
 
 app = Flask(__name__)
@@ -81,7 +84,7 @@ def index():
     Creates session directory if the session is new
 
   <Returns>
-    Redirects to session view
+    Redirects to show layout page
 
   """
 
@@ -99,13 +102,15 @@ def index():
     try:
       os.mkdir(session_path)
     except Exception as e:
-      app.logger.error("Could not create session directory '{0}' - {1}"
-          .format(session_path, e))
+      msg = "Could not create session directory '{0}' - {1}".format(
+          session_path, e)
+      app.logger.error(msg)
+      flash(msg)
 
   return redirect(url_for("show_layout", session_id=session["id"]))
 
 
-@app.route("/<md5:session_id>", methods=['GET'])
+@app.route("/<md5:session_id>", methods=["GET"])
 def show_layout(session_id):
   """
   <Purpose>
@@ -119,7 +124,7 @@ def show_layout(session_id):
     template to display all parameters.
 
   <Returns>
-    Renders layout page
+    Renders show layout page
 
   """
 
@@ -144,13 +149,43 @@ def show_layout(session_id):
     try:
       layout = in_toto.models.layout.Layout.read_from_file(layout_path)
     except Exception as e:
-      app.logger.error("Could not read layout '{0}' - {1}"
-          .format(layout_path, e))
+      msg = "Could not read layout '{0}' - {1}".format(layout_path, e)
+      app.logger.error(msg)
+      flash(msg)
 
   return render_template("index.html",
       session_id=session_id, layout=layout, layout_choices=layout_choices,
       layout_name=layout_name)
 
+@app.route("/<md5:session_id>/add-layout", methods=["POST"])
+def add_layout(session_id):
+  """
+  <Purpose>
+    Adds a posted layout to the session directory and redirects to show
+    layout passing the layout name as parameter.
+
+  <Returns>
+    Redirects to show layout page
+
+  """
+  session_path = _session_path(session_id)
+  layout_name = None
+
+  if "layout-file" not in request.files:
+    flash("No file sent")
+    return redirect(url_for("show_layout", session_id=session["id"]))
+
+  file = request.files["layout-file"]
+  if file.filename == "":
+    flash("No file selected")
+    return redirect(url_for("show_layout", session_id=session["id"]))
+
+  layout_name = secure_filename(file.filename)
+  layout_path = os.path.join(session_path, layout_name)
+  file.save(layout_path)
+
+  return redirect(url_for("show_layout", session_id=session["id"],
+      layout_name=layout_name))
 
 if __name__ == "__main__":
   app.run()
