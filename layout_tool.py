@@ -34,7 +34,7 @@ from werkzeug.utils import secure_filename
 
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path="")
 
 app.config.update(dict(
     DEBUG=True,
