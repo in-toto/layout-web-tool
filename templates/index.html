@@ -6,123 +6,173 @@
   <link rel="stylesheet" type="text/css" href="css/main.css?q={{range(1000)|random}}">
 </head>
 <body>
-  <h1>In-Toto Layout Tool</h1>
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul class=flashes>
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-      </ul>
+  <div>
+    <h1>In-Toto Layout Tool</h1>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class=flashes>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <div>
+      <h2>Unique URL to access your layout</h2>
+      <a href="{{ url_for('show_layout', session_id=session_id, _external=True) }}">
+        {{ url_for('show_layout', session_id=session_id, _external=True)}}
+      </a>
+    </div>
+
+    {% if layout_choices %}
+    <div>
+      <h2>Pick layout</h2>
+      <form action="{{ url_for('show_layout', session_id=session_id) }}" method="GET">
+        <select name="layout_name">
+          <option disabled selected>-- Chose a layout from your session directory to show and modify the contents. --</option>
+          {% for choice in layout_choices %}
+          <option value="{{ choice | urlencode}}"
+              {{ "selected" if choice == layout_name}}>{{choice}}</option>
+          {% endfor %}
+        </select>
+        <input type="submit" value="Pick Layout">
+      </form>
+    </div>
     {% endif %}
-  {% endwith %}
-
-  <div>
-    <h2>Unique URL to access your layout</h2>
-    <a href="{{ url_for('show_layout', session_id=session_id, _external=True) }}">
-      {{ url_for('show_layout', session_id=session_id, _external=True)}}
-    </a>
-  </div>
-
-  <div>
-    <h2>Create layout</h2>
-    <div>Create a new empty layout. You can fill it with content below.</div>
-    <form action="{{ url_for('create_layout', session_id=session_id) }}" method="POST">
-      <input type="text" name="layout_name" placeholder="e.g.: 'root.layout'">
-      <input type="submit" value="Create Layout">
-    </form>
-  </div>
-
-  <div>
-    <h2>Upload layout</h2>
-    <div>Upload and existing layout. You can modify the content below.</div>
-
-    <form action="{{ url_for('add_layout', session_id=session_id) }}"
-        method="POST" enctype=multipart/form-data>
-      <input type="file" name="layout-file">
-      <input type="submit" value="Upload Layout">
-    </form>
-  </div>
-
-  {% if layout_choices %}
-  <div>
-    <h2>Pick layout</h2>
-    <div>Chose one of the layouts you created or uploaded from your session directory.</div>
-    <form action="{{ url_for('show_layout', session_id=session_id) }}" method="GET">
-      <select name="layout_name">
-        <option disabled selected>Chose a layout from your session directory to show and modify the contents.</option>
-        {% for choice in layout_choices %}
-        <option value="{{ choice | urlencode}}"
-            {{ "selected" if choice == layout_name}}>{{choice}}</option>
-        {% endfor %}
-      </select>
-      <input type="submit" value="Pick Layout">
-    </form>
-  </div>
-  {% endif %}
-
-
-
-
-  {% if layout %}
-  <div>
-    <h2>Layout '{{layout_name}}'</h2>
-    <h3>Expiration date</h3>
-    <div>{{layout.expires}}</div>
-    <h3>Functionaries</h3>
-    {% for keyid in layout.keys %}
-    <div>{{keyid}}</div>
-    {% endfor %}
-    <h3>Layout signatures</h3>
-
-    {% for signature in layout.signatures %}
-    <div>{{signature["keyid"]}}</div>
-    {% endfor %}
 
     <div>
-      <h3>Layout Steps</h3>
-      {% for step in layout.steps %}
-      <div>
-        <h4>{{step.name}}</h4>
-        <h5>Authorized functionaries</h5>
-        {% for keyid in step.pubkeys %}
-        <div>{{keyid}}</div>
-        {% endfor %}
-        <h5>Expected command</h5>
-        <div>{{step.expected_command}}</div>
-        <h5>Material rules</h5>
-        {% for rule in step.material_matchrules %}
-        <div>{{" ".join(rule)}}</div>
-        {% endfor %}
-        <h5>Product rules</h5>
-        {% for rule in step.product_matchrules %}
-        <div>{{" ".join(rule)}}</div>
-         {% endfor %}
-      </div>
-      {% endfor %}
+      <h2>Upload layout</h2>
+      <form action="{{ url_for('upload_layout', session_id=session_id) }}"
+          method="POST" enctype=multipart/form-data>
+        <input type="file" name="layout-file">
+        <input type="submit" value="Upload Layout">
+      </form>
     </div>
 
     <div>
-      <h3>Layout Inspections</h3>
-      {% for inspection in layout.inspect %}
-      <div>
-        <h4>{{inspection.name}}</h4>
-        <h5>Inspection command</h5>
-        {{inspection.run}}
-        <h5>Material rules</h5>
-        {% for rule in inspection.material_matchrules %}
-        <div>{{" ".join(rule)}}</div>
-        {% endfor %}
-        <h5>Product rules</h5>
-        {% for rule in inspection.product_matchrules %}
-        <div>{{" ".join(rule)}}</div>
-        {% endfor %}
-      </div>
-      {% endfor %}
+      <h2>Create layout</h2>
+      <form action="{{ url_for('add_layout', session_id=session_id) }}" method="POST">
+        <input type="submit" value="Create Layout">
+      </form>
     </div>
-  </div>
-  {% endif %}
 
-</div>
+    <h2>Layout</h2>
+
+    {% if layout %}
+    <form  action="{{ url_for('save_layout', session_id=session_id) }}" method="POST" enctype="multipart/form-data">
+      <input type="submit" value="Save Layout">
+
+      <input type="hidden" name="layout_name" value="{{layout_name}}">
+      <div class="box">
+          <div>
+            <label>
+              Layout Name
+              <input type="text" name="new_layout_name" value="{{layout_name}}"
+              placeholder="e.g.: 'root.layout'">
+            </label>
+          </div>
+          <div>
+            <label>
+              Expiration Date
+              <input type="datetime-local" name="expires" value="{{layout.expires | zulu_to_html}}">
+            </label>
+          </div>
+
+          <div>
+            <label>
+              Functionary Public Keys
+              <ul>
+              {% for keyid in layout.keys %}
+                <li>{{ keyid | truncate(9, True) }}</li>
+              {% endfor %}
+              </ul>
+              <input type="file" name="pubkey[]" multiple>
+            </label>
+          </div>
+
+          <h3>Steps</h3>
+          <div class="box">
+            {% for step in layout.steps %}
+            <div class="box">
+              <div>
+                <label>
+                  Step Name
+                  <input type="text" value="{{step.name}}">
+                </label>
+              </div>
+              <div>
+                <label>
+                  Authorized Functionaries
+                  <select multiple>
+                      {% for keyid in layout.keys %}
+                      <option value="{{keyid}}" {{ "selected" if keyid in step.pubkeys }}>
+                        {{ keyid | truncate(9, True)}}</option>
+                      {% endfor %}
+                  </select>
+                </label>
+              </div>
+              <div>
+                <label>
+                  Expected Command
+                  <input type="text" value="{{step.expected_command}}">
+                </label>
+              </div>
+
+              <h4>Material Rules</h4>
+                {% with rules=step.material_matchrules %}
+                {% include 'artifact_rules.html' %}
+                {% endwith %}
+
+              <h4>Product Rules</h4>
+                {% with rules=step.product_matchrules %}
+                {% include 'artifact_rules.html' %}
+                {% endwith %}
+
+            </div>
+          {% endfor %}
+          </div>
+
+          <h3>Inspections</h3>
+          <div class="box">
+            {% for inspection in layout.inspect %}
+            <div class="box">
+              <div>
+                <label>
+                  Inspection Name
+                  <input type="text" value="{{inspection.name}}">
+                </label>
+              </div>
+              <div>
+                <label>
+                  Inspection Command
+                  <input type="text" value="{{inspection.run}}">
+                </label>
+              </div>
+
+              <h4>Material Rules</h4>
+                {% with rules=inspection.material_matchrules %}
+                {% include 'artifact_rules.html' %}
+                {% endwith %}
+
+              <h4>Product Rules</h4>
+                {% with rules=inspection.product_matchrules %}
+                {% include 'artifact_rules.html' %}
+                {% endwith %}
+            </div>
+            {% endfor %}
+          </div>
+
+          {% if layout.signatures %}
+          <h3>Layout signatures</h3>
+            {% for signature in layout.signatures %}
+              <div>{{signature["keyid"]}}</div>
+            {% endfor %}
+          {% endif %}
+      </div>
+      <input type="submit" value="Save Layout">
+    </form>
+    {% endif %}
+  </div>
 </body>
 </html>
