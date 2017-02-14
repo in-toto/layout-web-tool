@@ -23,16 +23,15 @@
     </label>
   </div>
 
-  {#
   <h4>Material Rules</h4>
-    {% with rules=step.material_matchrules %}
-    {% include 'artifact_rules.html' %}
+    {% with rules=step.material_matchrules if step %}
+    {% include 'rules.html' %}
     {% endwith %}
 
   <h4>Product Rules</h4>
-    {% with rules=step.product_matchrules %}
-    {% include 'artifact_rules.html' %}
+    {% with rules=step.product_matchrules if step %}
+    {% include 'rules.html' %}
     {% endwith %}
-  #}
+
   <button type="button" class="remove-step">Remove Step</button>
 </div>

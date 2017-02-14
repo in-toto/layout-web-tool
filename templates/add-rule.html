@@ -1,0 +1,17 @@
+<div>
+  <label>
+    Add new rule be selecting a template
+    <select class="add-rule">
+      <option disabled selected>-- Add artifact rule --</option>
+      <option value="match">
+        MATCH &lt;pattern&gt; &lbrack;IN &lt;source-path-prefix&gt;&rbrack; WITH &lpar;MATERIALS&vert;PRODUCTS&rpar;
+        &lbrack;IN &lt;destination-path-prefix&gt;&rbrack; FROM &lt;step&gt;
+      </option>
+      <option value="allow">ALLOW &lt;path pattern&gt;</option>
+      <option value="disallow">DISALLOW &lt;path pattern&gt;</option>
+      <option value="create">CREATE &lt;path pattern&gt;</option>
+      <option value="delete">DELETE &lt;path pattern&gt;</option>
+      <option value="modify">MODIFY &lt;path pattern&gt;</option>
+    </select>
+  </label>
+</div>

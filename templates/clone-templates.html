@@ -1,0 +1,14 @@
+{# Comment: Include templates for dynamic form elements.
+These templates are cloned on button click and appended to their respective
+places in the form.
+The templates include form fields for step, inspection and all different
+artifact rules.
+Since they live outside of the form, they are not included on form submission.
+#}
+{% include 'step.html' %}
+{% include 'inspection.html' %}
+{% include 'match-rule.html' %}
+{% for rule_type in ["ALLOW", "DISALLOW", "CREATE", "MODIFY", "DELETE"] %}
+  {% include 'generic-rule.html' %}
+{% endfor %}
+

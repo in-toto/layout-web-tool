@@ -11,16 +11,15 @@
       <input type="text" value="{{inspection.run if inspection}}">
     </label>
   </div>
-  {#
   <h4>Material Rules</h4>
-    {% with rules=inspection.material_matchrules %}
-    {% include 'artifact_rules.html' %}
+    {% with rules=inspection.material_matchrules if inspection %}
+    {% include 'rules.html' %}
     {% endwith %}
 
   <h4>Product Rules</h4>
-    {% with rules=inspection.product_matchrules %}
-    {% include 'artifact_rules.html' %}
+    {% with rules=inspection.product_matchrules if inspection %}
+    {% include 'rules.html' %}
     {% endwith %}
-  #}
+
   <button type="button" class="remove-inspection">Remove Inspection</button>
 </div>

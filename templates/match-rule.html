@@ -1,0 +1,24 @@
+<div class="match rule {{'template' if not rule_data}}">
+  <input type="text" value="MATCH" disabled>
+  <input type="text" value="{{rule_data.pattern if rule_data}}" placeholder="<Pattern>">
+  <input type="text" value="IN" disabled>
+  <input type="text" value="{{rule_data.source_prefix if rule_data}}" placeholder="<Source Prefix> (optional)">
+  <input type="text" value="WITH" disabled>
+  <select>
+    <option disabled selected>-- Destination Type --</option>
+    <option
+        {{ "selected" if rule_data and rule_data.dest_type | lower == "materials"}}>
+      MATERIALS
+    </option>
+     <option
+        {{ "selected" if rule_data and rule_data.dest_type | lower == "products"}}>
+      PRODUCTS
+    </option>
+  </select>
+  <input type="text" value="IN" disabled>
+  <input type="text" value="{{rule_data.dest_prefix if rule_data}}" placeholder="<Destination Prefix> (optional)">
+
+  <input type="text" value="FROM" disabled>
+  <input type="text" value="{{rule_data.dest_name if rule_data}}" placeholder="<Destination Name>">
+  <button type="button" class="remove-rule">Remove Rule</button>
+</div>

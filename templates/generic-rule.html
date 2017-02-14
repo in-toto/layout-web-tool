@@ -1,0 +1,5 @@
+<div class="{{rule_data.type | lower if rule_data else rule_type | lower }} rule {{'template' if not rule_data}}">
+  <input type="text" value="{{rule_data.type | upper if rule_data else rule_type }}" disabled>
+  <input type="text" value="{{rule_data.pattern if rule_data}}">
+  <button type="button" class="remove-rule">Remove Rule</button>
+</div>

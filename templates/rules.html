@@ -1,0 +1,16 @@
+<div class="rule-container box">
+
+  <div class="rule-container-inner">
+    {% for rule in rules %}
+      {% with rule_data=unpack_rule(rule) %}
+        {% if rule_data.type | upper == "MATCH" %}
+          {% include 'match-rule.html' %}
+        {% else %}
+          {% include 'generic-rule.html' %}
+        {% endif %}
+      {% endwith %}
+    {% endfor %}
+  </div>
+
+  {% include 'add-rule.html' %}
+</div>
