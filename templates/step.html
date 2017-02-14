@@ -1,16 +1,16 @@
-<div class="box step">
+<div class="box step {{'template' if not step}}">
   <div>
     <label>
-      Step Name
-      <input type="text" value="{{step.name}}">
+      Name
+      <input type="text" name="{{'step_name'}}" value="{{step.name if step}}">
     </label>
   </div>
   <div>
     <label>
       Authorized Functionaries
-      <select multiple>
+      <select name="step_keyid[]" multiple>
           {% for keyid in layout.keys %}
-          <option value="{{keyid}}" {{ "selected" if keyid in step.pubkeys }}>
+          <option value="{{keyid}}" {{ "selected" if step and keyid in step.pubkeys }}>
             {{ keyid | truncate(9, True)}}</option>
           {% endfor %}
       </select>
@@ -19,10 +19,11 @@
   <div>
     <label>
       Expected Command
-      <input type="text" value="{{step.expected_command}}">
+      <input type="text" name="step_cmd" value="{{step.expected_command if step}}">
     </label>
   </div>
 
+  {#
   <h4>Material Rules</h4>
     {% with rules=step.material_matchrules %}
     {% include 'artifact_rules.html' %}
@@ -32,4 +33,6 @@
     {% with rules=step.product_matchrules %}
     {% include 'artifact_rules.html' %}
     {% endwith %}
+  #}
+  <button type="button" class="remove-step">Remove Step</button>
 </div>

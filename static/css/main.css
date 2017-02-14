@@ -1,5 +1,9 @@
 .box {
-  border: 1px solid grey;
+  border: 1px solid orange;
   padding: 5px 5px;
-  margin: 5px 5px;
+  margin: 5px 0;
+}
+
+.template {
+  display: none;
 }

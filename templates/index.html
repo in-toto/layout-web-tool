@@ -104,19 +104,26 @@
           </div>
 
           <h3>Steps</h3>
-
           <div id="step-container" class="box">
+            {# Note: If we include the step html outside of the for loop,
+            it won't have the step object in its context.
+            We use this to create a generic hidden step form template. #}
+            {% include 'step.html' %}
             {% for step in layout.steps %}
             {% include 'step.html' %}
             {% endfor %}
           </div>
+          <button type="button" class="add-step">Add Step</button>
 
           <h3>Inspections</h3>
           <div id="inspection-container" class="box">
+            {# Note: See note in #step-container #}
+            {% include 'inspection.html' %}
             {% for inspection in layout.inspect %}
             {% include 'inspection.html' %}
             {% endfor %}
           </div>
+          <button type="button" class="add-inspection">Add Inspection</button>
 
           {% if layout.signatures %}
           <h3>Layout signatures</h3>

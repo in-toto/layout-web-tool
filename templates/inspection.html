@@ -1,17 +1,17 @@
-<div class="box">
+<div class="box inspection {{'template' if not inspection}}">
   <div>
     <label>
-      Inspection Name
-      <input type="text" value="{{inspection.name}}">
+      Name
+      <input type="text" value="{{inspection.name if inspection}}">
     </label>
   </div>
   <div>
     <label>
-      Inspection Command
-      <input type="text" value="{{inspection.run}}">
+      Command
+      <input type="text" value="{{inspection.run if inspection}}">
     </label>
   </div>
-
+  {#
   <h4>Material Rules</h4>
     {% with rules=inspection.material_matchrules %}
     {% include 'artifact_rules.html' %}
@@ -21,4 +21,6 @@
     {% with rules=inspection.product_matchrules %}
     {% include 'artifact_rules.html' %}
     {% endwith %}
+  #}
+  <button type="button" class="remove-inspection">Remove Inspection</button>
 </div>
