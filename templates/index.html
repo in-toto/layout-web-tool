@@ -93,74 +93,17 @@
           </div>
 
           <h3>Steps</h3>
-          <div class="box">
+
+          <div id="step-container" class="box">
             {% for step in layout.steps %}
-            <div class="box">
-              <div>
-                <label>
-                  Step Name
-                  <input type="text" value="{{step.name}}">
-                </label>
-              </div>
-              <div>
-                <label>
-                  Authorized Functionaries
-                  <select multiple>
-                      {% for keyid in layout.keys %}
-                      <option value="{{keyid}}" {{ "selected" if keyid in step.pubkeys }}>
-                        {{ keyid | truncate(9, True)}}</option>
-                      {% endfor %}
-                  </select>
-                </label>
-              </div>
-              <div>
-                <label>
-                  Expected Command
-                  <input type="text" value="{{step.expected_command}}">
-                </label>
-              </div>
-
-              <h4>Material Rules</h4>
-                {% with rules=step.material_matchrules %}
-                {% include 'artifact_rules.html' %}
-                {% endwith %}
-
-              <h4>Product Rules</h4>
-                {% with rules=step.product_matchrules %}
-                {% include 'artifact_rules.html' %}
-                {% endwith %}
-
-            </div>
-          {% endfor %}
+            {% include 'step.html' %}
+            {% endfor %}
           </div>
 
           <h3>Inspections</h3>
-          <div class="box">
+          <div id="inspection-container" class="box">
             {% for inspection in layout.inspect %}
-            <div class="box">
-              <div>
-                <label>
-                  Inspection Name
-                  <input type="text" value="{{inspection.name}}">
-                </label>
-              </div>
-              <div>
-                <label>
-                  Inspection Command
-                  <input type="text" value="{{inspection.run}}">
-                </label>
-              </div>
-
-              <h4>Material Rules</h4>
-                {% with rules=inspection.material_matchrules %}
-                {% include 'artifact_rules.html' %}
-                {% endwith %}
-
-              <h4>Product Rules</h4>
-                {% with rules=inspection.product_matchrules %}
-                {% include 'artifact_rules.html' %}
-                {% endwith %}
-            </div>
+            {% include 'inspection.html' %}
             {% endfor %}
           </div>
 

@@ -1,0 +1,35 @@
+<div class="box step">
+  <div>
+    <label>
+      Step Name
+      <input type="text" value="{{step.name}}">
+    </label>
+  </div>
+  <div>
+    <label>
+      Authorized Functionaries
+      <select multiple>
+          {% for keyid in layout.keys %}
+          <option value="{{keyid}}" {{ "selected" if keyid in step.pubkeys }}>
+            {{ keyid | truncate(9, True)}}</option>
+          {% endfor %}
+      </select>
+    </label>
+  </div>
+  <div>
+    <label>
+      Expected Command
+      <input type="text" value="{{step.expected_command}}">
+    </label>
+  </div>
+
+  <h4>Material Rules</h4>
+    {% with rules=step.material_matchrules %}
+    {% include 'artifact_rules.html' %}
+    {% endwith %}
+
+  <h4>Product Rules</h4>
+    {% with rules=step.product_matchrules %}
+    {% include 'artifact_rules.html' %}
+    {% endwith %}
+</div>

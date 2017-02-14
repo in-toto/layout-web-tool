@@ -1,0 +1,24 @@
+<div class="box">
+  <div>
+    <label>
+      Inspection Name
+      <input type="text" value="{{inspection.name}}">
+    </label>
+  </div>
+  <div>
+    <label>
+      Inspection Command
+      <input type="text" value="{{inspection.run}}">
+    </label>
+  </div>
+
+  <h4>Material Rules</h4>
+    {% with rules=inspection.material_matchrules %}
+    {% include 'artifact_rules.html' %}
+    {% endwith %}
+
+  <h4>Product Rules</h4>
+    {% with rules=inspection.product_matchrules %}
+    {% include 'artifact_rules.html' %}
+    {% endwith %}
+</div>
