@@ -25,6 +25,7 @@ import hashlib
 import random
 import urllib
 import time
+import json
 import datetime
 import dateutil.relativedelta
 import dateutil.parser
@@ -84,6 +85,19 @@ def _session_layout_dir(session_id):
 def _session_pubkey_dir(session_id):
   return os.path.join(app.config["SESSIONS_DIR"],
       session_id, app.config["PUBKEYS_SUBDIR"])
+
+def _store_pubkey_to_session_dir(session_id, pubkey):
+  # We create our own name using the first six bytes of the pubkeys keyid
+  pubkey_name = pubkey["keyid"][:6] + ".pub"
+  pubkey_dir = _session_pubkey_dir(session_id)
+  pubkey_path = os.path.join(pubkey_dir, pubkey_name)
+  public_part = pubkey["keyval"]["public"]
+
+  with open(pubkey_path, "w") as fo_public:
+    fo_public.write(public_part.encode("utf-8"))
+
+  return pubkey_name
+
 
 @app.route("/")
 def index():
@@ -215,11 +229,29 @@ def upload_layout(session_id):
     flash("No file selected")
     return redirect(url_for("show_layout", session_id=session["id"]))
 
-  # TODO: We should check if the layout is an (empty/unfinished) layout
-  # TODO: store pubkeys to pubkeys file
-  layout_name = secure_filename(file.filename)
-  layout_path = os.path.join(layout_dir, layout_name)
-  file.save(layout_path)
+  # Check if the layout is an (empty/unfinished) layout
+  try:
+    layout_name = secure_filename(file.filename)
+    layout_path = os.path.join(layout_dir, layout_name)
+    layout = in_toto.models.layout.Layout.read(json.load(file))
+    layout.dump(layout_path)
+  except Exception as e:
+    flash("Uploaded file is not a layout - {}".format(e))
+    return redirect(url_for("show_layout", session_id=session["id"]))
+
+  # Store pubkeys to pubkeys dir
+  if layout.keys and isinstance(layout.keys, dict):
+    for keyid, key in layout.keys.iteritems():
+      try:
+        pubkey_name = _store_pubkey_to_session_dir(session["id"], key)
+      except Exception as e:
+        app.logger.warning(
+            "Tried to extracted pubkey from layout but failed - {}".format(
+            e))
+      else:
+        flash("Extracted public key '{}' from uploaded layout and added it"
+            " session directory. You can use this key now for all layouts."
+            .format(pubkey_name))
 
   return redirect(url_for("show_layout", session_id=session["id"],
       layout_name=layout_name))
@@ -245,14 +277,7 @@ def upload_pubkeys(session_id):
       continue
 
     try:
-      # We create our own name using the first six bytes of the pubkeys keyid
-      pubkey_name = pubkey["keyid"][:6] + ".pub"
-      pubkey_path = os.path.join(pubkey_dir, pubkey_name)
-      pubkey_file.seek(0)
-      pubkey_file.save(pubkey_path)
-      flash("Succesfully stored uploaded file '{0}' as {1}".format(
-          pubkey_file.filename, pubkey_name))
-
+      _store_pubkey_to_session_dir(session_id, pubkey)
     except Exception as e:
       app.logger.error("Could not save pubkey file '{0}' - '{1}'".format(
           pubkey_file.filename, e))

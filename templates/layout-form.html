@@ -22,7 +22,7 @@
         <label>
           Functionary Public Keys
           <select name="layout_keys" multiple>
-          {% for keyid in available_pubkeys + layout.keys.keys() %}
+          {% for keyid in available_pubkeys %}
             <option value="{{keyid}}"  {{ "selected" if keyid in layout.keys }}>{{keyid | truncate(9, True)}}</option>
           {% endfor %}
           </select>
