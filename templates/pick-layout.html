@@ -3,7 +3,7 @@
   <select name="layout_name">
     <option disabled selected>-- Chose a layout from your session directory to show and modify the contents. --</option>
     {% for available_layout in available_layouts %}
-    <option value="{{ available_layout | urlencode}}"
+    <option value="{{ available_layout }}"
         {{ "selected" if available_layout == layout_name}}>
       {{available_layout}}
     </option>

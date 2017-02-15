@@ -154,7 +154,7 @@ def show_layout(session_id):
     The layout page presents a selection list of files in the session
     directory, so that the user can chose a layout to show.
 
-    If a layout_name was specified as urlencoded GET parameter show_layout
+    If a layout_name was specified as GET parameter show_layout
     loads the layout file as in-toto Layout object and passes it to the
     template to display all parameters.
 
@@ -172,7 +172,7 @@ def show_layout(session_id):
   layout_name = None
 
   if request.args.get("layout_name"):
-    layout_name = urllib.unquote(request.args.get("layout_name"))
+    layout_name = request.args.get("layout_name")
 
   # Assume all files are layouts (sanatized on upload/create)
   available_layouts = os.listdir(layout_dir)
