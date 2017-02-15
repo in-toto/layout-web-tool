@@ -12,14 +12,14 @@ $(document).on("click", "button.add-step", function(evt) {
   // Query the template, clone it, remove the property that hid it
   // and append it to the correct target inside the form.
   $(".step.template").clone().removeClass("template")
-      .appendTo("#step-container");
+      .appendTo("#step-container-inner");
 });
 
 $(document).on("click", "button.add-inspection", function(evt) {
   // Query the template, clone it, remove the property that hid it
   // and append it to the correct target inside the form.
   $(".inspection.template").clone().removeClass("template")
-      .appendTo("#inspection-container");
+      .appendTo("#inspection-container-inner");
 });
 $(document).on("change", "select.add-rule", function(evt) {
   // Rule type must be one of
