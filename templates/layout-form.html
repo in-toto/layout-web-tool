@@ -1,27 +1,26 @@
-<h2>Layout</h2>
-<form  action="{{ url_for('save_layout', session_id=session_id) }}" method="POST" enctype="multipart/form-data">
+<h2>Edit Layout</h2>
+<form id="layout-form" action="{{ url_for('save_layout', session_id=session_id) }}" method="POST">
   <input type="submit" value="Save Layout">
-
-  <input type="hidden" name="layout_name" value="{{layout_name}}">
+  <input type="hidden" name="layout_name_old" value="{{layout_name}}">
   <div class="box">
       <div>
         <label>
           Layout Name
-          <input type="text" name="new_layout_name" value="{{layout_name}}"
+          <input type="text" name="layout_name_new" value="{{layout_name}}"
           placeholder="e.g.: 'root.layout'">
         </label>
       </div>
       <div>
         <label>
           Expiration Date
-          <input type="datetime-local" name="expires" value="{{layout.expires | zulu_to_html}}">
+          <input type="datetime-local" name="layout_expires" value="{{layout.expires | zulu_to_html}}">
         </label>
       </div>
 
       <div>
         <label>
           Functionary Public Keys
-          <select name="layout_keys" multiple>
+          <select name="layout_keyid[]" multiple>
           {% for keyid in available_pubkeys %}
             <option value="{{keyid}}"  {{ "selected" if keyid in layout.keys }}>{{keyid | truncate(9, True)}}</option>
           {% endfor %}

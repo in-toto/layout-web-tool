@@ -2,7 +2,7 @@
   <div>
     <label>
       Name
-      <input type="text" name="{{'step_name'}}" value="{{step.name if step}}">
+      <input type="text" name="step_name" value="{{step.name if step}}">
     </label>
   </div>
   <div>
@@ -24,14 +24,18 @@
   </div>
 
   <h4>Material Rules</h4>
+  <div class="material-rules">
     {% with rules=step.material_matchrules if step %}
     {% include 'rules.html' %}
     {% endwith %}
+  </div>
 
   <h4>Product Rules</h4>
+  <div class="product-rules">
     {% with rules=step.product_matchrules if step %}
     {% include 'rules.html' %}
     {% endwith %}
+  </div>
 
   <button type="button" class="remove-step">Remove Step</button>
 </div>

@@ -40,8 +40,6 @@ from flask import (Flask, render_template, session, redirect, url_for, request,
 from werkzeug.routing import BaseConverter, ValidationError
 from werkzeug.utils import secure_filename
 
-
-
 app = Flask(__name__, static_url_path="")
 
 app.config.update(dict(
@@ -51,6 +49,9 @@ app.config.update(dict(
     LAYOUT_SUBDIR="layouts",
     PUBKEYS_SUBDIR="pubkeys"
 ))
+
+
+PUBKEY_FILENAME = "{keyid:.6}.pub"
 
 class Md5HexValidator(BaseConverter):
   """Custom converter to validate if a string is an MD5 hexdigest. Used as
@@ -87,8 +88,8 @@ def _session_pubkey_dir(session_id):
       session_id, app.config["PUBKEYS_SUBDIR"])
 
 def _store_pubkey_to_session_dir(session_id, pubkey):
-  # We create our own name using the first six bytes of the pubkeys keyid
-  pubkey_name = pubkey["keyid"][:6] + ".pub"
+  # We create our own name using the first six bytes of the pubkey's keyid
+  pubkey_name = PUBKEY_FILENAME.format(keyid=pubkey["keyid"])
   pubkey_dir = _session_pubkey_dir(session_id)
   pubkey_path = os.path.join(pubkey_dir, pubkey_name)
   public_part = pubkey["keyval"]["public"]
@@ -327,34 +328,57 @@ def save_layout(session_id):
     Redirects to show layout page
 
   """
-  session_path = _session_path(session_id)
-  # Get new and old layout file name and create session paths
-  old_layout_name = secure_filename(request.form.get("layout_name"))
-  new_layout_name = secure_filename(request.form.get("new_layout_name"))
-  old_layout_path = os.path.join(session_path, old_layout_name)
-  new_layout_path = os.path.join(session_path, new_layout_name)
+  layout_dir = _session_layout_dir(session_id)
+  pubkey_dir = _session_pubkey_dir(session_id)
 
-  # Fetch other form properties
-  expires = request.form.get("expires")
+  json_data = request.form.get("json_data")
+  layout_dict = json.loads(json_data)
 
-  # Load layout from file
-  layout = in_toto.models.layout.Layout.read_from_file(old_layout_path)
+  # Extract non-in-toto conformant properties from the layout dictionary
+  layout_name_old = layout_dict.pop("layout_name_old")
+  layout_name_new = layout_dict.pop("layout_name_new")
+  layout_expires = layout_dict.pop("expires")
+  layout_pubkey_ids = layout_dict.pop("layout_pubkey_ids")
 
-  # Set attributes
-  expires_zulu_fmt = dateutil.parser.parse(expires).isoformat() + 'Z'
-  layout.expires = expires_zulu_fmt
+  # Create a list file paths where we expect the publickeys associated with
+  # the keyids we got posted
+  layout_pubkey_paths = []
+  for pubkey_id in layout_pubkey_ids:
+    pubkey_fn = PUBKEY_FILENAME.format(keyid=pubkey_id)
+    pubkey_path = os.path.join(pubkey_dir, pubkey_fn)
+    layout_pubkey_paths.append(pubkey_path)
 
-  # If the filename has changed, we can replace the old layout
-  if old_layout_path != new_layout_path:
-    layout.dump(new_layout_path)
-    os.remove(old_layout_path)
-    layout_name = new_layout_name
-  else:
-    layout.dump(old_layout_path)
-    layout_name = old_layout_name
+  # Load the public keys from the file paths created above into a key dictionary
+  # conformant with the layout's pubkeys property and assign it
+  layout_pubkeys = in_toto.util.import_rsa_public_keys_from_files_as_dict(
+      layout_pubkey_paths)
+  layout_dict["keys"] = layout_pubkeys
+
+
+  # Convert the passed timestamp into the required format
+  # NOTE: This is really something in-toto should do!!
+  expires_zulu_fmt = dateutil.parser.parse(layout_expires).isoformat() + 'Z'
+  layout_dict["expires"] = expires_zulu_fmt
+
+  # Create in-toto layout object from the dictionary
+  layout = in_toto.models.layout.Layout.read(layout_dict)
+
+  # Make filenames secure
+  layout_name_old = secure_filename(layout_name_old)
+  layout_name_new = secure_filename(layout_name_new)
+
+  # Store the new layout in the session's layout dir
+  layout_path_new = os.path.join(layout_dir, layout_name_new)
+  layout.dump(layout_path_new)
+
+  # If the file is actually new (differs from the old filename), we can
+  # remove the old file
+  if layout_name_new != layout_name_old:
+    layout_path_old = os.path.join(layout_dir, layout_name_old)
+    os.remove(layout_path_old)
 
   return redirect(url_for("show_layout", session_id=session["id"],
-      layout_name=layout_name))
+      layout_name=layout_name_new))
 
 
 @app.context_processor

@@ -2,24 +2,27 @@
   <div>
     <label>
       Name
-      <input type="text" value="{{inspection.name if inspection}}">
+      <input type="text" name="inspection_name" value="{{inspection.name if inspection}}">
     </label>
   </div>
   <div>
     <label>
       Command
-      <input type="text" value="{{inspection.run if inspection}}">
+      <input type="text" name="inspection_run" value="{{inspection.run if inspection}}">
     </label>
   </div>
   <h4>Material Rules</h4>
+  <div class="material-rules">
     {% with rules=inspection.material_matchrules if inspection %}
     {% include 'rules.html' %}
     {% endwith %}
-
+  </div>
   <h4>Product Rules</h4>
+  <div class="product-rules">
     {% with rules=inspection.product_matchrules if inspection %}
     {% include 'rules.html' %}
     {% endwith %}
-
+  </div>
   <button type="button" class="remove-inspection">Remove Inspection</button>
 </div>
+
