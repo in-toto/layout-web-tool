@@ -8,132 +8,17 @@
 </head>
 <body>
 
-  <noscript>
-      <style type="text/css">
-        .script-content {display: none;}
-        .noscript-content {display: block;}
-      </style>
-  </noscript>
-  <div class="noscript-content" style="display:none">
-    Please activate JavaScript in you browser settings, we are not going to do
-    anything stupid, promise!
-  </div>
+  {% include 'noscript.html' %}
   <div class="script-content">
     <h1>In-Toto Layout Tool</h1>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul class=flashes>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-
-    <div>
-      <h2>Unique URL to access your layout</h2>
-      <a href="{{ url_for('show_layout', session_id=session_id, _external=True) }}">
-        {{ url_for('show_layout', session_id=session_id, _external=True)}}
-      </a>
-    </div>
-
-    {% if layout_choices %}
-    <div>
-      <h2>Pick layout</h2>
-      <form action="{{ url_for('show_layout', session_id=session_id) }}" method="GET">
-        <select name="layout_name">
-          <option disabled selected>-- Chose a layout from your session directory to show and modify the contents. --</option>
-          {% for choice in layout_choices %}
-          <option value="{{ choice | urlencode}}"
-              {{ "selected" if choice == layout_name}}>{{choice}}</option>
-          {% endfor %}
-        </select>
-        <input type="submit" value="Pick Layout">
-      </form>
-    </div>
-    {% endif %}
-
-    <div>
-      <h2>Upload layout</h2>
-      <form action="{{ url_for('upload_layout', session_id=session_id) }}"
-          method="POST" enctype=multipart/form-data>
-        <input type="file" name="layout-file">
-        <input type="submit" value="Upload Layout">
-      </form>
-    </div>
-
-    <div>
-      <h2>Create layout</h2>
-      <form action="{{ url_for('add_layout', session_id=session_id) }}" method="POST">
-        <input type="submit" value="Create Layout">
-      </form>
-    </div>
-
-    <h2>Layout</h2>
-
+    {% include 'messages.html' %}
+    {% include 'session.html' %}
+    {% include 'pick-layout.html' %}
+    {% include 'upload-layout.html' %}
+    {% include 'create-layout.html' %}
     {% if layout %}
-    <form  action="{{ url_for('save_layout', session_id=session_id) }}" method="POST" enctype="multipart/form-data">
-      <input type="submit" value="Save Layout">
-
-      <input type="hidden" name="layout_name" value="{{layout_name}}">
-      <div class="box">
-          <div>
-            <label>
-              Layout Name
-              <input type="text" name="new_layout_name" value="{{layout_name}}"
-              placeholder="e.g.: 'root.layout'">
-            </label>
-          </div>
-          <div>
-            <label>
-              Expiration Date
-              <input type="datetime-local" name="expires" value="{{layout.expires | zulu_to_html}}">
-            </label>
-          </div>
-
-          <div>
-            <label>
-              Functionary Public Keys
-              <ul>
-              {% for keyid in layout.keys %}
-                <li>{{ keyid | truncate(9, True) }}</li>
-              {% endfor %}
-              </ul>
-              <input type="file" name="pubkey[]" multiple>
-            </label>
-          </div>
-
-          <h3>Steps</h3>
-          <div class="step-container box">
-            <div id="step-container-inner">
-              {% for step in layout.steps %}
-              {% include 'step.html' %}
-              {% endfor %}
-            </div>
-          <button type="button" class="add-step">Add Step</button>
-          </div>
-
-          <h3>Inspections</h3>
-          <div class="inspection-container box">
-            <div id="inspection-container-inner">
-              {% for inspection in layout.inspect %}
-              {% include 'inspection.html' %}
-              {% endfor %}
-            </div>
-            <button type="button" class="add-inspection">Add Inspection</button>
-          </div>
-          {#
-          {% if layout.signatures %}
-          <h3>Layout signatures</h3>
-            {% for signature in layout.signatures %}
-              <div>{{signature["keyid"]}}</div>
-            {% endfor %}
-          {% endif %}
-          #}
-      </div>
-      <input type="submit" value="Save Layout">
-    </form>
-    {% include 'clone-templates.html' %}
+      {% include 'layout-form.html' %}
+      {% include 'clone-templates.html' %}
     {% endif %}
   </div>
 </body>
