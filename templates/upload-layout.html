@@ -1,6 +1,6 @@
-<h2>Upload layout</h2>
+<h2>Upload Layout</h2>
 <form action="{{ url_for('upload_layout', session_id=session_id) }}"
-    method="POST" enctype=multipart/form-data>
-  <input type="file" name="layout-file">
+    method="POST" enctype="multipart/form-data">
+  <input type="file" name="layout_file">
   <input type="submit" value="Upload Layout">
 </form>

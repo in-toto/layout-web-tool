@@ -1,10 +1,12 @@
-<h2>Pick layout</h2>
+<h2>Pick Layout</h2>
 <form action="{{ url_for('show_layout', session_id=session_id) }}" method="GET">
   <select name="layout_name">
     <option disabled selected>-- Chose a layout from your session directory to show and modify the contents. --</option>
-    {% for choice in layout_choices %}
-    <option value="{{ choice | urlencode}}"
-        {{ "selected" if choice == layout_name}}>{{choice}}</option>
+    {% for available_layout in available_layouts %}
+    <option value="{{ available_layout | urlencode}}"
+        {{ "selected" if available_layout == layout_name}}>
+      {{available_layout}}
+    </option>
     {% endfor %}
   </select>
   <input type="submit" value="Pick Layout">

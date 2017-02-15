@@ -21,12 +21,11 @@
       <div>
         <label>
           Functionary Public Keys
-          <ul>
-          {% for keyid in layout.keys %}
-            <li>{{ keyid | truncate(9, True) }}</li>
+          <select name="layout_keys" multiple>
+          {% for keyid in available_pubkeys + layout.keys.keys() %}
+            <option value="{{keyid}}"  {{ "selected" if keyid in layout.keys }}>{{keyid | truncate(9, True)}}</option>
           {% endfor %}
-          </ul>
-          <input type="file" name="pubkey[]" multiple>
+          </select>
         </label>
       </div>
 
