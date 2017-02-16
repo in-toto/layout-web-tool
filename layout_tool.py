@@ -50,9 +50,15 @@ app.config.update(dict(
     PUBKEYS_SUBDIR="pubkeys"
 ))
 
-
 PUBKEY_FILENAME = "{keyid:.6}.pub"
 
+
+
+
+
+# -----------------------------------------------------------------------------
+# URL MAP converters
+# -----------------------------------------------------------------------------
 class Md5HexValidator(BaseConverter):
   """Custom converter to validate if a string is an MD5 hexdigest. Used as
   validator for session ids in paths.
@@ -74,8 +80,15 @@ class Md5HexValidator(BaseConverter):
       return str(value)
 
 # Add custom converter (validator)
-app.url_map.converters['md5'] = Md5HexValidator
+app.url_map.converters["md5"] = Md5HexValidator
 
+
+
+
+
+# -----------------------------------------------------------------------------
+# Helper Functions
+# -----------------------------------------------------------------------------
 def _session_path(session_id):
   return os.path.join(app.config["SESSIONS_DIR"], session_id)
 
@@ -100,6 +113,52 @@ def _store_pubkey_to_session_dir(session_id, pubkey):
   return pubkey_name
 
 
+
+
+
+# -----------------------------------------------------------------------------
+# Context Processors
+# -----------------------------------------------------------------------------
+@app.context_processor
+def in_toto_processor():
+  def unpack_rule(rule):
+    """
+    <Purpose>
+      Adds in_toto unpack_rule as tag to the template engine, use like:
+      {{ unpack_rule(rule) }}
+
+    <Arguments>
+      rule:
+              In-toto artifact rule in list format
+              cf. in_toto.artifact_rules.unpack_rule
+
+    <Returns>
+      Returns rule_data cf. in_toto.artifact_rules.unpack_rule
+
+    """
+    return in_toto.artifact_rules.unpack_rule(rule)
+  return dict(unpack_rule=unpack_rule)
+
+
+
+
+# -----------------------------------------------------------------------------
+# Template Filters
+# -----------------------------------------------------------------------------
+@app.template_filter("zulu_to_html")
+def _zulu_to_html(date):
+  """Converts Zulu datetime object to "yyyy-MM-ddThh:mm as required by
+  HTML widget. """
+  datetime = dateutil.parser.parse(date)
+  return datetime.strftime("%Y-%m-%dT%H:%M")
+
+
+
+
+
+# -----------------------------------------------------------------------------
+# Views
+# -----------------------------------------------------------------------------
 @app.route("/")
 def index():
   """
@@ -306,7 +365,7 @@ def add_layout(session_id):
   # Cf. https://github.com/in-toto/in-toto/issues/36
   layout.expires = (datetime.datetime.today()
       + dateutil.relativedelta.relativedelta(months=1)
-      ).isoformat() + 'Z'
+      ).isoformat() + "Z"
 
   layout_path = os.path.join(layout_dir, layout_name)
   layout.dump(layout_path)
@@ -357,7 +416,7 @@ def save_layout(session_id):
 
   # Convert the passed timestamp into the required format
   # NOTE: This is really something in-toto should do!!
-  expires_zulu_fmt = dateutil.parser.parse(layout_expires).isoformat() + 'Z'
+  expires_zulu_fmt = dateutil.parser.parse(layout_expires).isoformat() + "Z"
   layout_dict["expires"] = expires_zulu_fmt
 
   # Create in-toto layout object from the dictionary
@@ -380,34 +439,11 @@ def save_layout(session_id):
   return redirect(url_for("show_layout", session_id=session["id"],
       layout_name=layout_name_new))
 
-
-@app.context_processor
-def in_toto_processor():
-  def unpack_rule(rule):
-    """
-    <Purpose>
-      Adds in_toto unpack_rule as tag to the template engine, use like:
-      {{ unpack_rule(rule) }}
-
-    <Arguments>
-      rule:
-              In-toto artifact rule in list format
-              cf. in_toto.artifact_rules.unpack_rule
-
-    <Returns>
-      Returns rule_data cf. in_toto.artifact_rules.unpack_rule
-
-    """
-    return in_toto.artifact_rules.unpack_rule(rule)
-  return dict(unpack_rule=unpack_rule)
+@app.route("/<md5:session_id>/<string:layout>/", methods=["GET"])
 
 
-@app.template_filter('zulu_to_html')
-def _zulu_to_html(date):
-  """Converts Zulu datetime object to "yyyy-MM-ddThh:mm as required by
-  HTML widget. """
-  datetime = dateutil.parser.parse(date)
-  return datetime.strftime("%Y-%m-%dT%H:%M")
+
+
 
 if __name__ == "__main__":
   app.run()
