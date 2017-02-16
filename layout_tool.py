@@ -36,7 +36,7 @@ import in_toto.util
 import securesystemslib.keys
 
 from flask import (Flask, render_template, session, redirect, url_for, request,
-    flash)
+    flash, send_from_directory)
 from werkzeug.routing import BaseConverter, ValidationError
 from werkzeug.utils import secure_filename
 
@@ -66,7 +66,7 @@ class Md5HexValidator(BaseConverter):
   BaseConverter. """
   def to_python(self, value):
     try:
-      # MD5 Hex Digests  should 32 byte long
+      # MD5 Hex Digests must be 32 byte long
       if len(value) != 32:
         raise ValueError
       # and hex
@@ -79,8 +79,19 @@ class Md5HexValidator(BaseConverter):
   def to_url(self, value):
       return str(value)
 
-# Add custom converter (validator)
+
+class FileNameConverter(BaseConverter):
+  """Custom converter for file names in the URL path (quote/unquote)"""
+
+  def to_python(self, value):
+    return secure_filename(urllib.unquote(value))
+
+  def to_url(self, value):
+    return urllib.quote(value)
+
+# Add custom converter/validator
 app.url_map.converters["md5"] = Md5HexValidator
+app.url_map.converters["layout"] = FileNameConverter
 
 
 
@@ -439,8 +450,14 @@ def save_layout(session_id):
   return redirect(url_for("show_layout", session_id=session["id"],
       layout_name=layout_name_new))
 
-@app.route("/<md5:session_id>/<string:layout>/", methods=["GET"])
 
+@app.route("/<md5:session_id>/<layout:layout_name>/download", methods=["GET"])
+def download_layout(session_id, layout_name):
+  """Serves layout with layout name from session directory as attachement
+  (Content-Disposition: attachment). """
+
+  layout_dir = _session_layout_dir(session_id)
+  return send_from_directory(layout_dir, layout_name, as_attachment=True)
 
 
 
