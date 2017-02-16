@@ -1,7 +1,6 @@
 <h2>Edit Layout</h2>
-<form id="layout-form" action="{{ url_for('save_layout', session_id=session_id) }}" method="POST">
+<form id="layout-form" action="{{ url_for('save_layout', session_id=session_id, layout_name=layout_name) }}" method="POST">
   <input type="submit" value="Save Layout">
-  <input type="hidden" name="layout_name_old" value="{{layout_name}}">
   <div class="box">
       <div>
         <label>

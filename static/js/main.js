@@ -105,8 +105,6 @@ var jsonify_inspection = function($inspection) {
  *
  * The returned json_data contains some additional fields that are not
  * in-toto layout conformant and will be removed/replaced on server side:
- *   - layout_name_old:
- *          the current file name of the layout
  *   - layout_name_new:
  *          the new file name of the layout (if changed)
  *   - layout_pubkey_ids:
@@ -121,7 +119,6 @@ var jsonify_layout = function($form) {
   var data = {};
 
   // Find and assign simple text input values
-  data.layout_name_old = $form.find("input[name='layout_name_old']").val();
   data.layout_name_new = $form.find("input[name='layout_name_new']").val();
   data.expires = $form.find("input[name='layout_expires']").val();
 

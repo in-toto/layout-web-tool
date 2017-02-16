@@ -7,5 +7,6 @@
 <form action="{{ url_for('upload_pubkeys', session_id=session_id) }}"
     method="POST" enctype="multipart/form-data">
   <input type="file" name="pubkey_file[]" multiple>
+  <input type="hidden" name="layout_name" value="{{layout_name if layout_name}}">
   <input type="submit" value="Upload Public Keys">
 </form>
