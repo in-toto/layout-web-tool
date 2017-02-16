@@ -1,4 +1,12 @@
 <h2>Upload Public Keys</h2>
+
+<div class="code-snippet">
+Use in-toto in a Python interpreter to create keypairs.
+  <pre>
+  >>> from in_toto.util import generate_and_write_rsa_keypair
+  >>> generate_and_write_rsa_keypair("alice", password="123456")
+  </pre>
+</div>
 {% for available_key in available_pubkeys %}
   <ul>
     <li>{{available_key}}</li>
