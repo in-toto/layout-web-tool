@@ -43,11 +43,8 @@ var jsonify_step = function($step) {
   data.name = $step.find("input[name='step_name']").val();
   data.expected_command = $step.find("input[name='step_cmd']").val();
 
-  // Iterate over selected step keyids and assign created array
-  data.pubkeys = $step.find("select[name='step_keyid[]'] option:selected")
-      .map(function() {
-        return $(this).val();
-  }).toArray();
+  // Returns the selected keyids or an empty array.
+  data.pubkeys = $step.find("select[name='step_keyid[]']").val()
 
   // Iterate over material rule form groups and assign created array of
   // material rule arrays
