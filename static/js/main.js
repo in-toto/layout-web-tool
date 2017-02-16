@@ -230,6 +230,7 @@ $(document).on("click", "button.add-rule", function(evt) {
       .appendTo($target);
 });
 
+
 // Register click listener to remove dynamic nested form elements
 // Find container element and remove it.
 $(document).on("click", "button.remove-step", function(evt){
@@ -241,6 +242,39 @@ $(document).on("click", "button.remove-inspection", function(evt){
 $(document).on("click", "button.remove-rule", function(evt){
   $(this).closest(".rule").remove();
 });
+
+
+// Register change listener to update step pubkey options
+// on pubkey select/de-select in layout
+$(document).on("change", "select[name='layout_keyid[]']", function(evt){
+
+  // Get the currently selected layout pubkey option elements
+  // Only those should be available in the step pubkeys selection
+  var $layout_pubkey_options = $(evt.target).find("option:selected");
+
+  // Iterate over all steps' pubkeys selections and replace the options
+  // (without losing existing selections)
+  $("select[name='step_keyid[]']").each(function(){
+
+    // Cache the selected pubkeys
+    var selected_pubkeys = $(this).val();
+
+    // Replace the selects options with a reset clone of the
+    // layout_pubkey_options
+    $(this).html(
+      $layout_pubkey_options
+        .clone()
+        .prop("selected", false)
+    );
+
+    // And finally re-apply the selections
+    // Vals that are no longer there are ignored
+    $(this).val(selected_pubkeys);
+
+  });
+
+});
+
 
 /*
  * Register layout form submit listener to intercept vanilla form post
