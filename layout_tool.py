@@ -41,7 +41,7 @@ from flask import (Flask, render_template, session, redirect, url_for, request,
 from werkzeug.routing import BaseConverter, ValidationError
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__, static_url_path="")
+app = Flask(__name__, static_url_path="", instance_relative_config=True)
 
 app.config.update(dict(
     DEBUG=True,
@@ -50,6 +50,10 @@ app.config.update(dict(
     LAYOUT_SUBDIR="layouts",
     PUBKEYS_SUBDIR="pubkeys"
 ))
+
+# Supply a config file at "instance/config.py" that carries e.g. your deployment
+# secret key
+app.config.from_pyfile("config.py")
 
 PUBKEY_FILENAME = "{keyid:.6}.pub"
 
