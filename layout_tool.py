@@ -35,8 +35,9 @@ import in_toto.artifact_rules
 import in_toto.util
 import securesystemslib.keys
 
+from functools import wraps
 from flask import (Flask, render_template, session, redirect, url_for, request,
-    flash, send_from_directory)
+    flash, send_from_directory, abort)
 from werkzeug.routing import BaseConverter, ValidationError
 from werkzeug.utils import secure_filename
 
@@ -168,16 +169,25 @@ def _zulu_to_html(date):
 
 
 # -----------------------------------------------------------------------------
-# Views
+# View Decorator
 # -----------------------------------------------------------------------------
-@app.route("/")
-def index():
-  """
-  <Purpose>
-    Index page for layout creation tool.
-    If it is a new session we create a session id -- md5 hexdigest of random
-    value -- and a directory for this session, which will be used to store
-    layout files.
+def session_exists(wrapped_func):
+  """Checks if the session a user tries to access actually exists (the
+  directories have been created), returns 404 if not. """
+  @wraps(wrapped_func)
+  def decorated_function(*args, **kwargs):
+
+    session_id = kwargs.get("session_id")
+    layout_dir = _session_layout_dir(session_id)
+    pubkey_dir = _session_pubkey_dir(session_id)
+
+    if not (os.path.isdir(layout_dir) and os.path.isdir(pubkey_dir)):
+      abort(404)
+
+    # Let's up date the session id just in case
+    session["id"] = session_id
+    return wrapped_func(*args, **kwargs)
+  return decorated_function
 
     Redirect to show layout view with session path.
 
