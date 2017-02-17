@@ -1,16 +1,18 @@
-<h2>Upload Public Keys</h2>
 
-<div class="code-snippet">
-Use in-toto in a Python interpreter to create keypairs.
-  <pre>
-  >>> from in_toto.util import generate_and_write_rsa_keypair
-  >>> generate_and_write_rsa_keypair("alice", password="123456")
-  </pre>
+<div>
+Make sure you have <a href="https://github.com/in-toto/in-toto/tree/artifact-rules">in-toto installed</a> and fire up a Python interpreter to create project owner and functionary key pairs, you will need those key pairs to sign your layout (project owner private key) and to authorize roles to carry out the steps you of your supply chain:
 </div>
+<pre class="code">
+>>> from in_toto.util import generate_and_write_rsa_keypair
+>>> generate_and_write_rsa_keypair("alice", password="123456")
+</pre>
+<h3>Uploaded public keys</h3>
+<div>Select them in the form below to include them in your layout.</div>
 {% for available_key in available_pubkeys %}
-  <ul>
-    <li>{{available_key}}</li>
-  </ul>
+<ul>
+  <li>{{available_key}}</li>
+</ul>
+
 {% endfor %}
 <form action="{{ url_for('upload_pubkeys', session_id=session_id) }}"
     method="POST" enctype="multipart/form-data">

@@ -1,10 +1,11 @@
+<div class="description">
+You are almost there, download the in-toto layout, sign it with your project owner privat key and you are good to go.
+
 <form action="{{ url_for('download_layout', session_id=session_id, layout_name=layout_name) }}" method="GET">
     <input type="submit" value="Download Layout">
 </form>
 
-<div class="code-snippet">
-Don't forget to sign the downloaded layout with you project owner private key.
-<pre>
+<pre class="code">
 >>> from in_toto.models.layout import Layout
 >>> from in_toto.util import import_rsa_key_from_file
 >>> layout = Layout.read_from_file("root.layout")

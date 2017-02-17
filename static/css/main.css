@@ -1,8 +1,68 @@
-.box {
-  border: 1px solid orange;
-  padding: 5px 5px;
-  margin: 10px 0 20px;
+html, body, div, p, span {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background-color: transparent;
+  letter-spacing: 0.5pt;
+  font-size: 10pt;
+  vertical-align: baseline;
+  text-decoration: none;
+  color: #3d4a5c;
+  font-family: 'Calibri', 'Myriad Pro', 'Lucida Grande', 'Lucida Sans', Verdana, sans-serif;
 }
+
+.head {
+  background: #67798d;
+  padding: 20px 40px;
+  height: 100px;
+}
+
+h1 {
+  color: white;
+  font-size: 25pt;
+}
+
+h2 {
+  margin: 60px 0 10px;
+  font-size: 16pt;
+  border-bottom: 1px solid;
+  border-color: #3d4a5c #3d4a5c;
+}
+
+h3 {
+  font-size: 14px;
+}
+
+h4 {
+  font-size: 12px;
+}
+
+.content {
+  display: block;
+  margin: 20px 40px;
+}
+
+.center {
+  margin: auto;
+  width: 60%;
+}
+
+.code {
+    box-shadow: 0 1px 1px grey;
+    background-color: #f2f2f2;
+    padding: 20px 40px;
+}
+.session {
+  box-shadow: 0 1px 2px #eee;
+  background-color: #fdf3d0;
+  border: 1px solid #f7e7ad;
+  padding: 10px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-all;
+  text-align: center;
+}
+
 
 .template {
   display: none;
