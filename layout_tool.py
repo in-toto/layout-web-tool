@@ -189,38 +189,47 @@ def session_exists(wrapped_func):
     return wrapped_func(*args, **kwargs)
   return decorated_function
 
-    Redirect to show layout view with session path.
 
-  <Side Effects>
-    Creates session directory and subdirs for layouts and pubkeys
-    if the session is new
 
-  <Returns>
-    Redirects to show layout page
 
-  """
 
-  # Redirect to existing or new session page
+# -----------------------------------------------------------------------------
+# Views
+# -----------------------------------------------------------------------------
+@app.route("/")
+def index():
+  """Entry point for layout creation tool.
+  If the user has an ongoing session we redirect to the session page, where
+  s/he can access uploaded or created layouts and keys. Otherwise we create a
+  session directory with layouts and pubkeys subdirectories. """
+
+  # This is a new session so we have to create an id and some directories
   if not session.get("id"):
     # Sessions use a MD5 hexdigest of a random value
     # Security is not paramount, because we don't store sensitive data, right?
-    session["id"] = hashlib.md5(str(random.random())).hexdigest()
-    app.logger.debug("New session '{}'".format(session["id"]))
+    session_id = hashlib.md5(str(random.random())).hexdigest()
 
-    # Create new session directory where we store the layout
-    session_path = _session_path(session["id"])
-    layout_path = _session_path(session["id"])
-    app.logger.debug("Create session dir and subdirs '{}'".format(
-        session_path))
+    # Assign the id to the user's session variable
+    session["id"] = session_id
+    app.logger.info("New session '{}'".format(session_id))
 
     try:
-      os.mkdir(_session_path(session["id"]))
-      os.mkdir(_session_layout_dir(session["id"]))
-      os.mkdir(_session_pubkey_dir(session["id"]))
+      # Create new session directory where we store layouts and pubkeys
+      app.logger.info("Creating session dir and subdirs for '{}'".format(
+          session_id))
+      os.mkdir(_session_path(session_id))
+      os.mkdir(_session_layout_dir(session_id))
+      os.mkdir(_session_pubkey_dir(session_id))
+
     except Exception as e:
-      msg = "Could not create directory for session '{0}' - {1}".format(
-          session["id"], e)
+      msg = ("Could not create session directories for '{0}'"
+          " - Error: {1}".format(session_id, e))
       app.logger.error(msg)
+      abort(500, msg)
+
+    else:
+      msg = "Successfully created new in-toto layout session!"
+      app.logger.info(msg)
       flash(msg)
 
   return redirect(url_for("edit_layout", session_id=session["id"]))
@@ -228,6 +237,7 @@ def session_exists(wrapped_func):
 
 @app.route("/<md5:session_id>/", defaults={"layout_name": None}, methods=["GET"])
 @app.route("/<md5:session_id>/<layout:layout_name>", methods=["GET"])
+@session_exists # Returns 404 if the directories are not there
 def edit_layout(session_id, layout_name):
   """ Main page shows:
   - session link
@@ -236,24 +246,23 @@ def edit_layout(session_id, layout_name):
   - create new layout
   - layout form (if a layout_name was specified as path or query parameter)
   """
-  # We accept also the layout_name as query param, e.g.: when sent through the
-  # select layout form. But then we redirect to the view using it as path param.
+
+  # We accept the layout_name also as query param, e.g.: when sent through the
+  # select layout form, but then we redirect to the view using it as path param.
   # Why? Because it looks better and because we can.
   if request.args.get("layout_name"):
     return redirect(url_for('edit_layout', session_id=session_id,
         layout_name=request.args.get("layout_name")))
 
-  # Override session, if someone calls a session url explicitly
-  session["id"] = session_id
   layout_dir = _session_layout_dir(session_id)
   pubkey_dir = _session_pubkey_dir(session_id)
 
   layout = None
 
-  # Assume all files are layouts (sanatized on upload/create)
+  # Assume all files are layouts (sanitized on upload/create)
   available_layouts = os.listdir(layout_dir)
 
-  # Assume all files are pubkeys (sanatized on upload)
+  # Assume all files are pubkeys (sanitized on upload)
   available_pubkeys = []
   for pubkey_name in os.listdir(pubkey_dir):
     try:
@@ -262,7 +271,7 @@ def edit_layout(session_id, layout_name):
       available_pubkeys.append(key["keyid"])
 
     except Exception as e:
-      app.logger.debug("Ignoring wrong format pubkey '{0}' - {1}".format(
+      app.logger.info("Ignoring wrong format pubkey '{0}' - {1}".format(
           pubkey_name, e))
       continue
 
@@ -273,7 +282,7 @@ def edit_layout(session_id, layout_name):
       layout = in_toto.models.layout.Layout.read_from_file(layout_path)
     except Exception as e:
       msg = "Could not read layout '{0}' - {1}".format(layout_path, e)
-      app.logger.error(msg)
+      app.logger.warning(msg)
       flash(msg)
 
   return render_template("index.html",
@@ -283,183 +292,248 @@ def edit_layout(session_id, layout_name):
 
 
 @app.route("/<md5:session_id>/upload-layout", methods=["POST"])
+@session_exists
 def upload_layout(session_id):
-  """
-  <Purpose>
-    Adds a posted layout to the session directory and redirects to show
-    layout passing the layout name as parameter.
+  """Receives a form posted layout file and stores it to the session directory,
+  redirects to the edit form for the uploaded layout. """
 
-  <Returns>
-    Redirects to show layout page
-
-  """
   layout_dir = _session_layout_dir(session_id)
   layout_name = None
 
+  # Check if the post request has the file part
   if "layout_file" not in request.files:
-    flash("No file sent")
-    return redirect(url_for("edit_layout", session_id=session["id"]))
+    msg = "Could not store uploaded file - No file uploaded"
+    app.logger.error(msg)
+    flash(msg)
+    return redirect(url_for("edit_layout", session_id=session_id))
 
   file = request.files["layout_file"]
-  if file.filename == "":
-    flash("No file selected")
-    return redirect(url_for("edit_layout", session_id=session["id"]))
 
-  # Check if the layout is an (empty/unfinished) layout
+  # If user does not select file, browser also
+  # submit a empty part without filename
+  if file.filename == "":
+    msg = "Could not store uploaded file - No file selected"
+    app.logger.error(msg)
+    flash(msg)
+    return redirect(url_for("edit_layout", session_id=session_id))
+
+  # Try reading the uploaded file as in-toto layout
   try:
     layout_name = secure_filename(file.filename)
     layout_path = os.path.join(layout_dir, layout_name)
     layout = in_toto.models.layout.Layout.read(json.load(file))
     layout.dump(layout_path)
-  except Exception as e:
-    flash("Uploaded file is not a layout - {}".format(e))
-    return redirect(url_for("edit_layout", session_id=session["id"]))
 
-  # Store pubkeys to pubkeys dir
+  except Exception as e:
+    msg = "Could not store uploaded file as in-toto layout - Error: {}".format(e)
+    app.logger.error(msg)
+    flash(msg)
+    return redirect(url_for("edit_layout", session_id=session_id))
+
+  # Extract public keys from uploaded layout and store them to the session dir
+  # Henceforth user can use the keys for other layouts too.
   if layout.keys and isinstance(layout.keys, dict):
     for keyid, key in layout.keys.iteritems():
       try:
-        pubkey_name = _store_pubkey_to_session_dir(session["id"], key)
+        pubkey_name = _store_pubkey_to_session_dir(session_id, key)
       except Exception as e:
-        app.logger.warning(
-            "Tried to extracted pubkey from layout but failed - {}".format(
-            e))
+        msg = ("Tried to extracted pubkey from layout but failed "
+            " - Error:  {}".format(e))
+        app.logger.error(msg)
+        flash(msg)
       else:
-        flash("Extracted public key '{}' from uploaded layout and added it"
-            " session directory. You can use this key now for all layouts."
+        msg = ("Extracted public key '{}' from uploaded layout and added it to"
+            " session directory. You can include the key now in all layouts."
             .format(pubkey_name))
+        app.logger.info(msg)
+        flash(msg)
 
-  return redirect(url_for("edit_layout", session_id=session["id"],
+  return redirect(url_for("edit_layout", session_id=session_id,
       layout_name=layout_name))
 
 
 @app.route("/<md5:session_id>/upload-pubkeys/", methods=["POST"])
+@session_exists
 def upload_pubkeys(session_id):
-  """
-  <Purpose>
-    Adds posted pub keys to the session directory
+  """Receives multiple form posted public key files and stores them to session
+  directory, so the user can add them to the created layout(s). If the user was
+  on an edit layout page, this view redirects to that layout.
 
-  """
+  TODO: if the user edited a layout and hasn't saved it, uploading keys will
+  override those saves. Maybe we should add a confirm/warning box or
+  autosafe? """
+
   pubkey_dir = _session_pubkey_dir(session_id)
   pubkey_files = request.files.getlist("pubkey_file[]")
   layout_name = request.form.get("layout_name", None)
 
+  # If nothing was uploaded abort early
+  if not pubkey_files:
+    msg = "Could not store uploaded file - No file uploaded"
+    app.logger.warning(msg)
+    flash(msg)
+    return redirect(url_for("edit_layout", session_id=session_id,
+        layout_name=layout_name))
+
+  # Iterate over uploaded files and try to store, don't abort but skip on error
   for pubkey_file in pubkey_files:
     try:
       pubkey = securesystemslib.keys.import_rsakey_from_public_pem(
           pubkey_file.read())
+      pubkey_name = _store_pubkey_to_session_dir(session_id, pubkey)
     except Exception as e:
-      app.logger.error("Could not parse uploaded pubkey file '{0}' - {1}".format(
-          pubkey_file.name, e))
-      continue
+      msg = ("Could not store uploaded file as in-toto public key '{0}'"
+          " - Error: {1}".format(pubkey_file.name, e))
+      app.logger.warning(msg)
+      flash(msg)
+    else:
+      msg = ("Added uploaded public key '{}' to session directory."
+            " You can include the key now in all layouts."
+            .format(pubkey_name))
+      app.logger.info(msg)
+      flash(msg)
 
-    try:
-      _store_pubkey_to_session_dir(session_id, pubkey)
-    except Exception as e:
-      app.logger.error("Could not save pubkey file '{0}' - '{1}'".format(
-          pubkey_file.filename, e))
-
-  return redirect(url_for("edit_layout", session_id=session["id"],
+  return redirect(url_for("edit_layout", session_id=session_id,
       layout_name=layout_name))
 
 
 @app.route("/<md5:session_id>/create-layout", methods=["POST"])
+@session_exists
 def create_layout(session_id):
-  """
-  <Purpose>
-    Adds a new empty layout with a default name to the session directory.
-    The name is "untitled-<unixtimestamp>.layout" and can be changed later.
-  <Returns>
-    Redirects to show layout page
+  """Creates and adds a new empty layout with a default name to the session
+  directory, redirects to the edit form for the created layout.
 
+  Name is "untitled-<unix-timestamp>.layout". It can be changed later.
   """
   layout_dir = _session_layout_dir(session_id)
 
   # A timestamped file name seems rather unique (for one session on one machine)
   layout_name = "untitled-" + str(time.time()).replace(".", "") + ".layout"
 
-  layout = in_toto.models.layout.Layout()
+  try:
+    layout = in_toto.models.layout.Layout()
+    # FIXME: Moving default setup to the layout constructor would be nicer
+    # Cf. https://github.com/in-toto/in-toto/issues/36
+    layout.expires = (datetime.datetime.today()
+        + dateutil.relativedelta.relativedelta(months=1)
+        ).isoformat() + "Z"
 
-  # FIXME: Moving default setup to the layout constructor would be nicer
-  # Cf. https://github.com/in-toto/in-toto/issues/36
-  layout.expires = (datetime.datetime.today()
-      + dateutil.relativedelta.relativedelta(months=1)
-      ).isoformat() + "Z"
+    layout_path = os.path.join(layout_dir, layout_name)
+    layout.dump(layout_path)
 
-  layout_path = os.path.join(layout_dir, layout_name)
-  layout.dump(layout_path)
-  flash("Successfully created new layout '{}'".format(layout_name))
+  except Exception as e:
+      msg = "Could not create new layout - Error: '{}'".format(e)
+      app.logger.error(msg)
+      flash(msg)
 
-  return redirect(url_for("edit_layout", session_id=session["id"],
+  else:
+    msg = "Successfully created new layout '{}'".format(layout_name)
+    app.logger.info(msg)
+    flash(msg)
+
+  return redirect(url_for("edit_layout", session_id=session_id,
       layout_name=layout_name))
 
 
 @app.route("/<md5:session_id>/<layout:layout_name>/save", methods=["POST"])
+@session_exists
 def save_layout(session_id, layout_name):
-  """
-  <Purpose>
-    Update layout with posted arguments.
-    Each time re-sends and re-writes the entire layout.
-    In case the file name is changed we delete the old filename.
+  """Receives form with one field, which is a stringified JSON object containing
+  an in-toto layout as edited by the user in the layout form, stores it as to
+  the session dir and redirects to the edit form.
 
-  <Returns>
-    Redirects to show layout page
+  The received layout can almost be stored as is, except for:
+    layout_name_new - we pop this property and use it as filename
+    expires - we have to convert the datetime to be in-toto conformant
+    layout_pubkey_ids - the posted layout object only contains pubkey_ids,
+        we have to load the actual keys from the sessions's pubkeys dir and
+        add them to the layout instead of the ids
+
+  NOTE:
+  Since the layout form is nested and dynamic the JSON approach is preferred over
+  keeping track of nested form data names. Which would require to increment
+  or decrement indices in the name attributes of input elements each time
+  we add or remove dynamic form elements.
 
   """
   layout_dir = _session_layout_dir(session_id)
   pubkey_dir = _session_pubkey_dir(session_id)
 
   json_data = request.form.get("json_data")
-  layout_dict = json.loads(json_data)
 
-  # Extract non-in-toto conformant properties from the layout dictionary
-  layout_name_new = layout_dict.pop("layout_name_new")
-  layout_expires = layout_dict.pop("expires")
-  layout_pubkey_ids = layout_dict.pop("layout_pubkey_ids")
+  try:
+    layout_dict = json.loads(json_data)
 
-  # Create a list file paths where we expect the publickeys associated with
-  # the keyids we got posted
-  layout_pubkey_paths = []
-  for pubkey_id in layout_pubkey_ids:
-    pubkey_fn = PUBKEY_FILENAME.format(keyid=pubkey_id)
-    pubkey_path = os.path.join(pubkey_dir, pubkey_fn)
-    layout_pubkey_paths.append(pubkey_path)
+    # Extract non-in-toto conformant properties from the layout dictionary
+    layout_name_new = layout_dict.pop("layout_name_new")
+    layout_expires = layout_dict.pop("expires")
+    layout_pubkey_ids = layout_dict.pop("layout_pubkey_ids")
 
-  # Load the public keys from the file paths created above into a key dictionary
-  # conformant with the layout's pubkeys property and assign it
-  layout_pubkeys = in_toto.util.import_rsa_public_keys_from_files_as_dict(
-      layout_pubkey_paths)
-  layout_dict["keys"] = layout_pubkeys
+    # Create a list file paths where we expect the publickeys associated with
+    # the keyids we got posted
+    layout_pubkey_paths = []
+    for pubkey_id in layout_pubkey_ids:
+      pubkey_fn = PUBKEY_FILENAME.format(keyid=pubkey_id)
+      pubkey_path = os.path.join(pubkey_dir, pubkey_fn)
+      layout_pubkey_paths.append(pubkey_path)
+
+    # Load the public keys from the file paths created above into a key
+    # dictionary conformant with the layout's pubkeys property and assign it
+    layout_pubkeys = in_toto.util.import_rsa_public_keys_from_files_as_dict(
+        layout_pubkey_paths)
+    layout_dict["keys"] = layout_pubkeys
 
 
-  # Convert the passed timestamp into the required format
-  # NOTE: This is really something in-toto should do!!
-  expires_zulu_fmt = dateutil.parser.parse(layout_expires).isoformat() + "Z"
-  layout_dict["expires"] = expires_zulu_fmt
+    # Convert the passed timestamp into the required format
+    # NOTE: This is really something in-toto should do!!
+    expires_zulu_fmt = dateutil.parser.parse(layout_expires).isoformat() + "Z"
+    layout_dict["expires"] = expires_zulu_fmt
 
-  # Create in-toto layout object from the dictionary
-  layout = in_toto.models.layout.Layout.read(layout_dict)
+    # Create in-toto layout object from the dictionary
+    layout = in_toto.models.layout.Layout.read(layout_dict)
 
-  # Make filenames secure
-  layout_name_new = secure_filename(layout_name_new)
+    # Make filenames secure
+    layout_name_new = secure_filename(layout_name_new)
 
-  # Store the new layout in the session's layout dir
-  layout_path_new = os.path.join(layout_dir, layout_name_new)
-  layout.dump(layout_path_new)
+    # Store the new layout in the session's layout dir
+    layout_path_new = os.path.join(layout_dir, layout_name_new)
+    layout.dump(layout_path_new)
 
-  # If the file is actually new (differs from the old filename), we can
-  # remove the old file
-  if layout_name_new != layout_name:
-    layout_path_old = os.path.join(layout_dir, layout_name)
-    os.remove(layout_path_old)
+  except Exception as e:
+    msg = "Could not update layout - Error: {}".format(e)
+    app.logger.error(msg)
+    flash(msg)
 
-  return redirect(url_for("edit_layout", session_id=session["id"],
+  else:
+    msg = "Successfully update layout as '{}' !".format(layout_name_new)
+    app.logger.info(msg)
+    flash(msg)
+
+    # If the file is actually new (differs from the old filename), we can
+    # remove the old file
+    if layout_name_new != layout_name:
+      try:
+        layout_path_old = os.path.join(layout_dir, layout_name)
+        os.remove(layout_path_old)
+
+      except Exception as e:
+        msg = "Could not remove old layout '{0}' - Error: {1}".format(layout_name,
+            e)
+        app.logger.error(msg)
+        flash(msg)
+
+      else:
+        msg = "Successfully removed old layout '{}' !".format(layout_name)
+        app.logger.info(msg)
+        flash(msg)
+
+  return redirect(url_for("edit_layout", session_id=session_id,
       layout_name=layout_name_new))
 
 
 @app.route("/<md5:session_id>/<layout:layout_name>/download", methods=["GET"])
 def download_layout(session_id, layout_name):
-  """Serves layout with layout name from session directory as attachement
+  """Serves layout with layout name from session directory as attachment
   (Content-Disposition: attachment). """
 
   layout_dir = _session_layout_dir(session_id)
