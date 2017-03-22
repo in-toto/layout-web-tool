@@ -13,7 +13,10 @@
   <div class="content">
     {% include 'noscript.html' %}
     <div class="script-content">
+      {#
+      Actually we do not need the session thing, people can just copy the URL
       {% include 'session.html' %}
+       #}
 
       {% include 'messages.html' %}
 
