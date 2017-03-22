@@ -48,7 +48,8 @@ app.config.update(dict(
     SECRET_KEY="do not use the development key in production!!!",
     SESSIONS_DIR=os.path.join(os.path.dirname(os.path.abspath(__file__)), "sessions"),
     LAYOUT_SUBDIR="layouts",
-    PUBKEYS_SUBDIR="pubkeys"
+    PUBKEYS_SUBDIR="pubkeys",
+    LINK_SUBDIR="links"
 ))
 
 # Supply a config file at "instance/config.py" that carries e.g. your deployment
@@ -115,6 +116,10 @@ def _session_layout_dir(session_id):
 def _session_pubkey_dir(session_id):
   return os.path.join(app.config["SESSIONS_DIR"],
       session_id, app.config["PUBKEYS_SUBDIR"])
+
+def _session_link_dir(session_id):
+  return os.path.join(app.config["SESSIONS_DIR"],
+      session_id, app.config["LINK_SUBDIR"])
 
 def _store_pubkey_to_session_dir(session_id, pubkey):
   # We create our own name using the first six bytes of the pubkey's keyid
@@ -184,8 +189,10 @@ def session_exists(wrapped_func):
     session_id = kwargs.get("session_id")
     layout_dir = _session_layout_dir(session_id)
     pubkey_dir = _session_pubkey_dir(session_id)
+    link_dir = _session_link_dir(session_id)
 
-    if not (os.path.isdir(layout_dir) and os.path.isdir(pubkey_dir)):
+    if not (os.path.isdir(layout_dir) and os.path.isdir(pubkey_dir) and
+      os.path.isdir(link_dir)):
       abort(404)
 
     # Let's up date the session id just in case
@@ -224,6 +231,7 @@ def index():
       os.mkdir(_session_path(session_id))
       os.mkdir(_session_layout_dir(session_id))
       os.mkdir(_session_pubkey_dir(session_id))
+      os.mkdir(_session_link_dir(session_id))
 
     except Exception as e:
       msg = ("Could not create session directories for '{0}'"
@@ -236,13 +244,17 @@ def index():
       app.logger.info(msg)
       flash(msg)
 
-  return redirect(url_for("edit_layout", session_id=session["id"]))
+  return redirect(url_for("layout_wizzard", session_id=session["id"]))
 
+@app.route("/<md5:session_id>/wizz", methods=["GET"])
+def layout_wizzard(session_id):
+  return render_template("base-wizzard.html", session_id=session_id,)
 
-@app.route("/<md5:session_id>/", defaults={"layout_name": None}, methods=["GET"])
-@app.route("/<md5:session_id>/<layout:layout_name>", methods=["GET"])
+# @app.route("/<md5:session_id>/", defaults={"layout_name": None}, methods=["GET"])
+@app.route("/<md5:session_id>/edit", defaults={"layout_name": None}, methods=["GET"])
+@app.route("/<md5:session_id>/<layout:layout_name>/edit", methods=["GET"])
 @session_exists # Returns 404 if the directories are not there
-def edit_layout(session_id, layout_name):
+def layout_editor(session_id, layout_name):
   """ Main page shows:
   - session link
   - select layout
@@ -255,7 +267,7 @@ def edit_layout(session_id, layout_name):
   # select layout form, but then we redirect to the view using it as path param.
   # Why? Because it looks better and because we can.
   if request.args.get("layout_name"):
-    return redirect(url_for('edit_layout', session_id=session_id,
+    return redirect(url_for('layout_editor', session_id=session_id,
         layout_name=request.args.get("layout_name")))
 
   layout_dir = _session_layout_dir(session_id)
@@ -289,7 +301,7 @@ def edit_layout(session_id, layout_name):
       app.logger.warning(msg)
       flash(msg)
 
-  return render_template("index.html",
+  return render_template("base-editor.html",
       session_id=session_id, layout=layout,
       layout_name=layout_name, available_layouts=available_layouts,
       available_pubkeys=available_pubkeys)
@@ -309,7 +321,7 @@ def upload_layout(session_id):
     msg = "Could not store uploaded file - No file uploaded"
     app.logger.error(msg)
     flash(msg)
-    return redirect(url_for("edit_layout", session_id=session_id))
+    return redirect(url_for("layout_editor", session_id=session_id))
 
   file = request.files["layout_file"]
 
@@ -319,7 +331,7 @@ def upload_layout(session_id):
     msg = "Could not store uploaded file - No file selected"
     app.logger.error(msg)
     flash(msg)
-    return redirect(url_for("edit_layout", session_id=session_id))
+    return redirect(url_for("layout_editor", session_id=session_id))
 
   # Try reading the uploaded file as in-toto layout
   try:
@@ -332,7 +344,7 @@ def upload_layout(session_id):
     msg = "Could not store uploaded file as in-toto layout - Error: {}".format(e)
     app.logger.error(msg)
     flash(msg)
-    return redirect(url_for("edit_layout", session_id=session_id))
+    return redirect(url_for("layout_editor", session_id=session_id))
 
   # Extract public keys from uploaded layout and store them to the session dir
   # Henceforth user can use the keys for other layouts too.
@@ -352,7 +364,7 @@ def upload_layout(session_id):
         app.logger.info(msg)
         flash(msg)
 
-  return redirect(url_for("edit_layout", session_id=session_id,
+  return redirect(url_for("layout_editor", session_id=session_id,
       layout_name=layout_name))
 
 
@@ -376,7 +388,7 @@ def upload_pubkeys(session_id):
     msg = "Could not store uploaded file - No file uploaded"
     app.logger.warning(msg)
     flash(msg)
-    return redirect(url_for("edit_layout", session_id=session_id,
+    return redirect(url_for("layout_editor", session_id=session_id,
         layout_name=layout_name))
 
   # Iterate over uploaded files and try to store, don't abort but skip on error
@@ -397,7 +409,7 @@ def upload_pubkeys(session_id):
       app.logger.info(msg)
       flash(msg)
 
-  return redirect(url_for("edit_layout", session_id=session_id,
+  return redirect(url_for("layout_editor", session_id=session_id,
       layout_name=layout_name))
 
 
@@ -435,7 +447,7 @@ def create_layout(session_id):
     app.logger.info(msg)
     flash(msg)
 
-  return redirect(url_for("edit_layout", session_id=session_id,
+  return redirect(url_for("layout_editor", session_id=session_id,
       layout_name=layout_name))
 
 
@@ -531,7 +543,7 @@ def save_layout(session_id, layout_name):
         app.logger.info(msg)
         flash(msg)
 
-  return redirect(url_for("edit_layout", session_id=session_id,
+  return redirect(url_for("layout_editor", session_id=session_id,
       layout_name=layout_name_new))
 
 

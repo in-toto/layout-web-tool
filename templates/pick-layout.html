@@ -1,4 +1,4 @@
-<form action="{{ url_for('edit_layout', session_id=session_id) }}" method="GET">
+<form action="{{ url_for('layout_editor', session_id=session_id) }}" method="GET">
   <select name="layout_name">
     <option disabled selected>-- Chose a layout from your session directory to show and modify the contents. --</option>
     {% for available_layout in available_layouts %}
