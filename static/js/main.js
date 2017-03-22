@@ -291,8 +291,22 @@ $("#layout-form").on("submit", function(evt) {
 
   // Create an in-toto layout from the user inputs ...
   var layout_json = jsonify_layout($(this));
-  console.log(layout_json)
 
   // ... and submit the stringified JSON data.
   submit_layout_as_json($(this), layout_json);
+})
+
+
+/*
+ * Register listener on wizard step name text input field to update
+ * code copy-paste sample.
+ */
+$(document).on("keyup", ".wiz-step input.wiz-step-name", function(evt){
+  var step_name = $(this).val();
+  var $dest = $(this).parent(".wiz-step").find(".code span")
+  if (step_name) {
+    $dest.text(step_name);
+  } else {
+    $dest.text($(this).attr("placeholder"))
+  }
 })

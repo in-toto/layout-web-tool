@@ -244,18 +244,28 @@ def index():
       app.logger.info(msg)
       flash(msg)
 
-  return redirect(url_for("layout_wizzard", session_id=session["id"]))
+  return redirect(url_for("layout_wizard", session_id=session["id"]))
 
-@app.route("/<md5:session_id>/wizz", methods=["GET"])
-def layout_wizzard(session_id):
-  return render_template("base-wizzard.html", session_id=session_id,)
+@app.route("/<md5:session_id>/wiz", methods=["GET"])
+def layout_wizard(session_id):
+  """ Serves layout wizard to create a layout bottom-up, by suggesting users
+  how to run their software supply chain steps and generating the layout from
+  the uploaded *.link metadata files.
+  """
+
+  # Serve placeholder step array
+  steps = range(2)
+  return render_template("base-wizard.html", session_id=session_id, steps=steps)
+
+
+
 
 # @app.route("/<md5:session_id>/", defaults={"layout_name": None}, methods=["GET"])
 @app.route("/<md5:session_id>/edit", defaults={"layout_name": None}, methods=["GET"])
 @app.route("/<md5:session_id>/<layout:layout_name>/edit", methods=["GET"])
 @session_exists # Returns 404 if the directories are not there
 def layout_editor(session_id, layout_name):
-  """ Main page shows:
+  """ Layout editor shows
   - session link
   - select layout
   - upload public keys

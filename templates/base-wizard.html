@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block scriptcontent %}
+
+<h2>Layout Creation Wizard</h2>
+
+{% for step in steps %}
+  {% with idx=loop.index %}
+    {% include 'wizard-step.html' %}
+  {% endwith %}
+{% endfor %}
+
+{% endblock %}
