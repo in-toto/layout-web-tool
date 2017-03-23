@@ -41,6 +41,8 @@ var jsonify_step = function($step) {
 
   // Find and assign simple text input values
   data.name = $step.find("input[name='step_name']").val();
+  data.threshold = parseInt($step.find("input[name='step_threshold']").val());
+
   data.expected_command = $step.find("input[name='step_cmd']").val();
 
   // Returns the selected keyids or an empty array.
