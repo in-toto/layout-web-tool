@@ -378,7 +378,7 @@ def upload_layout(session_id):
       layout_name=layout_name))
 
 
-@app.route("/<md5:session_id>/upload-pubkeys/", methods=["POST"])
+@app.route("/<md5:session_id>/upload-pubkeys", methods=["POST"])
 @session_exists
 def upload_pubkeys(session_id):
   """Receives multiple form posted public key files and stores them to session
