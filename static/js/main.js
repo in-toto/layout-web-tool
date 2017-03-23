@@ -301,12 +301,13 @@ $("#layout-form").on("submit", function(evt) {
  * Register listener on wizard step name text input field to update
  * code copy-paste sample.
  */
-$(document).on("keyup", ".wiz-step input.wiz-step-name", function(evt){
-  var step_name = $(this).val();
-  var $dest = $(this).parent(".wiz-step").find(".code span")
-  if (step_name) {
-    $dest.text(step_name);
+$(document).on("keyup", ".wiz-step input.update-snippet", function(evt){
+  var val = $(this).val();
+  var target_class = $(this).data("target")
+  var $target = $(this).parent(".wiz-step").find(".code span." + target_class)
+  if (val) {
+    $target.text(val);
   } else {
-    $dest.text($(this).attr("placeholder"))
+    $target.text($(this).attr("placeholder"))
   }
 })

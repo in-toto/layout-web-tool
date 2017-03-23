@@ -1,8 +1,9 @@
 <h3>Step {{ idx }}</h3>
 <div class="wiz-step">
-  <input class="wiz-step-name" type="text" value="" placeholder="&#60;UNIQUE STEP NAME&#62;">
+  <input type="text" class="update-snippet" value="" placeholder="&#60;unique-step-name&#62;" data-target="snippet-step-name">
+  <input type="text" class="update-snippet" value="" placeholder="&#60;command&#62;" data-target="snippet-step-cmd">
 
   <div class="code">
-    in-toto-run -m . -p . -n <span>&#60;UNIQUE STEP NAME&#62;</span> -- echo blub
+    in-toto-run -m . -p . -n <span class="snippet-step-name">&#60;unique-step-name&#62;</span> -- <span class="snippet-step-cmd">&#60;command&#62;</span>
   </div>
 </div>
