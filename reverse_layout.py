@@ -73,22 +73,26 @@
 import os
 import in_toto.models.link
 import in_toto.models.layout
+from layout_tool import _get_default_expiration_date
 
-def load_ordered_links():
+DEMO_METADATA_DIR = "demo_metadata"
+
+def _get_demo_links():
   # TODO: Get an ordered list of links
   # Possible ways
   #  - store the link files with a sortable filename prefix (1,2,3), ..
   #  - store a list in a separate file
-  #  - store the steps immedeatly to a layout
+  #  - store the steps immediately to a layout
 
-  test_link_file_paths = [
-      "demo_metadata/clone.0c6c50a1.link",
-      "demo_metadata/update-version.0c6c50a1.link",
-      "demo_metadata/package.c1ae1e51.link"
+  test_link_filenames = [
+      "clone.0c6c50a1.link",
+      "update-version.0c6c50a1.link",
+      "package.c1ae1e51.link"
   ]
 
   links = []
-  for path in test_link_file_paths:
+  for filename in test_link_filenames:
+    path = os.path.join(DEMO_METADATA_DIR, filename)
     links.append(in_toto.models.link.Link.read_from_file(path))
 
   return links
@@ -136,29 +140,32 @@ def create_product_matchrules(links, index):
   return product_matchrules
 
 
+def create_layout_from_ordered_links(links):
+  # Create an empty layout
+  layout = in_toto.models.layout.Layout()
+  layout.keys = {}
+
+  for index, link in enumerate(links):
+    step_name = link.name
+    step = in_toto.models.layout.Step(name=step_name)
+
+    step.expires = _get_default_expiration_date()
+    if isinstance(link.command, list):
+      step.expected_command = " ".join(link.command)
+
+    step.material_matchrules = create_material_matchrules(links, index)
+    step.product_matchrules = create_product_matchrules(links, index)
+
+    layout.steps.append(step)
+
+  return layout
+
 
 def main():
-  links = load_ordered_links()
-
-  layout = in_toto.models.layout.Layout.read({
-    "_type": "layout",
-    "keys": {},
-    "signatures": [],
-    "steps" : [
-      {
-        "name": link.name,
-        "threshold": 1,
-        "expected_command": (" ".join(link.command)
-            if isinstance(link.command, list) else ""),
-        "material_matchrules": create_material_matchrules(links, index),
-        "product_matchrules": create_product_matchrules(links, index),
-        "pubkeys": []
-      } for index, link in enumerate(links)
-    ],
-    "inspect": []
-  })
-
-  layout.dump("demo_metadata/demo.layout")
+  links = _get_demo_links()
+  layout = create_layout_from_ordered_links(links)
+  path = os.path.join(DEMO_METADATA_DIR, "root.layout")
+  layout.dump(path)
 
 
 if __name__ == "__main__":
