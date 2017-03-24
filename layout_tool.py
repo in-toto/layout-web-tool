@@ -134,6 +134,14 @@ def _store_pubkey_to_session_dir(session_id, pubkey):
   return pubkey_name
 
 
+def _get_default_expiration_date():
+  # FIXME: Moving default setup to the layout constructor would be nicer
+  # Cf. https://github.com/in-toto/in-toto/issues/36
+  return (datetime.datetime.today()
+        + dateutil.relativedelta.relativedelta(months=1)
+        ).isoformat() + "Z"
+
+
 
 
 
@@ -438,11 +446,7 @@ def create_layout(session_id):
 
   try:
     layout = in_toto.models.layout.Layout()
-    # FIXME: Moving default setup to the layout constructor would be nicer
-    # Cf. https://github.com/in-toto/in-toto/issues/36
-    layout.expires = (datetime.datetime.today()
-        + dateutil.relativedelta.relativedelta(months=1)
-        ).isoformat() + "Z"
+    layout.expires = _get_default_expiration_date()
 
     layout_path = os.path.join(layout_dir, layout_name)
     layout.dump(layout_path)
