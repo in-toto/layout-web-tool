@@ -227,6 +227,22 @@ $(document).on("click", "button.add-rule", function(evt) {
       .appendTo($target);
 });
 
+$(document).on("click", "button.add-wiz-step", function(evt) {
+  // Query the template, clone it, remove the property that hid it
+  // and append it to the correct target.
+  $(".wiz-step.template").clone().removeClass("template")
+      .appendTo("#wiz-step-container");
+});
+
+// Toggle the visibility of single and multi step parts
+$(document).on("click", "button.toggle-wiz-step", function(evt) {
+  var $wiz_step = $(this).closest(".wiz-step")
+  $wiz_step.find(".wiz-step-single-only").toggleClass("hidden")
+  $wiz_step.find(".wiz-step-multi-only").toggleClass("hidden")
+
+});
+
+
 
 // Register click listener to remove dynamic nested form elements
 // Find container element and remove it.
@@ -238,6 +254,9 @@ $(document).on("click", "button.remove-inspection", function(evt){
 });
 $(document).on("click", "button.remove-rule", function(evt){
   $(this).closest(".rule").remove();
+});
+$(document).on("click", "button.remove-wiz-step", function(evt){
+  $(this).closest(".wiz-step").remove();
 });
 
 
@@ -296,7 +315,6 @@ $("#layout-form").on("submit", function(evt) {
   submit_layout_as_json($(this), layout_json);
 })
 
-
 /*
  * Register listener on wizard step name text input field to update
  * code copy-paste sample.
@@ -304,7 +322,8 @@ $("#layout-form").on("submit", function(evt) {
 $(document).on("keyup", ".wiz-step input.update-snippet", function(evt){
   var val = $(this).val();
   var target_class = $(this).data("target")
-  var $target = $(this).parent(".wiz-step").find(".code span." + target_class)
+  var $target = $(this).closest(".wiz-step").find(".code span." + target_class)
+
   if (val) {
     $target.text(val);
   } else {
