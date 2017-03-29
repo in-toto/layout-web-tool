@@ -31,9 +31,12 @@ import dateutil.relativedelta
 import dateutil.parser
 
 import in_toto.models.layout
+import in_toto.models.link
 import in_toto.artifact_rules
 import in_toto.util
 import securesystemslib.keys
+
+import reverse_layout
 
 from functools import wraps
 from flask import (Flask, render_template, session, redirect, url_for, request,
@@ -133,7 +136,6 @@ def _store_pubkey_to_session_dir(session_id, pubkey):
 
   return pubkey_name
 
-
 def _get_default_expiration_date():
   # FIXME: Moving default setup to the layout constructor would be nicer
   # Cf. https://github.com/in-toto/in-toto/issues/36
@@ -146,8 +148,32 @@ def _get_default_layout_name():
   return "untitled-" + str(time.time()).replace(".", "") + ".layout"
 
 
+def _redirect(view, msg, msg_type="message"):
+  """
+  Verbose redirect shortcut.
+  Write a message to the app log and flashes it to the rendered template.
 
+  <Arguments>
+    view:
+            e.g. as returned by use `url_for`
+    msg:
+            The message to log and flash
+    msg_type:
+            The message type/log level. Should be one of
+            "message" (default), "error", "warning"
+  """
+  if msg_type == "message":
+    app.logger.info(msg)
+  elif msg_type == "warning":
+    app.logger.warning(msg)
+  elif msg_type == "error":
+    app.logger.error(msg)
+  else:
+    msg_type = "message"
 
+  flash(msg, msg_type)
+
+  return redirect(view)
 
 
 # -----------------------------------------------------------------------------
@@ -259,18 +285,101 @@ def index():
 
   return redirect(url_for("layout_wizard", session_id=session["id"]))
 
-@app.route("/<md5:session_id>/wiz", methods=["GET"])
-def layout_wizard(session_id):
+@app.route("/<md5:session_id>/wiz", defaults={"layout_name": None}, methods=["GET"])
+@app.route("/<md5:session_id>/<layout:layout_name>/wiz", methods=["GET"])
+def layout_wizard(session_id, layout_name):
   """ Serves layout wizard to create a layout bottom-up, by suggesting users
   how to run their software supply chain steps and generating the layout from
   the uploaded *.link metadata files.
   """
 
+  layout_dir = _session_layout_dir(session_id)
+
+
   # Serve placeholder step array
   steps = range(2)
-  return render_template("base-wizard.html", session_id=session_id, steps=steps)
+  return render_template("base-wizard.html", session_id=session_id, steps=steps, layout_name=layout_name)
 
 
+@app.route("/<md5:session_id>/wiz-generate", defaults={"layout_name": None}, methods=["POST"])
+@app.route("/<md5:session_id>/<layout:layout_name>/wiz-generate", methods=["POST"])
+def layout_wizard_generate(session_id, layout_name):
+  link_dir = _session_link_dir(session_id)
+  layout_dir = _session_layout_dir(session_id)
+
+  # Get form data
+  link_files = request.files.getlist("link_file[]")
+  step_names = request.form.getlist("wiz_step_name[]")
+
+  # Cache wizard view for _redirect calls below
+  wiz_view = url_for("layout_wizard", session_id=session_id,
+        layout_name=layout_name)
+
+  # Try instantiating link objects from the uploaded link files
+  # Abort layout generation on error
+  links = []
+  for link_file in link_files:
+    try:
+      link = in_toto.models.link.Link.read(json.load(link_file))
+    except Exception as e:
+      return _redirect(wiz_view, "Could not generate layout."
+          " No valid link files uploaded - Error: " + str(e), msg_type="error")
+    else:
+      links.append(link)
+
+  # Create a dictionary of links by names
+  links_by_names = {}
+  for link in links:
+    links_by_names[link.name] = link
+
+  # The uploaded link files and the steps created in the wizard must be equal in
+  # terms of amount and names. Because we create the layout based on the order
+  # of the steps from the wizard and based on the information provided by the
+  # uploaded link file related to each step.
+  if len(step_names) > len(links_by_names):
+    return _redirect(wiz_view, "Could not generate layout. You have to upload a"
+        " link file for each step you created in the wizard!", msg_type="error")
+
+  if len(step_names) > len(links_by_names):
+    return _redirect(wiz_view, "Could not generate layout. You have to create a"
+        " step in the wizard for each link file you uploaded!", msg_type="error")
+
+  if sorted(step_names) != sorted(links_by_names.keys()):
+    return _redirect(wiz_view, "Could not generate layout. The names you passed"
+        "  to'in-toto-run' have to match the step names you typed in when using"
+        " the wizard. Please change the 'name' values in you link files to"
+        " the step names you have specified in the wizard!", msg_type="error")
+
+  # Everything looks good...
+  # Let's store the links and generate the layout using the information from
+  # the uploaded link files in the order of the steps created in the wizard.
+  # TODO: should we override existing layout and existing links?
+  # I think we should, it probably makes sense to only allow one layout
+  # per layout tool session in general (also for the editor).
+  # Some UI to create a new session would be helpful.
+
+  ordered_links = []
+  for name in step_names:
+    link = links_by_names[name]
+    link_path = os.path.join(link_dir,
+        in_toto.models.link.FILENAME_FORMAT_SHORT.format(step_name=name))
+    link.dump(link_path)
+    ordered_links.append(link)
+
+  # Override existing or create a new one
+  # Also requires a change of the redirect view
+  if not layout_name:
+    layout_name = _get_default_layout_name()
+    wiz_view = url_for("layout_wizard", session_id=session_id,
+        layout_name=layout_name)
+
+  layout = reverse_layout.create_layout_from_ordered_links(ordered_links)
+  layout_path = os.path.join(layout_dir, layout_name)
+  layout.dump(layout_path)
+
+  return _redirect(wiz_view, "Successfully created basic layout! You can click"
+      " on 'Edit Layout' below to further customize and download your"
+      " software supply chain layout.")
 
 
 # @app.route("/<md5:session_id>/", defaults={"layout_name": None}, methods=["GET"])
