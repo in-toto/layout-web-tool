@@ -1,14 +1,28 @@
-<h3>Step {{ idx }}</h3>
-<div class="wiz-step">
-  <input type="text" class="update-snippet" value="" placeholder="&#60;unique-step-name&#62;" data-target="snippet-step-name">
-  <input type="text" class="update-snippet" value="" placeholder="&#60;command&#62;" data-target="snippet-step-cmd">
-
-  <div class="code">
-    in-toto-run -m . -p . -n <span class="snippet-step-name">&#60;unique-step-name&#62;</span> -- <span class="snippet-step-cmd">&#60;command&#62;</span>
+<div class="wiz-step {{'template' if template}}">
+  <h4>This is a step of your software supply chain</h4>
+  <div>
+    <label>
+       Supply Chain Step name:
+      <input type="text" name="wiz_step_name[]" class="update-snippet" value="" placeholder="&#60;unique-step-name&#62;" data-target="snippet-step-name">
+    </label>
+  </div>
+  <div class="wiz-step-single-only">
+    <label>
+      Software Supply Chain step command:
+      <input type="text" class="update-snippet" value="" placeholder="&#60;command&#62;" data-target="snippet-step-cmd">
+    </label>
   </div>
 
-  <label>
-    Dry Run "*.link" file:
-    <input type="file">
-  </label>
+  <pre class="code wiz-step-single-only">
+    in-toto-run --materials . --products . --step-name <span class="snippet-step-name">&#60;unique-step-name&#62;</span> -- <span class="snippet-step-cmd">&#60;command&#62;</span>
+  </pre>
+
+  <pre class="code wiz-step-multi-only hidden">
+    in-toto-record --step-name <span class="snippet-step-name">&#60;unique-step-name&#62;</span> start --materials .
+    # Do step work that does not fit in a single command here (e.g.: edit files, grab a coffee, ...)
+    in-toto-record --step-name <span class="snippet-step-name">&#60;unique-step-name&#62;</span> stop --products .
+  </pre>
+
+  <button type="button" class="toggle-wiz-step">Toggle Step Type</button>
+  <button type="button" class="remove-wiz-step">Remove Step</button>
 </div>

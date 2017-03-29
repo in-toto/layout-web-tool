@@ -64,8 +64,11 @@ h4 {
   text-align: center;
 }
 
-
 .template {
+  display: none;
+}
+
+.hidden {
   display: none;
 }
 
