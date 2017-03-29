@@ -8,8 +8,8 @@ You are almost there, download the in-toto layout, sign it with your project own
 <pre class="code">
 >>> from in_toto.models.layout import Layout
 >>> from in_toto.util import import_rsa_key_from_file
->>> layout = Layout.read_from_file("root.layout")
->>> alice_private = import_rsa_key_from_file("alice", password="123456")
+>>> layout = Layout.read_from_file("{{layout_name}}")
+>>> private_key = import_rsa_key_from_file("alice", password="123456")
 >>> layout.sign(alice_private)
->>> layout.dump("roo.layout")
+>>> layout.dump("{{layout_name}}")
 </pre>
