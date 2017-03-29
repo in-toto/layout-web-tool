@@ -2,11 +2,38 @@
 {% block scriptcontent %}
 
 <h2>Layout Creation Wizard</h2>
+<div>Before you begin, make sure you have <a href="https://github.com/in-toto/in-toto/tree/layout-wizard">in-toto@layout-wizard</a> installed.
+</div>
 
-{% for step in steps %}
-  {% with idx=loop.index %}
-    {% include 'wizard-step.html' %}
-  {% endwith %}
-{% endfor %}
+<form action="{{ url_for('layout_wizard_generate', session_id=session_id) }}"
+  method="POST" enctype="multipart/form-data">
+  <h3>1. Define your software supply chain steps</h3>
 
+  <div id="wiz-step-container">
+    {#
+    {% for step in steps %}
+      {% include 'wizard-multi-step.html' %}
+    {% endfor %}
+    #}
+  </div>
+  <button type="button" class="add-wiz-step">Add Step</button>
+
+  <h3>2. Select the Link Metadata files you created</h3>
+  <label>
+    Upload all "*.link" files you generated above
+    <input type="file" name="link_file[]" multiple>
+  </label>
+
+  <h3>3. Generate a basic in-toto Layout</h3>
+  <div>
+    <input type="submit" value="Generate Layout">
+  </div>
+</form>
+
+<h3>4. Surf to the Layout Editor to finalize and download your layout</h3>
+<a class="button" href="{{ url_for('layout_editor', session_id=session_id, layout_name=layout_name) }}">Edit Layout</a>
+
+{% with template=True %}
+{% include 'wizard-step.html' %}
+{% endwith %}
 {% endblock %}
