@@ -141,6 +141,11 @@ def _get_default_expiration_date():
         + dateutil.relativedelta.relativedelta(months=1)
         ).isoformat() + "Z"
 
+def _get_default_layout_name():
+  # A timestamped file name seems rather unique (for one session on one machine)
+  return "untitled-" + str(time.time()).replace(".", "") + ".layout"
+
+
 
 
 
@@ -440,9 +445,7 @@ def create_layout(session_id):
   Name is "untitled-<unix-timestamp>.layout". It can be changed later.
   """
   layout_dir = _session_layout_dir(session_id)
-
-  # A timestamped file name seems rather unique (for one session on one machine)
-  layout_name = "untitled-" + str(time.time()).replace(".", "") + ".layout"
+  layout_name = _get_default_layout_name()
 
   try:
     layout = in_toto.models.layout.Layout()
