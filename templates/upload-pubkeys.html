@@ -2,9 +2,11 @@
 <div>
 Make sure you have <a href="https://github.com/in-toto/in-toto/tree/artifact-rules">in-toto installed</a> and fire up a Python interpreter to create project owner and functionary key pairs, you will need those key pairs to sign your layout (project owner private key) and to authorize roles to carry out the steps (functionary public keys) you defined for your supply chain:
 </div>
+{#
 <pre class="code">
 $ pip install git+git://github.com/in-toto/in-toto.git
 </pre>
+#}
 <pre class="code">
 >>> from in_toto.util import generate_and_write_rsa_keypair
 >>> generate_and_write_rsa_keypair("alice", password="123456")
