@@ -4,11 +4,13 @@
 <h2>Create and/or upload Functionary Public Keys</h2>
 {% include 'upload-pubkeys.html' %}
 
+{#
 <h2>Create, upload or choose Layout from your Session</h2>
 {% include 'create-layout.html' %}
 {% include 'upload-layout.html' %}
-{% include 'pick-layout.html' %}
 
+{% include 'pick-layout.html' %}
+#}
 {% if layout %}
   {% include 'layout-form.html' %}
 
