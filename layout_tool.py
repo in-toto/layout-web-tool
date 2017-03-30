@@ -40,7 +40,7 @@ import reverse_layout
 
 from functools import wraps
 from flask import (Flask, render_template, session, redirect, url_for, request,
-    flash, send_from_directory, abort)
+    flash, send_from_directory, abort, jsonify)
 from werkzeug.routing import BaseConverter, ValidationError
 from werkzeug.utils import secure_filename
 
@@ -124,11 +124,16 @@ def _session_link_dir(session_id):
   return os.path.join(app.config["SESSIONS_DIR"],
       session_id, app.config["LINK_SUBDIR"])
 
-def _store_pubkey_to_session_dir(session_id, pubkey):
+def _store_pubkey_to_session_dir(session_id, pubkey, pubkey_name=False):
   # We create our own name using the first six bytes of the pubkey's keyid
-  pubkey_name = PUBKEY_FILENAME.format(keyid=pubkey["keyid"])
+  if not pubkey_name:
+    pubkey_name = PUBKEY_FILENAME.format(keyid=pubkey["keyid"])
   pubkey_dir = _session_pubkey_dir(session_id)
   pubkey_path = os.path.join(pubkey_dir, pubkey_name)
+
+  if os.path.isfile(pubkey_path):
+    raise Exception("File '{}' already exists".format(pubkey_name))
+
   public_part = pubkey["keyval"]["public"]
 
   with open(pubkey_path, "w") as fo_public:
@@ -294,8 +299,6 @@ def layout_wizard(session_id, layout_name):
   """
 
   layout_dir = _session_layout_dir(session_id)
-
-
   # Serve placeholder step array
   steps = range(2)
   return render_template("base-wizard.html", session_id=session_id, steps=steps, layout_name=layout_name)
@@ -415,8 +418,8 @@ def layout_editor(session_id, layout_name):
   for pubkey_name in os.listdir(pubkey_dir):
     try:
       pubkey_path = os.path.join(pubkey_dir, pubkey_name)
-      key = in_toto.util.import_rsa_key_from_file(pubkey_path)
-      available_pubkeys.append(key["keyid"])
+      # key = in_toto.util.import_rsa_key_from_file(pubkey_path)
+      available_pubkeys.append(pubkey_name)
 
     except Exception as e:
       app.logger.info("Ignoring wrong format pubkey '{0}' - {1}".format(
@@ -500,40 +503,48 @@ def upload_layout(session_id):
       layout_name=layout_name))
 
 
-@app.route("/<md5:session_id>/upload-pubkeys", methods=["POST"])
-@session_exists
-def upload_pubkeys(session_id):
-  """Receives multiple form posted public key files and stores them to session
-  directory, so the user can add them to the created layout(s). If the user was
-  on an edit layout page, this view redirects to that layout.
 
-  TODO: if the user edited a layout and hasn't saved it, uploading keys will
-  override those saves. Maybe we should add a confirm/warning box or
-  autosafe? """
+@app.route("/<md5:session_id>/upload-pubkey", methods=["POST"])
+@session_exists
+def ajax_upload_pubkey(session_id):
+  """Receives AJAX form posted public key file and stores it to session
+  directory, so the user can add them to the created layout(s).
+
+  Note: we use dropzone.js which automatically uploads  whenever
+  a file is dropped (selected), thus this function is likely to be called
+  multiple times simultaneously.
+  """
 
   pubkey_dir = _session_pubkey_dir(session_id)
-  pubkey_files = request.files.getlist("pubkey_file[]")
-  layout_name = request.form.get("layout_name", None)
+  pubkey_file = request.files.get("pubkey_file", None)
 
-  # If nothing was uploaded abort early
-  if not pubkey_files:
+  error = False
+  if not pubkey_file:
     msg = "Could not store uploaded file - No file uploaded"
     app.logger.warning(msg)
-    flash(msg)
-    return redirect(url_for("layout_editor", session_id=session_id,
-        layout_name=layout_name))
+    flash(msg, "error")
+    error = True
 
-  # Iterate over uploaded files and try to store, don't abort but skip on error
-  for pubkey_file in pubkey_files:
+  elif pubkey_file.filename == "":
+    msg = "Could not store uploaded file - No file selected"
+    app.logger.warning(msg)
+    flash(msg, "error")
+    error = True
+
+  else:
     try:
       pubkey = securesystemslib.keys.import_rsakey_from_public_pem(
           pubkey_file.read())
-      pubkey_name = _store_pubkey_to_session_dir(session_id, pubkey)
+      pubkey_name = _store_pubkey_to_session_dir(session_id, pubkey,
+          secure_filename(pubkey_file.filename))
+
     except Exception as e:
       msg = ("Could not store uploaded file as in-toto public key '{0}'"
-          " - Error: {1}".format(pubkey_file.name, e))
+          " - Error: {1}".format(pubkey_file.filename, e))
       app.logger.warning(msg)
       flash(msg)
+      error = True
+
     else:
       msg = ("Added uploaded public key '{}' to session directory."
             " You can include the key now in all layouts."
@@ -541,8 +552,7 @@ def upload_pubkeys(session_id):
       app.logger.info(msg)
       flash(msg)
 
-  return redirect(url_for("layout_editor", session_id=session_id,
-      layout_name=layout_name))
+  return jsonify({"error": error, "messages": render_template("messages.html")})
 
 
 @app.route("/<md5:session_id>/create-layout", methods=["POST"])

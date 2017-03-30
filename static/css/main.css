@@ -76,3 +76,39 @@ h4 {
   border: 1px solid orange;
   padding: 5px 5px;
 }
+
+
+
+
+/*
+################################################################################
+Dropzone.js
+################################################################################
+*/
+
+#pubkey-dropzone {
+  border: 2px dashed #ddd;
+}
+
+#pubkey-dropzone .dz-message {
+  text-align: center;
+}
+
+.dz-image:before {
+  content: "🔑";
+}
+
+.dz-preview {
+  text-align: center;
+  border: 1px solid grey;
+  display: inline-block;
+  margin: 5px;
+  padding: 5px;
+  width: 100px;
+}
+
+.dz-size,
+.dz-success-mark,
+.dz-error-mark {
+  display: none;
+}

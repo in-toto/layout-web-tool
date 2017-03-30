@@ -12,16 +12,41 @@ $ pip install git+git://github.com/in-toto/in-toto.git
 >>> generate_and_write_rsa_keypair("alice", password="123456")
 </pre>
 <h3>Uploaded public keys</h3>
-<div>Select them in the form below to include them in your layout.</div>
-{% for available_key in available_pubkeys %}
-<ul>
-  <li>{{available_key}}</li>
-</ul>
 
-{% endfor %}
-<form action="{{ url_for('upload_pubkeys', session_id=session_id) }}"
-    method="POST" enctype="multipart/form-data">
-  <input type="file" name="pubkey_file[]" multiple>
-  <input type="hidden" name="layout_name" value="{{layout_name if layout_name}}">
-  <input type="submit" value="Upload Public Keys">
+<form id="pubkey-dropzone" class="dropzone" method="POST", enctype="multipart/form-data"
+    action="{{ url_for('ajax_upload_pubkey', session_id=session_id) }}">
+    <div class="dz-message needsclick">
+      Drop public keys here or click to upload, then select them in the form below to include them in your layout.
+    </div>
 </form>
+
+<script type="text/javascript">
+  Dropzone.autoDiscover = false;
+  $(document).ready(function(){
+    $("form#pubkey-dropzone").dropzone({
+          paramName: "pubkey_file",
+          init: function () {
+            // Display already uploaded files
+            {% for available_key in available_pubkeys %}
+              var pubkey_file = { name: "{{ available_key }}" };
+              this.options.addedfile.call(this, pubkey_file);
+              pubkey_file.previewElement.classList.add('dz-complete');
+            {% endfor %}
+          },
+          complete: function(file) {
+            // Append flash message
+            // TODO: factor out to separate Ajax flash function
+            response = JSON.parse(file.xhr.response)
+            $("ul#flashes").html($("ul#flashes").html() + response.messages);
+
+            if (response.error) {
+              this.removeFile(file);
+            }
+
+          }
+
+      });
+  });
+</script>
+
+
