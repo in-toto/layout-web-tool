@@ -21,7 +21,9 @@
       </li>
     </ul>
     {% include 'noscript.html' %}
-    {% include 'messages.html' %}
+    <ul id="flashes">
+      {% include 'messages.html' %}
+    </ul>
 
     <div class="script-content">
     {% block scriptcontent %}
