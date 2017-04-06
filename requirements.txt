@@ -1,0 +1,2 @@
+Flask
+-e git://github.com/in-toto/in-toto.git@artifact-rules#egg=in-toto

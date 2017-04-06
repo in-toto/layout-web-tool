@@ -1,0 +1,12 @@
+html, body, div, p, span {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background-color: transparent;
+  letter-spacing: 0.5pt;
+  font-size: 10pt;
+  vertical-align: baseline;
+  text-decoration: none;
+  color: #3d4a5c;
+  font-family: 'Calibri', 'Myriad Pro', 'Lucida Grande', 'Lucida Sans', Verdana, sans-serif;
+}
