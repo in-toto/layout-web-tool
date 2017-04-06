@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block head %}
+1. Where does your code live?
+{% endblock %}
+
+{% block content %}
+  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+  tempor incididunt ut labore et dolore magna aliqua.
+
+  <h3>What version control system do you use?</h3>
+  {% for item in range(20) %}
+    {{ loop.index }}
+  {% endfor %}
+{% endblock %}
+
+{% block links %}
+  <a href="{{ url_for('start')}} ">Previous</a>
+  <a href="{{ url_for('building')}} ">Next</a>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block head %}
+7. Let's link the steps of your supply chain together!
+{% endblock %}
+
+{% block content %}
+  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+  tempor incididunt ut labore et dolore magna aliqua.
+{% endblock %}
+
+{% block links %}
+  <a href="{{ url_for('authorizing')}} ">Previous</a>
+  <a href="{{ url_for('wrap_up')}} ">Next</a>
+{% endblock %}
