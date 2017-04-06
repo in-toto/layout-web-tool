@@ -8,6 +8,16 @@
 
 </head>
   <body>
-
+    <div class="head">
+      <h2>
+        {% block head %}{% endblock %}
+      </h2>
+    </div>
+    <div class="content">
+      {% block content %}{% endblock %}
+    </div>
+    <div>
+      {% block links %}{% endblock %}
+    </div>
   </body>
 </html>
