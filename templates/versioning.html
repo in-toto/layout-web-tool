@@ -8,9 +8,11 @@
   tempor incididunt ut labore et dolore magna aliqua.
 
   <h3>What version control system do you use?</h3>
-  {% for item in range(20) %}
-    {{ loop.index }}
-  {% endfor %}
+  {% for item in range(20) %}<label class="option-group">
+    <img src="https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png">
+    <input type="radio" value="git" name="vcs">
+    <span>git</span>
+  </label>{% endfor %}
 {% endblock %}
 
 {% block links %}
