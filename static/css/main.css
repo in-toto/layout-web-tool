@@ -10,3 +10,33 @@ html, body, div, p, span {
   color: #3d4a5c;
   font-family: 'Calibri', 'Myriad Pro', 'Lucida Grande', 'Lucida Sans', Verdana, sans-serif;
 }
+
+label.option-group {
+  width: 100px;
+  display: inline-block;
+  border: 1px solid lightgrey;
+  margin: 0;
+  padding: 0;
+}
+
+label.option-group > img {
+  display: block;
+  margin: 10px auto;
+  height: 50px;
+}
+
+label.option-group > span {
+  display: block;
+  text-align: center;
+  padding: 10px
+}
+
+label.option-group > input {
+  display:none;
+}
+
+label.option-group > input:checked ~ span {
+  font-weight: bolder;
+  background-color: lightgrey;
+}
+
