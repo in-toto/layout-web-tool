@@ -20,12 +20,16 @@
 
 """
 
-
-
 from flask import (Flask, render_template, session, redirect, url_for, request,
     flash, send_from_directory, abort, jsonify)
+from sassutils.wsgi import SassMiddleware
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
+
+# Automatically compile scss on each request
+app.wsgi_app = SassMiddleware(app.wsgi_app, {
+    app.name: ('static/scss', 'static/css', '/css')
+})
 
 app.config.update(dict(
     DEBUG=True,
