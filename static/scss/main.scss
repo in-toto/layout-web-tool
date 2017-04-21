@@ -1,3 +1,10 @@
+$font-size-h1: 1.75rem !default;
+$font-size-h2: 1.25rem !default;
+$font-size-h3: 1rem !default;
+$font-size-base: 0.85rem !default;
+
+$wizard-blue: #67798d;
+
 // Core variables and mixins
 @import '../../node_modules/bootstrap/scss/variables';
 @import '../../node_modules/bootstrap/scss/mixins';
@@ -45,3 +52,75 @@
 
 // Utility classes
 @import '../../node_modules/bootstrap/scss/utilities';
+
+.head {
+    background: $wizard-blue;
+    height: 100px;
+}
+
+.opt-row {
+  @extend .row;
+  @extend .no-gutters;
+
+  .opt-cell {
+    @extend .col;
+    border: 1px solid lightgrey;
+
+    &:first-child {
+      border-left-width: 2px;
+    }
+
+    &:last-child {
+       border-right-width: 2px;
+    }
+    padding: 5px 0;
+
+    &:hover {
+      background-color: lightgrey;
+    }
+
+    // &.active:after {
+    &:hover:after {
+      left: 50%;
+      margin: 5px -8px;
+      content: ' ';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: url("data:image/svg+xml;utf8,<svg width='16' height='16' xmlns='http://www.w3.org/2000/svg'><polygon fill='lightgrey' points='0,0 16,0 8,8'/></svg>") no-repeat;
+    }
+
+    .opt-check {
+      @extend .form-check;
+      @extend .text-center;
+      margin: 5px 0;
+
+      label {
+        @extend .form-check-label;
+      }
+
+      input {
+        @extend .form-check-input;
+      }
+    }
+
+    .opt-logo {
+      margin: 5px 0;
+      @extend .text-center;
+
+      img {
+        width: 30px;
+        height: 30px;
+        &:before {
+            content: ' ';
+            position: absolute;
+            width: inherit;
+            height: inherit;
+            background: url("data:image/svg+xml;utf8,<svg width='30' height='30' xmlns='http://www.w3.org/2000/svg'> <g> <rect height='30' width='30' y='0' x='0' stroke-width='1' stroke='#BBB' fill='#DDD'/> <line y2='30' x2='30' y1='0' x1='0' stroke-width='0.5' stroke='#BBB'/> <line y2='30' x2='0' y1='0' x1='30' stroke-width='0.5' stroke='#BBB'/> </g></svg>") no-repeat;
+        }
+      }
+    }
+  }
+}
+
+
