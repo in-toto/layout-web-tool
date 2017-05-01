@@ -9,43 +9,33 @@
   tempor incididunt ut labore et dolore magna aliqua.</p>
 
   <h2>What version control system do you use?</h2>
-
-  <div class="opt-row">
-  {% for item in range(6) %}
-    <div class="opt-cell active">
-      <div class="opt-logo">
-        <img src="{{ 'https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png' if loop.index == 1 }}">
+  {% for item in range(3) %}
+    <div class="opt-row">
+    {% for item in range(6) %}
+      <div class="opt-cell active">
+        <div class="opt-logo">
+          <img src="{{ 'https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png' if loop.index == 1 }}">
+        </div>
+        <div class="opt-check">
+          <label>
+            <input type="checkbox" value="">
+            git
+          </label>
+        </div>
       </div>
-      <div class="opt-check">
-        <label>
-          <input type="checkbox" value="">
-          git
-        </label>
+    {% endfor %}
+    </div>
+    <div class="recess">
+      <div class="form-group">
+        <h3>How do you fetch your repo?</h3>
+        <input type="text" class="form-control" placeholder="$ git clone git@github.com:in-toto/in-toto.git">
       </div>
+      <button type="button" class="btn btn-outline-primary">Done</button>
     </div>
 
   {% endfor %}
-  </div>
-
-
-  <div class="form-horizontal">
-    <div class="form-group">
-      <label class="col-xs-3 control-label">How do you fetch your repo?</label>
-      <div class="col-xs-9">
-        <input type="text" class="form-control" placeholder="git commit &lt;path/to/repo&gt;">
-      </div>
-    </div>
-    <div class="form-group">
-      <div class="col-xs-offset-3 col-xs-9">
-        <button type="button" class="btn btn-outline-primary">Done</button>
-      </div>
-    </div>
-
-
-  </div>
 
 {% endblock %}
-
 
 {% block links %}
   <a href="{{ url_for('start')}} ">Previous</a>
