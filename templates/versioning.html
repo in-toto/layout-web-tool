@@ -69,7 +69,21 @@ Where does your code live?
       <a class="btn btn-primary btn-block" href="{{ url_for('start')}} ">Previous</a>
     </div>
     <div class="col-3">
-      <a class="btn btn-primary btn-block" href="{{ url_for('building')}} ">Next</a>
+      {# <a class="btn btn-primary btn-block" href="{{ url_for('building')}} ">Next</a> #}
+      <button class="btn btn-primary btn-block" data-toggle="modal" data-target="#clone-consent-modal">Next</button>
+    </div>
+  </div>
+
+  <div id="clone-consent-modal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm mt-5">
+      <div class="modal-content">
+        <div class="modal-header"></div>
+        <div class="modal-body text-center">
+          <h3 class="mb-4">Should we clone your repo to guess what your software supply chain looks like?</h3>
+          <a class="btn btn-outline-primary" href="{{ url_for('building')}}">No, thanks.</a>
+          <a class="btn btn-outline-primary " href="{{ url_for('building')}} ">Yes, please!</a>
+        </div>
+      </div>
     </div>
   </div>
 
