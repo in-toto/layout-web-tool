@@ -1,43 +1,78 @@
 {% extends "base.html" %}
 
 {% block head %}
-1. Where does your code live?
+Where does your code live?
 {% endblock %}
 
 {% block content %}
   <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-  tempor incididunt ut labore et dolore magna aliqua.</p>
+  tempor incididunt ut labore et dolore magna aliqua Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+  tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+  consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+  cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+  proident, sunt in culpa qui officia deserunt mollit anim id est laborum..</p>
 
-  <h2>What version control system do you use?</h2>
-  {% for item in range(3) %}
-    <div class="opt-row">
-    {% for item in range(6) %}
-      <div class="opt-cell active">
-        <div class="opt-logo">
-          <img src="{{ 'https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png' if loop.index == 1 }}">
+  <h2 class="mt-5">What version control system do you use?</h2>
+
+  {% for i in range(3) %}
+    <div class="opt-row row no-gutters">
+    {% for j in range(6) %}
+      <div id="opt-cell-{{ i * 6 + j }}" data-target="opt-form-cont-{{ i * 6 + j }}" class="opt-cell col">
+        <div class="opt-logo text-center">
+          <img src="">
         </div>
-        <div class="opt-check">
-          <label>
-            <input type="checkbox" value="">
+        <div class="opt-check form-check text-center">
+          <label class="form-check-label">
+            <input class="form-check-input" type="radio" name="vcs">
             git
           </label>
         </div>
       </div>
     {% endfor %}
     </div>
-    <div class="recess">
-      <div class="form-group">
-        <h3>How do you fetch your repo?</h3>
-        <input type="text" class="form-control" placeholder="$ git clone git@github.com:in-toto/in-toto.git">
-      </div>
-      <button type="button" class="btn btn-outline-primary">Done</button>
-    </div>
 
+    {% for j in range(6) %}
+    <div id="opt-form-cont-{{ i * 6 + j }}" class="opt-form-cont collapse">
+      <div class="opt-form">
+        <div class="form-group">
+          <label>I fetch my repo using this command:</label>
+          <input type="text" class="form-control" placeholder="$ git clone git@github.com:in-toto/in-toto.git">
+          <small class="form-text text-muted">Some descriptive text...</small>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
   {% endfor %}
 
+  <h2 class="mt-5 mb-3">I use a different version control system</h2>
+
+  <div id="custom-cmd-container" class="mb-3 .fade">
+    <div class="opt-form template" style="display:none;">
+      <label>I fetch my repo using this command:</label>
+      <div class="form-group row no-gutters justify-content-between">
+        <div class="col-6">
+          <input type="text" class="form-control" placeholder="">
+        </div>
+        <button type="button" class="rm-cmd btn-outline-danger btn col-3">Remove</button>
+      </div>
+    </div>
+  </div>
+
+  <button id="add-cmd" class="btn btn-outline-primary btn">
+    Add custom version control system command
+  </button>
+
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('start')}} ">Previous</a>
+    </div>
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('building')}} ">Next</a>
+    </div>
+  </div>
+
 {% endblock %}
 
-{% block links %}
-  <a href="{{ url_for('start')}} ">Previous</a>
-  <a href="{{ url_for('building')}} ">Next</a>
-{% endblock %}
+
