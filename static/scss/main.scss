@@ -60,55 +60,37 @@ $blue: $wizard-blue;
 }
 
 .opt-row {
-  @extend .row;
-  @extend .no-gutters;
-
   .opt-cell {
-    @extend .col;
     border: 1px solid lightgrey;
-
-    &:first-child {
-      border-left-width: 2px;
-    }
-
-    &:last-child {
-       border-right-width: 2px;
-    }
+    margin-bottom: -1px;
     padding: 5px 0;
 
-    &:hover {
-      background-color: lightgrey;
+    &:not(:last-child) {
+      margin-right: -1px;
     }
 
-    // &.active:after {
-    &:hover:after {
+    &.active, &:hover {
+      background-color: #f5f5f5;
+    }
+
+    &.active:after {
       left: 50%;
       margin: 5px -8px;
       content: ' ';
       position: absolute;
       width: 16px;
       height: 16px;
-      background: url("data:image/svg+xml;utf8,<svg width='16' height='16' xmlns='http://www.w3.org/2000/svg'><polygon fill='lightgrey' points='0,0 16,0 8,8'/></svg>") no-repeat;
+      z-index: 2;
+      background: url("data:image/svg+xml;utf8,<svg width='16' height='16' xmlns='http://www.w3.org/2000/svg'><path d='M0 0  L8 8 L16 0' stroke='lightgrey' stroke-width='1' fill='#f5f5f5'/></svg>") no-repeat;
     }
 
     .opt-check {
-      @extend .form-check;
-      @extend .text-center;
       margin: 5px 0;
 
-      label {
-        @extend .form-check-label;
-      }
-
-      input {
-        @extend .form-check-input;
-      }
     }
 
     .opt-logo {
       margin: 5px 0;
-      @extend .text-center;
-
       img {
         width: 30px;
         height: 30px;
@@ -124,11 +106,14 @@ $blue: $wizard-blue;
   }
 }
 
-
-
-.recess {
+.opt-form {
   background-color: #f5f5f5;
   border: 1px solid #e3e3e3;
-  padding: 30px;
+  margin-top: 1px;
+  padding: 20px 30px 5px;
   @include box-shadow(inset 0 1px 1px rgba(0,0,0,.05));
+}
+
+.template {
+  display: none;
 }
