@@ -7,12 +7,12 @@ $(function() {
   });
 
   // Show/Hide/Toggle forms and toggle "active"class
-  $(".opt-cell").on("click", function(evt) {
+  $(".opt-content").on("click", function(evt) {
     var opt_form_cont = "#" + $(this).data("target");
 
     // Hide all others
     $(".opt-form-cont").not(opt_form_cont).collapse("hide")
-    $(".opt-cell").not(this).removeClass("active")
+    $(".opt-content").not(this).removeClass("active")
 
     // If the checkbox is checked we always show (leave shown)
     // and hide (leave hidden) if unchecked.
@@ -40,7 +40,6 @@ $(function() {
         .slideDown(function(){
           $(this).removeClass("template");
         })
-        
   });
 
   $(document).on("click", "button.rm-cmd", function(evt) {
