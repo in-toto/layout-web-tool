@@ -52,4 +52,15 @@ $(function() {
       $(this).remove();
     });
   });
+
+
+  /*
+   * Initialize drag and drop sorting
+   */
+   sortable(".sort-container", {
+      forcePlaceholderSize: true,
+      placeholderClass: "sort-placeholder",
+   });
 });
+
+
