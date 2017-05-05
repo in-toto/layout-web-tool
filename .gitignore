@@ -5,3 +5,14 @@ __pycache__/
 
 in-toto
 node_modules
+
+# Exclude vendor JS file, copy them freshly using:
+# `gulp`
+static/vendor/*
+!static/vendor/.keep
+
+# Exclude *.css files, compile them freshly using:
+# `sass static/scss/main.scss:static/css/main.scss.css`
+.sass-cache
+static/css/*
+!static/css/.keep
