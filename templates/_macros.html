@@ -2,19 +2,19 @@
 <div class="opt-row row no-gutters">
 {# TODO: This is a temp protoype loop, later we will iterate over real data. #}
 {% for i in range(range(4, 30) | random) %}
-  <div id="opt-cell-{{i}}" class="opt-cell col-3">
-    <div class="opt-content" data-target="opt-form-cont-{{i}}">
+  <div class="opt-cell col-3">
+    <div class="opt-content">
       <div class="opt-logo text-center m-2">
         <img src="">
       </div>
       <div class="opt-check form-check text-center">
         <label class="form-check-label">
-          <input class="form-check-input" type="{{ kwargs.check_type }}" name="vcs">
-          git
+          <input class="form-check-input" type="{{ kwargs.check_type }}" name="opt">
+          cmd
         </label>
       </div>
     </div>
-    <div id="opt-form-cont-{{i}}" class="opt-form-cont collapse">
+    <div class="opt-form-cont collapse">
       <div class="opt-form">
         {{ caller() }}
       </div>
