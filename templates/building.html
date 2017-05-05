@@ -1,14 +1,43 @@
+{% import '_macros.html' as macros %}
+
 {% extends "base.html" %}
 {% block head %}
-2. Do you build your software?
+How do you build your software?
 {% endblock %}
 
 {% block content %}
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-  tempor incididunt ut labore et dolore magna aliqua.
-{% endblock %}
+<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum..</p>
 
-{% block links %}
-  <a href="{{ url_for('versioning')}} ">Previous</a>
-  <a href="{{ url_for('quality_management')}} ">Next</a>
+{% for language in ["C", "Java", "Python"] %}
+  <h2 class="mt-5">{{ language }}</h2>
+  {% call() macros.option_grid(check_type="checkbox") %}
+  <div class="form-group">
+    <label>I build my software using this command:</label>
+    <input type="text" class="form-control" placeholder="$ configure">
+    <small class="form-text text-muted">Some descriptive text...</small>
+  </div>
+  {% endcall %}
+{% endfor %}
+
+<h2 class="mt-5 mb-3">I use different build commands</h2>
+{% call() macros.option_custom(add_btn_text="Add custom build command(s)") %}
+  <label>I build my software using this command::</label>
+  <div class="form-group row no-gutters justify-content-between">
+    <div class="col-6">
+      <input type="text" class="form-control" placeholder="">
+    </div>
+    <button type="button" class="rm-cmd btn-outline-danger btn col-3">Remove</button>
+  </div>
+{% endcall %}
+
+<hr>
+<div class="row no-gutters justify-content-between">
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('versioning')}} ">Previous</a>
+  </div>
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('quality_management')}} ">Next</a>
+  </div>
+</div>
+
 {% endblock %}
