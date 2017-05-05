@@ -1,0 +1,36 @@
+{% macro option_grid() %}
+<div class="opt-row row no-gutters">
+{# TODO: This is a temp protoype loop, later we will iterate over real data. #}
+{% for i in range(range(4, 30) | random) %}
+  <div id="opt-cell-{{i}}" class="opt-cell col-3">
+    <div class="opt-content" data-target="opt-form-cont-{{i}}">
+      <div class="opt-logo text-center m-2">
+        <img src="">
+      </div>
+      <div class="opt-check form-check text-center">
+        <label class="form-check-label">
+          <input class="form-check-input" type="{{ kwargs.check_type }}" name="vcs">
+          git
+        </label>
+      </div>
+    </div>
+    <div id="opt-form-cont-{{i}}" class="opt-form-cont collapse">
+      <div class="opt-form">
+        {{ caller() }}
+      </div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro option_custom() %}
+<div id="custom-cmd-container" class="mb-3 .fade">
+  <div class="opt-form template" style="display:none;">
+    {{ caller() }}
+  </div>
+</div>
+<button id="add-cmd" class="btn btn-outline-primary btn">
+  {{kwargs.add_btn_text}}
+</button>
+{%- endmacro %}

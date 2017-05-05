@@ -1,3 +1,4 @@
+{% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
 {% block head %}
@@ -13,27 +14,25 @@ Where does your code live?
   cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
   proident, sunt in culpa qui officia deserunt mollit anim id est laborum..</p>
 
-  <h2 class="mt-5">What version control system do you use?</h2>
-
-  {% include 'partials/opt_grid.html' %}
+  <h2 class="mt-5 mb-3">What version control system do you use?</h2>
+  {% call() macros.option_grid(check_type="radio") %}
+    <div class="form-group">
+      <label>I fetch my repo using this command:</label>
+      <input type="text" class="form-control" placeholder="$ git clone git@github.com:in-toto/in-toto.git">
+      <small class="form-text text-muted">Some descriptive text...</small>
+    </div>
+  {% endcall %}
 
   <h2 class="mt-5 mb-3">I use a different version control system</h2>
-
-  <div id="custom-cmd-container" class="mb-3 .fade">
-    <div class="opt-form template" style="display:none;">
-      <label>I fetch my repo using this command:</label>
-      <div class="form-group row no-gutters justify-content-between">
-        <div class="col-6">
-          <input type="text" class="form-control" placeholder="">
-        </div>
-        <button type="button" class="rm-cmd btn-outline-danger btn col-3">Remove</button>
+  {% call() macros.option_custom(add_btn_text="Add custom VCS command") %}
+    <label>I fetch my repo using this command:</label>
+    <div class="form-group row no-gutters justify-content-between">
+      <div class="col-6">
+        <input type="text" class="form-control" placeholder="">
       </div>
+      <button type="button" class="rm-cmd btn-outline-danger btn col-3">Remove</button>
     </div>
-  </div>
-
-  <button id="add-cmd" class="btn btn-outline-primary btn">
-    Add custom version control system command
-  </button>
+  {% endcall %}
 
   <hr>
   <div class="row no-gutters justify-content-between">
