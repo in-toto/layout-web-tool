@@ -1,14 +1,104 @@
+{% import '_macros.html' as macros %}
 {% extends "base.html" %}
+
 {% block head %}
-3. How do you assure your software's quality?
+How do you assure your software's quality?
 {% endblock %}
 
 {% block content %}
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-  tempor incididunt ut labore et dolore magna aliqua.
+{{ lipsum(n=1, html=True, min=50, max=51) }}
+
+{% for language in ["Linting", "Testing", "Continuous Integration"] %}
+  <h2 class="mt-5">{{ language }}</h2>
+  {% call() macros.option_grid(check_type="checkbox") %}
+    {# Inner macro defined at the end of this file. #}
+    {# TODO:
+    Forward argument received from `caller(**kwargs)` in `macros.option_grid`
+    #}
+
+    {{ _quality_mgmt_form() }}
+  {% endcall %}
+{% endfor %}
+
+<h2 class="mt-5 mb-3">I use different quality management commands</h2>
+{% call() macros.option_custom(add_btn_text="Add custom command(s)") %}
+{{ _quality_mgmt_form(removable=True) }}
+{% endcall %}
+
+<hr>
+<div class="row no-gutters justify-content-between">
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('building')}} ">Previous</a>
+  </div>
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('packaging')}} ">Next</a>
+  </div>
+</div>
 {% endblock %}
 
-{% block links %}
-  <a href="{{ url_for('building')}} ">Previous</a>
-  <a href="{{ url_for('packaging')}} ">Next</a>
-{% endblock %}
+{% macro _quality_mgmt_form() %}
+<div class="form-group">
+  <label>I use this command for quality management...</label>
+  <input type="text" class="form-control" placeholder="$ configure">
+  <small class="form-text text-muted">Some descriptive text...</small>
+</div>
+
+<div class="form-group">
+  <div class="input-group">
+    <div class="input-group-addon">I run it</div>
+    <select class="custom-select">
+      <option selected value="before">before</option>
+      <option value="after">after</option>
+    </select>
+    <div class="input-group-addon">building my software.</div>
+  </div>
+</div>
+
+<h3 class="mt-3">How do you know everything's fine?</h3>
+<div class="form-group">
+  <div class="input-group">
+    <div class="input-group-addon">Return value</div>
+    <select class="custom-select">
+      <option selected >is equal to</option>
+      <option>is not equal to</option>
+      <option>is greater than</option>
+      <option>is lesser than</option>
+      <option>is greater-equal than</option>
+      <option>is lesser-equal than</option>
+    </select>
+    <input type="number" class="form-control" placeholder="0">
+  </div>
+</div>
+
+<div class="form-group">
+  <div class="input-group">
+    <div class="input-group-addon">Standard output</div>
+    <select class="custom-select">
+      <option>is</option>
+      <option>is not</option>
+      <option>contains</option>
+      <option>contains not</option>
+    </select>
+    <input type="text" class="form-control" placeholder="...">
+  </div>
+</div>
+
+<div class="form-group">
+  <div class="input-group">
+    <div class="input-group-addon">Standard error</div>
+    <select class="custom-select">
+      <option>is</option>
+      <option>is not</option>
+      <option>contains</option>
+      <option>contains not</option>
+    </select>
+    <input type="text" class="form-control" placeholder="...">
+  </div>
+</div>
+{% if kwargs.removable %}
+<div class="form-group">
+  <button type="button" class="rm-cmd btn-outline-danger btn col-3">Remove</button>
+</div>
+{% endif %}
+
+{%- endmacro %}
