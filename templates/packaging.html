@@ -1,14 +1,40 @@
+{% import '_macros.html' as macros %}
+
 {% extends "base.html" %}
 {% block head %}
-4. How do you package your software?
+How do you package your software?
 {% endblock %}
 
 {% block content %}
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-  tempor incididunt ut labore et dolore magna aliqua.
-{% endblock %}
+{{ lipsum(n=1, html=True, min=50, max=51) }}
 
-{% block links %}
-  <a href="{{ url_for('quality_management')}} ">Previous</a>
-  <a href="{{ url_for('software_supply_chain')}} ">Next</a>
+{% call() macros.option_grid(check_type="checkbox") %}
+  <div class="form-group">
+    <label>I use this command</label>
+    <input type="text" class="form-control" placeholder="$ configure">
+    <small class="form-text text-muted">Some descriptive text...</small>
+  </div>
+{% endcall %}
+
+<h2 class="mt-5 mb-3">I use different packaging commands</h2>
+{% call() macros.option_custom(add_btn_text="Add custom command(s)") %}
+  <label>I use this command</label>
+  <div class="form-group row no-gutters justify-content-between">
+    <div class="col-6">
+      <input type="text" class="form-control" placeholder="">
+    </div>
+    <button type="button" class="rm-cmd btn-outline-danger btn col-3">Remove</button>
+  </div>
+{% endcall %}
+
+<hr>
+<div class="row no-gutters justify-content-between">
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('quality_management')}} ">Previous</a>
+  </div>
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('software_supply_chain')}} ">Next</a>
+  </div>
+</div>
+
 {% endblock %}
