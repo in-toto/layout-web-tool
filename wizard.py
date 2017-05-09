@@ -23,6 +23,8 @@
 from flask import (Flask, render_template, session, redirect, url_for, request,
     flash, send_from_directory, abort, jsonify)
 
+from in_toto.models.layout import Layout
+
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
 
 app.config.update(dict(
@@ -73,7 +75,12 @@ def packaging():
 def software_supply_chain():
   """Step 5.
   Visualize and edit software supply chain. """
-  return render_template("software_supply_chain.html")
+
+  # FIXME: For now just serves an example in-toto layout
+  layout = Layout.read_from_file(
+      "demo_metadata/root.layout") # WARNING: layout file not in VCS
+  print repr(layout)
+  return render_template("software_supply_chain.html", layout=repr(layout))
 
 
 @app.route("/authorizing")
