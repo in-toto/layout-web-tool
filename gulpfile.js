@@ -5,7 +5,8 @@ gulp.task("default", function() {
     "node_modules/jquery/dist/jquery.js",
     "node_modules/bootstrap/dist/js/bootstrap.js",
     "node_modules/tether/dist/js/tether.js",
-    "node_modules/html5sortable/dist/html.sortable.js"
+    "node_modules/html5sortable/dist/html.sortable.js",
+    "node_modules/d3/build/d3.js"
   ];
 
   js.forEach(function() {

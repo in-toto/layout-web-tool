@@ -1,14 +1,37 @@
 {% extends "base.html" %}
+
 {% block head %}
-5. Is this what your software supply chain looks like?
+Is this what your software supply chain looks like?
 {% endblock %}
 
 {% block content %}
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-  tempor incididunt ut labore et dolore magna aliqua.
-{% endblock %}
+{{ lipsum(n=1, html=True, min=50, max=51) }}
 
-{% block links %}
-  <a href="{{ url_for('packaging')}} ">Previous</a>
-  <a href="{{ url_for('authorizing')}} ">Next</a>
+
+<script type="text/javascript">
+  {#
+  FIXME:  For simplicity we directly render the JSON data a global variable
+  here, used after onload to generate the D3.js graph (c.f. main.js)
+
+  CAUTION: the safe filter below indicates that we should be sure that the
+  rendered data is save to be evaluated as JS.
+  #}
+
+  var layout_data = {{ layout | safe }};
+
+</script>
+<div class="svg-container">
+
+</div>
+
+
+<hr>
+<div class="row no-gutters justify-content-between">
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('packaging')}} ">Previous</a>
+  </div>
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('authorizing')}} ">Next</a>
+  </div>
+</div>
 {% endblock %}

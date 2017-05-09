@@ -61,6 +61,16 @@ $(function() {
       forcePlaceholderSize: true,
       placeholderClass: "sort-placeholder",
    });
+
+
+
+  /*
+   * Draw in-toto layout graph using D3.js
+   * FIXME: modularize don't use data from global variable `layout_data`
+   * (c.f. software_supply_chain.html)
+   */
+
+  console.log(layout_data);
+  // var svg = d3.select("body")
+
 });
-
-
