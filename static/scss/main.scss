@@ -68,7 +68,9 @@ body {
 .container {
   background-color: white;
   border: 1px solid #e3e3e3;
-  @extend .border-top-0;
+/*   @extend .border-top-0; */
+  margin-top: 20px;
+  margin-bottom: 20px;
   padding: 40px 20px;
 }
 
