@@ -74,11 +74,15 @@ body {
   padding: 40px 20px;
 }
 
-.opt-form {
+.inset {
   background-color: #f5f5f5;
   border: 1px solid #e3e3e3;
-  padding: 20px 30px 5px;
   @include box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.05));
+}
+
+.opt-form {
+  @extend .inset;
+  padding: 20px 30px 5px;
 
   // Special styles for custom opt-forms (not in the option grid)
   #custom-cmd-container & {
@@ -95,10 +99,31 @@ body {
   @extend .border-right-0;
 }
 
+
+// Responsive SVG trick (http://thenewcode.com/744/Make-SVG-Responsive)
+.svg-container {
+  @extend .inset;
+
+  display: inline-block;
+  position: relative;
+  width: 100%;
+  vertical-align: middle;
+  overflow: hidden;
+  height: 200px;
+
+  .svg-content {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
+
+
 .sort-container {
   @extend .row;
-  background-color: #f5f5f5;
-  border: 1px solid #e3e3e3;
+  @extend .inset;
+
   min-height: 40px;
   padding: 5px;
 
