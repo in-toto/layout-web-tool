@@ -68,7 +68,6 @@ body {
 .container {
   background-color: white;
   border: 1px solid #e3e3e3;
-/*   @extend .border-top-0; */
   margin-top: 20px;
   margin-bottom: 20px;
   padding: 40px 20px;
@@ -109,13 +108,25 @@ body {
   width: 100%;
   vertical-align: middle;
   overflow: hidden;
-  height: 200px;
+  height: 300px;
 
   .svg-content {
     display: inline-block;
     position: absolute;
     top: 0;
     left: 0;
+
+    .node rect {
+      stroke: black;
+      stroke-width: 1px;
+      fill: white;
+      
+    }
+
+    .edgePath path {
+      stroke: black;
+      stroke-width: 1px;
+    }
   }
 }
 
