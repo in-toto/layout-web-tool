@@ -17,8 +17,9 @@
   },
   "homepage": "https://github.com/in-toto/layout-web-tool#readme",
   "dependencies": {
-    "boostrap": ">=4.0.0-alpha.6",
-    "d3": "^4.8.0",
+    "bootstrap": ">=4.0.0-alpha.6",
+    "d3": "^3.5.17",
+    "dagre-d3": "^0.4.17",
     "gulp": "^3.9.1",
     "html5sortable": "^0.5.1"
   }
