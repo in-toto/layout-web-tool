@@ -62,6 +62,21 @@ $(function() {
       placeholderClass: "sort-placeholder",
    });
 
+
+
+  /*
+   * Initialize SVG viewBox width and height to the current container width and height
+   * viewBox (and its contents) get scaled on windowResize preserving aspectRatio.
+   *
+   * FIXME:
+   * The height of the SVG container should scale together with the width of the viewBox
+   * as does the height of the viewBox
+   */
+  var svg_width = $(".svg-container").width();
+  var svg_height = $(".svg-container").height();
+  $("svg").attr("viewBox", [0, 0, svg_width, svg_height].join(" "));
+
+  // Draw the graph
   draw_graph(graph_data);
 });
 
@@ -89,6 +104,7 @@ var draw_graph = function(graph_data) {
     dag.setEdge(link.source_type + "_" + link.source,
         link.dest_type + "_" + link.dest,
       {
+        lineInterpolate: "basis"
         // TODO: we could display the path pattern as label
         //label: "..."
       });
@@ -107,7 +123,7 @@ var draw_graph = function(graph_data) {
     ["M", "P"].forEach(function(prefix) {
       var node_child = prefix + "_" + node.name;
       if (dag.nodeEdges(node_child)) {
-        dag.setNode(node_child, {label: prefix});
+        dag.setNode(node_child, {label: prefix, shape: "circle"});
         dag.setParent(node_child, node.name);
       }
     })
@@ -132,20 +148,14 @@ var draw_graph = function(graph_data) {
   // ... and run it to draw the graph.
   render(inner, dag);
 
-
   /* Scale and Center  graph */
 
   // Cache the SVG's container to access its width and height
   // this is where the svg is visible
   var $outer = $(".svg-container");
 
-  // Get SVG's width and height
-  // The SVG is actually bigger than its container,
-  // due to its inline `viewBox` values (for responsive scaling)
-  // Note: D3 elements are lists of objects having the DOM element at idx 1
-  var svg_rect = svg[0][0].getBoundingClientRect();
-
   // Get width and height of the graph
+  // Note: D3 elements are lists of objects having the DOM element at idx 1
   var inner_rect = inner[0][0].getBoundingClientRect();
 
   // Padding in pixels
@@ -158,11 +168,25 @@ var draw_graph = function(graph_data) {
 
   // Calculate distance from top and left to center the graph
   // Note: We have to translate between viewport and user coordinate system
-  var top = 1 / svg_rect.height * ($outer.height() - inner_rect.height * scale) / 2;
-  var left = 1 / svg_rect.width * ($outer.width() - inner_rect.width * scale) / 2;
+  var top = ($outer.height() - inner_rect.height * scale) / 2;
+  var left = ($outer.width() - inner_rect.width * scale) / 2;
 
   // Do the actual translate and scale
   zoom.translate([left, top]).scale(scale).event(svg);
+
+  d3.selection.prototype.toFront = function() {
+     /*
+      * D3 selection extension to re-locate an element
+      * to be the last child.
+      */
+    return this.each(function(){
+      this.parentNode.appendChild(this);
+    });
+  };
+
+  // Re-order SVG items - no z-index in SVG :(
+  d3.select(".clusters").toFront();
+  d3.select(".edgePaths").toFront();
 }
 
 
