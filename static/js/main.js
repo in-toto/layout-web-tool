@@ -69,78 +69,58 @@ $(function() {
    * FIXME: modularize don't use data from global variable `layout_data`
    * (c.f. software_supply_chain.html)
    */
-  draw_graph(layout_data);
+  draw_graph(graph_data);
 });
 
 
-
-
-var draw_graph = function(layout_data) {
-  var nodes = [],
-      links = [];
-
-  // Create nodes of steps and insepctions arrays and link array based on
-  // material and product matchrules of type "MATCH" from in-toto layout
-  ["steps", "inspect"].forEach(function(item_type) {
-    if (item_type in layout_data) {
-      layout_data[item_type].forEach(function(item){
-        nodes.push({
-          name: item.name,
-          type: item._type
-        });
-
-        ["material_matchrules", "product_matchrules"]
-            .forEach(function(artifact_rules) {
-
-          if (artifact_rules in item) {
-            item[artifact_rules].forEach(function(rule) {
-              if (rule[0].toLowerCase() == "match") {
-                links.push({
-                  source: item.name,
-                  // FIXME: in_toto.artifact_rule.unpack_rule would come in
-                  // handy here.
-                  // We'll probably move the whole data transformation to
-                  // the server
-                  target: rule[rule.length - 1],
-                  rule: rule
-                });
-              }
-            });
-          }
-        });
-      });
-    }
-  });
-
-  // Create a new directed graph
-  var g = new dagreD3.graphlib.Graph()
+var draw_graph = function(graph_data) {
+  // Create a new directed acyclic graph (dag)
+  var dag = new dagreD3.graphlib.Graph({compound: true, multigraph: true})
 
   // Create a left to right layout
-  g.setGraph({
-    nodesep: 70,
-    ranksep: 50,
+  dag.setGraph({
+    nodesep: 5,
+    ranksep: 40,
+    edgesep: 10,
     rankdir: "RL",
-    marginx: 20,
-    marginy: 20
   });
 
-  // Automatically label each of the nodes
-  nodes.forEach(function(node) {
-    g.setNode(node.name,
+  // Create links between "child-nodes" (materials or products) of steps or
+  // inspections
+  // identified as <source_type>_<node name>, where source_type is "M" or "P".
+  graph_data.links.forEach(function(link){
+    dag.setEdge(link.source_type + "_" + link.source,
+        link.dest_type + "_" + link.dest,
       {
-        label: node.name
+        // TODO: we could display the path pattern as label
+        //label: "..."
       });
   });
 
-  links.forEach(function(link){
-    g.setEdge(link.source, link.target,
-      {
-        //label: link.rule[1]
-      });
+  // Create nodes (steps and inspections) based on passed nodes data and
+  // child-nodes (materials and products) based on passed links.
+  // I.e. a step that e.g. has not material_matchrule, or hasn't got its
+  // materials matched by another step, doesn't get a material subnode.
+  graph_data.nodes.forEach(function(node) {
+
+    // Create regular node (step or inspection)
+    dag.setNode(node.name, {label: node.name, clusterLabelPos: 'top'});
+
+    // Create material or product child node only if they have a degree > 0
+    ["M", "P"].forEach(function(prefix) {
+      var node_child = prefix + "_" + node.name;
+      if (dag.nodeEdges(node_child)) {
+        dag.setNode(node_child, {label: prefix});
+        dag.setParent(node_child, node.name);
+      }
+    })
   });
 
-  var svg = d3.select("svg.svg-content"),
-      inner = svg.append("g");
+  // The SVG element
+  var svg = d3.select("svg.svg-content");
+
+  // An SVG group element that wraps the graph
+  var inner = svg.append("g");
 
   // Set up drag/drop/zoom support
   var zoom = d3.behavior.zoom().on("zoom", function() {
@@ -149,11 +129,14 @@ var draw_graph = function(layout_data) {
       });
   svg.call(zoom);
 
-  // Create the renderer
+  // Create the renderer ...
   var render = new dagreD3.render();
 
-  // Run the renderer. This is what draws the final graph.
-  render(inner, g);
+  // ... and run it to draw the graph.
+  render(inner, dag);
+
+  //FIXME: calculate zoom level
+  zoom.scale(0.5).event(svg);
 }
 
 
