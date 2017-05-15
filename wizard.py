@@ -21,9 +21,10 @@
 """
 
 from flask import (Flask, render_template, session, redirect, url_for, request,
-    flash, send_from_directory, abort, jsonify)
+    flash, send_from_directory, abort, json)
 
 from in_toto.models.layout import Layout
+import in_toto.artifact_rules
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
 
@@ -36,6 +37,79 @@ app.config.update(dict(
 # e.g. your deployment secret key
 app.config.from_pyfile("config.py")
 
+
+# -----------------------------------------------------------------------------
+# Utils
+# -----------------------------------------------------------------------------
+def transform_for_graph(layout):
+  """
+  <Purpose>
+    Takes an in-toto layout and transforms it to a data structure that's more
+    convenient to create a graph from it, e.g. using `dagre-d3` [1]:
+
+    Note:
+      We do this on server-side to make use of in-toto functions like
+      `artifact_rules.unpack_rule`.
+  <Returns>
+    Example:
+    {
+      nodes: {
+        "name": <unique step or inspection name">,
+        "type": "step" | "inspection"
+      }
+      links: {
+        "source": <unique step or inspection name">,
+        "source_type": "M" | "P",
+        "dest": <unique step or inspection name">,
+        "dest_type": "M" | "P",
+
+      }
+    }
+  """
+  graph_data = {
+    "nodes": [],
+    "links": []
+  }
+
+  def _get_links(src_type, src_name, rules):
+    """ Returns links (list) based on passed list of material_matchrules ("M")
+    or product_matchrules ("P"). """
+
+    links = []
+    for rule in rules:
+      # Parse rule list into dictionary
+      rule_data = in_toto.artifact_rules.unpack_rule(rule)
+
+      # Only "MATCH" rules are used as links
+      if rule_data["type"].upper() == "MATCH":
+
+        # We can pass additional information here if we want
+        links.append({
+            "source": src_name,
+            "source_type": src_type,
+            "dest": rule_data["dest_name"],
+            "dest_type": rule_data["dest_type"][0].upper() # "M" | "P"
+          })
+
+    return links
+
+  # Create nodes from steps and inspections
+  for item in layout.steps + layout.inspect:
+    graph_data["nodes"].append({
+        "name": item.name,
+        "type": item._type
+      })
+
+    # Create links from material- and product- matchrules
+    graph_data["links"] += _get_links("M", item.name, item.material_matchrules)
+    graph_data["links"] += _get_links("P", item.name, item.product_matchrules)
+
+  return graph_data
+
+
+# -----------------------------------------------------------------------------
+# Views
+# -----------------------------------------------------------------------------
 @app.route("/")
 def start():
   """Step 0.
@@ -76,11 +150,13 @@ def software_supply_chain():
   """Step 5.
   Visualize and edit software supply chain. """
 
-  # FIXME: For now just serves an example in-toto layout
+  # FIXME: For prototyping, statically serves an example in-toto layout
   layout = Layout.read_from_file(
       "demo_metadata/root.layout") # WARNING: layout file not in VCS
-  print repr(layout)
-  return render_template("software_supply_chain.html", layout=repr(layout))
+  graph_data = transform_for_graph(layout)
+
+  return render_template("software_supply_chain.html",
+      graph_json=json.dumps(graph_data))
 
 
 @app.route("/authorizing")
