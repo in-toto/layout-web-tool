@@ -115,21 +115,36 @@ body {
     position: absolute;
     top: 0;
     left: 0;
+    font-size: 0.8em;
 
-    .clusters rect {
+    rect, circle {
       fill: transparent;
-      stroke: black;
-      stroke-width: 1px;
+      stroke: #e3e3e3;
     }
 
-    .node rect {
-      stroke: black;
-      stroke-width: 1px;
-      fill: transparent;
+    // Steps and Inspection
+    .clusters {
+      rect {
+        stroke-width: 3px;
+      }
+      .label {
+        font-weight: bold;
+        fill: black;
+      }
+    }
+
+    // Materials and Products
+    .nodes {
+      circle {
+        stroke-width: 1px;
+      }
+      .label {
+        fill:  #e3e3e3;
+      }
     }
 
     .edgePath path {
-      stroke: black;
+      stroke: darkgrey;
       stroke-width: 1px;
     }
   }
