@@ -62,17 +62,14 @@ $(function() {
       placeholderClass: "sort-placeholder",
    });
 
-
+  draw_graph(graph_data);
+});
 
   /*
    * Draw in-toto layout graph using D3.js
    * FIXME: modularize don't use data from global variable `layout_data`
    * (c.f. software_supply_chain.html)
    */
-  draw_graph(graph_data);
-});
-
-
 var draw_graph = function(graph_data) {
   // Create a new directed acyclic graph (dag)
   var dag = new dagreD3.graphlib.Graph({compound: true, multigraph: true})
@@ -135,8 +132,37 @@ var draw_graph = function(graph_data) {
   // ... and run it to draw the graph.
   render(inner, dag);
 
-  //FIXME: calculate zoom level
-  zoom.scale(0.5).event(svg);
+
+  /* Scale and Center  graph */
+
+  // Cache the SVG's container to access its width and height
+  // this is where the svg is visible
+  var $outer = $(".svg-container");
+
+  // Get SVG's width and height
+  // The SVG is actually bigger than its container,
+  // due to its inline `viewBox` values (for responsive scaling)
+  // Note: D3 elements are lists of objects having the DOM element at idx 1
+  var svg_rect = svg[0][0].getBoundingClientRect();
+
+  // Get width and height of the graph
+  var inner_rect = inner[0][0].getBoundingClientRect();
+
+  // Padding in pixels
+  var padding = 50;
+
+  // Calculate how much we have to scale the graph up or down to fit the
+  // container
+  var scale = Math.min(($outer.width() - padding) / inner_rect.width,
+      ($outer.height() - padding) / inner_rect.height);
+
+  // Calculate distance from top and left to center the graph
+  // Note: We have to translate between viewport and user coordinate system
+  var top = 1 / svg_rect.height * ($outer.height() - inner_rect.height * scale) / 2;
+  var left = 1 / svg_rect.width * ($outer.width() - inner_rect.width * scale) / 2;
+
+  // Do the actual translate and scale
+  zoom.translate([left, top]).scale(scale).event(svg);
 }
 
 
