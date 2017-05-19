@@ -11,10 +11,10 @@ How do you build your software?
 <h2 class="mt-4">Order your building steps here</h2>
 <small class="text-muted">You will be able to sort below options here once you selected them below.</small>
 
-<div class="sort-container row no-gutters">
+<div class="sortable-build-steps row no-gutters inset p-2 sort-container">
 {% for item in range(2) %}
-  <div class="sort-item" draggable="true">
-    <div class="sort-item-content">
+  <div class="build-step sort-item" draggable="true">
+    <div class="build-step-content">
       blaaaa-{{loop.index}}
     </div>
   </div>

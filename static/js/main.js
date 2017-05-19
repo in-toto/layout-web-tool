@@ -70,6 +70,7 @@ $(function() {
 
   /*
    * Initialize drag and drop sorting
+   * Note: Needs to be re-initialized when elements are added
    */
    sortable(".sort-container", {
       forcePlaceholderSize: true,
