@@ -9,16 +9,32 @@ Is this what your software supply chain looks like?
 
 
 <script type="text/javascript">
+
   {#
   FIXME:  For simplicity we directly render the JSON data a global variable
-  here, used after onload to generate the D3.js graph (c.f. main.js)
+  here, used on `onload` to generate the D3.js graph (c.f. main.js)
 
   CAUTION: the safe filter below indicates that we should be sure that the
   rendered data is save to be evaluated as JS.
   #}
+  $(function(){
+    var graph_data = {{ graph_json | safe }};
 
-  var graph_data = {{ graph_json | safe }};
 
+    // Initialize SVG viewBox width and height to the current container width and height
+    // viewBox (and its contents) get scaled on windowResize preserving aspectRatio.
+    //
+    // FIXME:
+    // The height of the SVG container should scale together with the width of the viewBox
+    // as does the height of the viewBox
+    var svg_width = $(".svg-container").width();
+    var svg_height = $(".svg-container").height();
+    $("svg").attr("viewBox", [0, 0, svg_width, svg_height].join(" "));
+
+    // Draw the graph
+    draw_graph(graph_data);
+
+  });
 </script>
 
 <div class="svg-container">
