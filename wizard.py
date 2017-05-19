@@ -21,7 +21,7 @@
 """
 
 from flask import (Flask, render_template, session, redirect, url_for, request,
-    flash, send_from_directory, abort, json)
+    flash, send_from_directory, abort, json, jsonify)
 
 from in_toto.models.layout import Layout
 import in_toto.artifact_rules
@@ -166,10 +166,10 @@ def authorizing():
   return render_template("authorizing.html")
 
 
-@app.route("/authorizing/upload")
+@app.route("/authorizing/upload", methods=["POST"])
 def ajax_upload_key():
   """Ajax upload functionary keys. """
-  pass
+  return jsonify({})
 
 
 @app.route("/chaining")
