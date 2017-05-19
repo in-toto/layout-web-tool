@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>In-Toto Layout Wizard</title>
+    {# We use JQuery right away that's why we load it here #}
+    <script src="{{ url_for('static', filename='vendor/jquery.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.scss.css') }}">
+
   </head>
   <body>
     <div class="head"></div>
@@ -22,7 +25,6 @@
     </div>
     {# REPLACE THIS WITH LOCAL stuff#}
     <!-- jQuery first, then Tether, then Bootstrap JS. -->
-    <script src="{{ url_for('static', filename='vendor/jquery.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/tether.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/bootstrap.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/html.sortable.js') }}"></script>

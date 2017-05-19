@@ -61,23 +61,6 @@ $(function() {
       forcePlaceholderSize: true,
       placeholderClass: "sort-placeholder",
    });
-
-
-
-  /*
-   * Initialize SVG viewBox width and height to the current container width and height
-   * viewBox (and its contents) get scaled on windowResize preserving aspectRatio.
-   *
-   * FIXME:
-   * The height of the SVG container should scale together with the width of the viewBox
-   * as does the height of the viewBox
-   */
-  var svg_width = $(".svg-container").width();
-  var svg_height = $(".svg-container").height();
-  $("svg").attr("viewBox", [0, 0, svg_width, svg_height].join(" "));
-
-  // Draw the graph
-  draw_graph(graph_data);
 });
 
   /*
