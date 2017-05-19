@@ -20,6 +20,7 @@
     "bootstrap": ">=4.0.0-alpha.6",
     "d3": "^3.5.17",
     "dagre-d3": "^0.4.17",
+    "dropzone": "^4.3.0",
     "gulp": "^3.9.1",
     "html5sortable": "^0.5.1"
   }
