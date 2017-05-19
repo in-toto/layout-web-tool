@@ -151,19 +151,13 @@ body {
 }
 
 
-.sort-container {
-  @extend .row;
-  @extend .inset;
-
+.sortable-build-steps {
   min-height: 40px;
-  padding: 5px;
-
   // The sortable items are grid columns
-  .sort-item {
+  .build-step {
     @extend .col-2;
     padding: 10px;
-
-    .sort-item-content {
+    .build-step-content {
       @extend .text-center;
       border: 1px solid $wizard-blue;
       padding: 10px;
@@ -196,8 +190,6 @@ body {
   .opt-cell {
     // Hack to prevent double horizontal borders
     margin-bottom: -1px;
-
-
 
     // The cell content showing logo, command and options
     // The form is a sibling of this element
