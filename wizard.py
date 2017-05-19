@@ -156,7 +156,7 @@ def software_supply_chain():
   graph_data = transform_for_graph(layout)
 
   return render_template("software_supply_chain.html",
-      graph_json=json.dumps(graph_data))
+      graph_json=json.dumps(graph_data), layout=layout)
 
 
 @app.route("/authorizing")
