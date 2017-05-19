@@ -1,14 +1,61 @@
 {% extends "base.html" %}
 {% block head %}
-6. Who is authorized to do what in you project?
+Who is authorized to do what in you project?
 {% endblock %}
 
 {% block content %}
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-  tempor incididunt ut labore et dolore magna aliqua.
-{% endblock %}
 
-{% block links %}
-  <a href="{{ url_for('software_supply_chain')}} ">Previous</a>
-  <a href="{{ url_for('chaining')}} ">Next</a>
+<h2>Generate Public Keys</h2>
+{{ lipsum(n=1, html=True, min=50, max=51) }}
+
+<h2>Upload Public Keys</h2>
+{{ lipsum(n=1, html=True, min=50, max=51) }}
+
+<script type="text/javascript">
+  Dropzone.autoDiscover = false;
+  $(function(){
+
+    $(".dropzone").dropzone({
+        paramName: "dropped_file",
+
+        init: function () {
+          // Show already uploaded files in dropzone
+          {% for filename in filenames %}
+            var dropzone_file = {
+                name: "{{ filename }}"
+              };
+
+            this.options.addedfile.call(this, dropzone_file);
+            dropzone_file.previewElement.classList.add('dz-complete');
+
+          {% endfor %}
+        },
+        complete: function(file) {
+          // Remove the file place holder from the dropzone if the upload failed
+          if (response.error) {
+            this.removeFile(file);
+          }
+        }
+    });
+  });
+</script>
+
+<small>Drop Public Keys here or click to upload!</small>
+<div class="dz-container d-flex align-items-stretch p-3">
+  <form class="dropzone d-flex flex-wrap" method="POST", enctype="multipart/form-data"
+      action="{{ url_for('ajax_upload_key') }}">
+  </form>
+</div>
+
+
+<hr>
+<div class="row no-gutters justify-content-between">
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('software_supply_chain')}} ">Previous</a>
+  </div>
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('chaining')}} ">Next</a>
+  </div>
+</div>
+
 {% endblock %}
