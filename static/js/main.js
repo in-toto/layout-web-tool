@@ -33,22 +33,36 @@ $(function() {
   });
 
   /*
-   * Click listener to add and show "custom command" form
+   * Click listener to clone an html template found by the selector stored in
+   * the clicked element's `data-templatesource` attribute and append it to
+   * an `data-templatedest`
+   * Important: the selectors should each match only one element
    */
-  $("#add-cmd").on("click", function(evt){
-    $(".opt-form.template")
+  $(".add-btn").on("click", function(evt){
+    var template_src_selector = $(this).data("templatesource");
+    var template_dest_selector = $(this).data("templatedest");
+
+    $(".template" + template_src_selector)
         .clone()
-        .appendTo("#custom-cmd-container")
+        .appendTo(template_dest_selector)
         .slideDown(function(){
           $(this).removeClass("template");
         })
+
+    // If the added item was sortable, re-initialize the sort container
+    if ($(template_src_selector).parents(".sort-container").length) {
+      sortable(".sort-container")
+    }
   });
 
   /*
-   * Click listener to hide and remove "custom command" form
+   * Click listener to hide and remove closest (up the DOM) element matched by
+   * the clicked element's `data-toremove` attribute.
    */
-  $(document).on("click", "button.rm-cmd", function(evt) {
-    $(this).closest(".opt-form").slideUp(function(){
+  $(document).on("click", "button.rm-btn", function(evt) {
+    var element_to_remove_selector = $(this).data("toremove");
+
+    $(this).closest(element_to_remove_selector).slideUp(function(){
       $(this).remove();
     });
   });
