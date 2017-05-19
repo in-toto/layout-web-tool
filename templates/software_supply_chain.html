@@ -1,3 +1,4 @@
+{% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
 {% block head %}
@@ -5,9 +6,6 @@ Is this what your software supply chain looks like?
 {% endblock %}
 
 {% block content %}
-{{ lipsum(n=1, html=True, min=50, max=51) }}
-
-
 <script type="text/javascript">
 
   {#
@@ -37,8 +35,31 @@ Is this what your software supply chain looks like?
   });
 </script>
 
-<div class="svg-container">
+<div class="svg-container mb-3">
   <svg version="1.1" viewBox="0 0 1 1" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>
+</div>
+
+{{ lipsum(n=1, html=True, min=200, max=201) }}
+
+<div class="ssc-items mt-5">
+  <h3 class="mt-4 mb-2">The steps of your software supply chain</h3>
+  <div class="ssc-steps sort-container mb-2">
+    {{ ssc_step(None, template=true) }}
+    {% for step in layout.steps %}
+    {{ssc_step(step)}}
+    {% endfor %}
+  </div>
+  <button data-templatesource=".ssc-step" data-templatedest=".ssc-steps" class="add-btn btn-outline-primary btn">Add Step</button>
+
+
+  <h3 class="mt-4 mb-2">The inspections of your software supply chain</h3>
+  <div class="ssc-inspections sort-container mb-2">
+    {{ ssc_inspection(None, template=True) }}
+    {% for inspection in layout.inspect %}
+      {{ ssc_inspection(inspection) }}
+    {% endfor %}
+  </div>
+  <button data-templatesource=".ssc-inspection" data-templatedest=".ssc-inspections" class="add-btn btn-outline-primary btn">Add Inspection</button>
 </div>
 
 <hr>
@@ -51,3 +72,51 @@ Is this what your software supply chain looks like?
   </div>
 </div>
 {% endblock %}
+
+
+
+
+{% macro ssc_step(step) -%}
+<div class="ssc-item ssc-step mb-2 {{'template' if kwargs.template}}" draggable="true">
+  <div class="form-group row no-gutters">
+    <div class="col-md-1 pr-md-2 align-self-center text-center">
+      <span class="drag-handle" title="Drag the handle to re-order steps and inspections of your software supply chain">|||</span>
+    </div>
+    <div class="col-md-3 pr-md-2">
+      <label class="small">Name</label>
+      <input type="text" class="form-control form-control-sm" value="{{ step.name if not kwargs.template }}">
+    </div>
+    <div class="col-md-6 pr-md-2">
+      <label class="small">Expected Command</label>
+      <input type="text" class="form-control form-control form-control-sm" value="{{ step.expected_command if not kwargs.template }}">
+    </div>
+    <div class="col-md-2 align-self-end">
+      <button type="button" data-toremove=".ssc-step" class="rm-btn btn btn-outline-danger btn-sm">Remove</button>
+    </div>
+  </div>
+</div>
+{%- endmacro %}
+
+
+{% macro ssc_inspection(inspection) -%}
+<div class="ssc-item ssc-inspection mb-2 {{'template' if kwargs.template}}" draggable="true">
+  <div class="form-group row no-gutters">
+    <div class="col-md-1 pr-md-2 align-self-center text-center">
+      <span class="drag-handle" title="Drag the handle to re-order steps and inspections of your software supply chain">|||</span>
+    </div>
+    <div class="col-md-3 pr-md-2">
+      <label class="small">Name</label>
+      <input type="text" class="form-control form-control-sm" value="{{ inspection.name if not kwargs.template}}">
+    </div>
+    <div class="col-md-6 pr-md-2">
+      <label class="small">Executed Command</label>
+      <input type="text" class="form-control form-control-sm" value="{{ inspection.run if not kwargs.template }}">
+    </div>
+    <div class="col-md-2 align-self-end">
+      <button type="button" data-toremove=".ssc-inspection" class="rm-btn btn btn-outline-danger btn-sm">Remove</button>
+    </div>
+  </div>
+</div>
+
+
+{%- endmacro %}
