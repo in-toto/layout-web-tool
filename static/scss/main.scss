@@ -92,10 +92,23 @@ body {
     width: 100%
   }
   .dz-preview {
+    position: relative;
     text-align: center;
     margin: 10px;
     padding: 10px;
-    border: 1px solid darkgrey;
+    background-color: #e4e4e4;
+    border: 1px solid #aaa;
+    @include border-radius(4px);
+
+/*     &:before {
+      content: "x";
+      padding: 0 15px;
+      color: #999;
+      cursor: pointer;
+      font-weight: bold;
+      left: 0;
+    }
+ */
     // .dz-image:before {
     //   content: "🔑";
     // }
