@@ -8,7 +8,8 @@ gulp.task("default", function() {
     "node_modules/html5sortable/dist/html.sortable.js",
     "node_modules/d3/d3.js",
     "node_modules/dagre-d3/dist/dagre-d3.js",
-    "node_modules/dropzone/dist/dropzone.js"
+    "node_modules/dropzone/dist/dropzone.js",
+    "node_modules/select2/dist/js/select2.js"
   ];
   js.forEach(function() {
     gulp.src(js).pipe(gulp.dest("./static/vendor/"));

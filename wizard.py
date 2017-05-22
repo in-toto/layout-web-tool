@@ -38,6 +38,11 @@ app.config.update(dict(
 app.config.from_pyfile("config.py")
 
 
+# FIXME: For prototyping, we statically serve an example  layout on some pages
+layout = Layout.read_from_file(
+    "demo_metadata/root.layout") # WARNING: layout file not in VCS
+print layout
+
 # -----------------------------------------------------------------------------
 # Utils
 # -----------------------------------------------------------------------------
@@ -149,10 +154,6 @@ def packaging():
 def software_supply_chain():
   """Step 5.
   Visualize and edit software supply chain. """
-
-  # FIXME: For prototyping, statically serves an example in-toto layout
-  layout = Layout.read_from_file(
-      "demo_metadata/root.layout") # WARNING: layout file not in VCS
   graph_data = transform_for_graph(layout)
 
   return render_template("software_supply_chain.html",
@@ -163,7 +164,7 @@ def software_supply_chain():
 def authorizing():
   """Step 6.
   Functionary keys upload and keys dropzone. """
-  return render_template("authorizing.html")
+  return render_template("authorizing.html", layout=layout)
 
 
 @app.route("/authorizing/upload", methods=["POST"])

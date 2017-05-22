@@ -22,6 +22,7 @@
     "dagre-d3": "^0.4.17",
     "dropzone": "^4.3.0",
     "gulp": "^3.9.1",
-    "html5sortable": "^0.5.1"
+    "html5sortable": "^0.5.1",
+    "select2": "^4.0.3"
   }
 }

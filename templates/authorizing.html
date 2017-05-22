@@ -5,13 +5,16 @@ Who is authorized to do what in you project?
 
 {% block content %}
 
-<h2>Generate Public Keys</h2>
+<h2 class="mt-5 mb-2">Generate Public Keys</h2>
 {{ lipsum(n=1, html=True, min=50, max=51) }}
 
-<h2>Upload Public Keys</h2>
+<h2 class="mt-5 mb-2">Upload Public Keys</h2>
 {{ lipsum(n=1, html=True, min=50, max=51) }}
+
 
 <script type="text/javascript">
+  {# Initialize drag and drop file upload for pubkey uploads #}
+  {# FIXME: Factor out to JavaScript file #}
   Dropzone.autoDiscover = false;
   $(function(){
 
@@ -46,6 +49,36 @@ Who is authorized to do what in you project?
       action="{{ url_for('ajax_upload_key') }}">
   </form>
 </div>
+
+<script type="text/javascript">
+  {# Initialize select2 for pubkey-to-step association #}
+  {# FIXME: Factor out to JavaScript file #}
+  $(function(){
+    $(".select2").select2();
+  });
+
+</script>
+
+<h2 class="mt-5 mb-3">Assign Public Keys</h2>
+{{ lipsum(n=1, html=True, min=40, max=41) }}
+
+{% for step in layout.steps %}
+  <h3 class="mt-3 mb-2">Step {{loop.index}}. "{{step.name}}"</h3>
+  <div class="form-group row">
+    <div class="col-10">
+      <label>Authorized functionaries</label>
+      <select multiple class="form-control select2">
+        {% for keyid, key in layout.keys.iteritems() %}
+         <option> {{ keyid | truncate(9, killwords=True)}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-2">
+      <label>Threshold</label>
+      <input class="form-control" type="number" value="{{ step.threshold | int }}" min="1">
+    </div>
+  </div>
+{% endfor %}
 
 
 <hr>
