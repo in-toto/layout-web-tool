@@ -180,10 +180,10 @@ def chaining():
   return render_template("chaining.html")
 
 
-@app.route("/chaining/upload")
+@app.route("/chaining/upload", methods=["POST"])
 def ajax_upload_link():
   """Ajax upload link metadata. """
-  pass
+  return jsonify({})
 
 
 @app.route("/wrap-up")
