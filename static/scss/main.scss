@@ -56,6 +56,8 @@ $enable-rounded: true;
 // Utility classes
 @import '../../node_modules/bootstrap/scss/utilities';
 
+@import '../../node_modules/select2/src/scss/core.scss';
+
 
 body {
   height:100vh;
