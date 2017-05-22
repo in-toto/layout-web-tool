@@ -1,14 +1,61 @@
 {% extends "base.html" %}
 {% block head %}
-7. Let's link the steps of your supply chain together!
+Security Restriction Assessment (linking the chain)
 {% endblock %}
 
 {% block content %}
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-  tempor incididunt ut labore et dolore magna aliqua.
-{% endblock %}
+{{ lipsum(n=1, html=True, min=80, max=81) }}
 
-{% block links %}
-  <a href="{{ url_for('authorizing')}} ">Previous</a>
-  <a href="{{ url_for('wrap_up')}} ">Next</a>
+<h2 class="mt-5 mb-2">Copy/Paste Commands</h2>
+
+
+<script type="text/javascript">
+  {# Initialize drag and drop file upload for pubkey uploads #}
+  {# FIXME: Factor out to JavaScript file #}
+  {# FIXME: DRY!!! c.f. authorizing #}
+  Dropzone.autoDiscover = false;
+  $(function(){
+
+    $(".dropzone").dropzone({
+        paramName: "dropped_file",
+
+        init: function () {
+          // Show already uploaded files in dropzone
+          {% for filename in filenames %}
+            var dropzone_file = {
+                name: "{{ filename }}"
+              };
+
+            this.options.addedfile.call(this, dropzone_file);
+            dropzone_file.previewElement.classList.add('dz-complete');
+
+          {% endfor %}
+        },
+        complete: function(file) {
+          // Remove the file place holder from the dropzone if the upload failed
+          if (response.error) {
+            this.removeFile(file);
+          }
+        }
+    });
+  });
+</script>
+
+<h2 class="mt-5 mb-2">Upload Links (Archive)</h2>
+<small>Drop Links (archive) here or click to upload!</small>
+<div class="dz-container d-flex align-items-stretch p-3">
+  <form class="dropzone d-flex flex-wrap" method="POST", enctype="multipart/form-data"
+      action="{{ url_for('ajax_upload_link') }}">
+  </form>
+</div>
+
+<hr>
+<div class="row no-gutters justify-content-between">
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('authorizing')}} ">Previous</a>
+  </div>
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('wrap_up')}} ">Next</a>
+  </div>
+</div>
 {% endblock %}
