@@ -76,7 +76,35 @@ $(function() {
       forcePlaceholderSize: true,
       placeholderClass: "sort-placeholder",
    });
+
+
+  /* Turn pre element (code) into textarea on click and select code.
+   * Nice for copy paste snippets
+   */
+  $("pre.code").click(function(){
+    // Cache old elements attributes (e.g. class)
+    var attrs = {};
+    $.each(this.attributes, function(idx, attr) {
+        attrs[attr.nodeName] = attr.nodeValue;
+    });
+
+    // Add disable spellcheck attribute
+    attrs["spellcheck"] = "false";
+
+    // Create new element
+    $textarea = $("<textarea />", attrs)
+      .height($(this).outerHeight())
+      .width($(this).outerWidth())
+      .append($(this).html());
+
+    // Remove old element from DOM and insert new
+    $(this).replaceWith($textarea);
+    // Select the contents
+    $textarea.select();
+
+  });
 });
+
 
   /*
    * Draw in-toto layout graph using D3.js

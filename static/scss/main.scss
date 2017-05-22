@@ -122,6 +122,19 @@ body {
   }
 }
 
+.code {
+  border: 1px solid #e3e3e3;
+  padding: 20px 20px;
+  margin: 0;
+}
+
+textarea.code {
+  font-family: $font-family-monospace;
+  font-size: $code-font-size;
+  color: $pre-color;
+  overflow: hidden;
+}
+
 // Form on software supply chain page
 .ssc-items {
   .ssc-item {
