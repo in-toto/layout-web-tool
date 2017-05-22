@@ -8,6 +8,18 @@ Security Restriction Assessment (linking the chain)
 
 <h2 class="mt-5 mb-2">Copy/Paste Commands</h2>
 
+<div>
+<pre class="code">
+in-toto-run --dry --name clone -- git clone myproject.git
+in-toto-run --dry --name lint -- lint myproject
+in-toto-run --dry --name build-1 -- configure myproject
+in-toto-run --dry --name build-2 -- make myproject
+in-toto-run --dry --name test -- runtests myproject
+in-toto-run --dry --name package -- tar -czf myproject.tar.gz myproject
+tar czf all-links.tar.gz clone.link lint.link build-1.link build-2.link test.link package.link
+</pre>
+</div>
+
 
 <script type="text/javascript">
   {# Initialize drag and drop file upload for pubkey uploads #}
