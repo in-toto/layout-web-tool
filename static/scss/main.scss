@@ -122,18 +122,23 @@ body {
   }
 }
 
-.code {
-  border: 1px solid #e3e3e3;
-  padding: 20px 20px;
-  margin: 0;
-}
 
-textarea.code {
+// Using solarized light colors for snippet styling
+// http://ethanschoonover.com/solarized
+.code {
+  padding: 15px 20px;
+  margin: 0;
+  background-color: #FDF6E3;
+  color: #586E75;
+  border: 1px solid #93A1A1;
+}
+ textarea.code {
   font-family: $font-family-monospace;
   font-size: $code-font-size;
-  color: $pre-color;
-  overflow: hidden;
+  overflow-y: hidden;
+  resize: none;
 }
+
 
 // Form on software supply chain page
 .ssc-items {

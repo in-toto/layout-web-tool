@@ -41,7 +41,6 @@ app.config.from_pyfile("config.py")
 # FIXME: For prototyping, we statically serve an example  layout on some pages
 layout = Layout.read_from_file(
     "demo_metadata/root.layout") # WARNING: layout file not in VCS
-print layout
 
 # -----------------------------------------------------------------------------
 # Utils
@@ -196,7 +195,7 @@ def wrap_up():
    - Per functionary commands (in-toto-run snippet)
    - Release instructions ??
   """
-  return render_template("wrap_up.html")
+  return render_template("wrap_up.html", layout=layout)
 
 
 @app.route("/guarantees")

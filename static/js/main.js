@@ -95,10 +95,12 @@ $(function() {
     $textarea = $("<textarea />", attrs)
       .height($(this).outerHeight())
       .width($(this).outerWidth())
+      .prop("readonly", true)
       .append($(this).html());
 
     // Remove old element from DOM and insert new
     $(this).replaceWith($textarea);
+
     // Select the contents
     $textarea.select();
 
