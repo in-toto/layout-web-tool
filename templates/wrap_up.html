@@ -1,14 +1,53 @@
 {% extends "base.html" %}
 {% block head %}
-8. Contratulations, you have created an in-toto software supply chain layout!
+Congrats, you are now the proud owner of a custom in-toto layout!
 {% endblock %}
-
 {% block content %}
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-  tempor incididunt ut labore et dolore magna aliqua.
-{% endblock %}
+<p>
+But not so fast you still have to do a couple of things before your clients can verify your software with in-toto!
+</p>
 
-{% block links %}
-  <a href="{{ url_for('chaining')}} ">Previous</a>
-  <a href="{{ url_for('guarantees')}} ">Next</a>
+
+<h2 class="mt-5 mb-2">1. Download the Layout</h2>
+<a href="#" class="btn btn-outline-primary">Download Layout</a>
+
+
+<h2 class="mt-5 mb-2">2. Create a project owner key pair (if you don't already have one)</h2>
+<div><pre class="code">
+in-toto-keygen project-owner
+</pre></div>
+
+<h2 class="mt-5 mb-2">3. Sign your layout with your project owner key</h2>
+<div><pre class="code">
+in-toto-sign --key project-owner root.layout
+</pre></div>
+
+<h2 class="mt-5 mb-2">4. Instruct your functionaries to use in-toto commands</h2>
+{% for keyid, key in layout.keys.iteritems() %}
+<h3 class="mt-3 mb-2">Functionary {{ keyid | truncate(9, killwords=True) }}</h3>
+<div>
+{#
+"-" strips newlines before/after blocks, which would be displayed in pre elems
+#}
+<pre class="code">
+{% for step in layout.steps %}
+{%- if keyid in step.pubkeys -%}
+  in-toto-run --key {{ keyid | truncate(9, killwords=True)}} --materials . --products .  --step-name {{step.name}} -- {{step.expected_command | join(" ") }}
+{% endif %}
+{%- endfor -%}
+</pre>
+</div>
+
+{% endfor %}
+<h2 class="mt-5 mb-2">5. Ship out in-toto metadata along with your software</h2>
+
+<hr>
+<div class="row no-gutters justify-content-between">
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('chaining')}} ">Previous</a>
+  </div>
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('guarantees')}} ">Next</a>
+  </div>
+</div>
 {% endblock %}
