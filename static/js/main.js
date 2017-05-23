@@ -94,7 +94,6 @@ $(function() {
     // Create new element
     $textarea = $("<textarea />", attrs)
       .height($(this).outerHeight())
-      .width($(this).outerWidth())
       .prop("readonly", true)
       .append($(this).html());
 
