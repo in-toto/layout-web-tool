@@ -67,9 +67,16 @@ body {
 .head {
   background: $wizard-blue;
   height: 100px;
+  font-size: 3em;
+  color: #f5f5f5;
+  font-weight: bold;
+  .container,
+  .container .row {
+    height: inherit;
+  }
 }
 
-.container {
+.container.content {
   background-color: white;
   border: 1px solid #e3e3e3;
   margin-top: 20px;
