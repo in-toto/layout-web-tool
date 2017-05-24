@@ -3,6 +3,8 @@
 {% extends "base.html" %}
 
 {% block content %}
+{{ macros.progress_bar(value=30) }}
+<hr>
 <h1>How do you build your software?</h1>
 {{ lipsum(n=1, html=True, min=50, max=51) }}
 
