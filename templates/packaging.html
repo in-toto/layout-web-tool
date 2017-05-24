@@ -1,11 +1,9 @@
 {% import '_macros.html' as macros %}
 
 {% extends "base.html" %}
-{% block head %}
-How do you package your software?
-{% endblock %}
 
 {% block content %}
+<h1>How do you package your software?</h1>
 {{ lipsum(n=1, html=True, min=50, max=51) }}
 
 {% call() macros.option_grid(check_type="checkbox") %}
