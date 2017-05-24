@@ -1,11 +1,9 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{% block head %}
-Where does your code live?
-{% endblock %}
 
 {% block content %}
+  <h1>Where does your code live?</h1>
   {{ lipsum(n=1, html=True, min=50, max=51) }}
 
   <h2 class="mt-5 mb-3">What version control system do you use?</h2>

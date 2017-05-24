@@ -1,11 +1,9 @@
 {% import '_macros.html' as macros %}
 
 {% extends "base.html" %}
-{% block head %}
-How do you build your software?
-{% endblock %}
 
 {% block content %}
+<h1>How do you build your software?</h1>
 {{ lipsum(n=1, html=True, min=50, max=51) }}
 
 <h2 class="mt-4">Order your building steps here</h2>
