@@ -1,6 +1,10 @@
+{% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
 {% block content %}
+{{ macros.progress_bar(value=99) }}
+<hr>
+
 <h1>Congrats, you are now the proud owner of a custom in-toto layout!</h1>
 <p>
 But not so fast you still have to do a couple of things before your clients can verify your software with in-toto!

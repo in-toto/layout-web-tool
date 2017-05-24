@@ -34,3 +34,11 @@
   {{kwargs.add_btn_text}}
 </button>
 {%- endmacro %}
+
+
+
+{% macro progress_bar() %}
+<div class="progress">
+  <div class="progress-bar" role="progressbar" style="width: {{kwargs.value}}%" aria-valuenow="{{kwargs.value}}" aria-valuemin="0" aria-valuemax="100">{{kwargs.value}}%</div>
+</div>
+{%- endmacro %}

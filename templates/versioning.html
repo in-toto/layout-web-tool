@@ -3,6 +3,8 @@
 
 
 {% block content %}
+  {{ macros.progress_bar(value=20) }}
+  <hr>
   <h1>Where does your code live?</h1>
   {{ lipsum(n=1, html=True, min=50, max=51) }}
 

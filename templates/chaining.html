@@ -1,6 +1,10 @@
+{% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
 {% block content %}
+{{ macros.progress_bar(value=80) }}
+<hr>
+
 <h1>Security Restriction Assessment (linking the chain)</h1>
 {{ lipsum(n=1, html=True, min=80, max=81) }}
 
