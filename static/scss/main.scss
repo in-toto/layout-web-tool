@@ -58,7 +58,6 @@ $enable-rounded: true;
 
 @import '../../node_modules/select2/src/scss/core.scss';
 
-
 body {
   height:100vh;
   background-color: #f5f5f5;
@@ -196,11 +195,18 @@ ul.check {
   display: none;
 }
 
-.input-group select {
-  @extend .rounded-0;
-  @extend .border-right-0;
+// Extend select for input groups
+// http://getbootstrap.com/components/#input-groups
+// TODO: replace selects with something that works more cross-browser
+.input-group-select {
+  &:not(:first-child) {
+    @include border-left-radius(0);
+  }
+  &:not(:last-child) {
+    @extend .border-right-0;
+    @include border-right-radius(0);
+  }
 }
-
 
 // Responsive SVG trick (http://thenewcode.com/744/Make-SVG-Responsive)
 .svg-container {
