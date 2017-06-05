@@ -222,32 +222,11 @@ ul.check {
 
     rect, circle {
       fill: transparent;
-      stroke: #e3e3e3;
-    }
-
-    // Steps and Inspection
-    .clusters {
-      rect {
-        stroke-width: 3px;
-      }
-      .label {
-        font-weight: bold;
-        fill: black;
-      }
-    }
-
-    // Materials and Products
-    .nodes {
-      circle {
-        stroke-width: 1px;
-      }
-      .label {
-        fill:  #e3e3e3;
-      }
+      stroke: darkgrey;
     }
 
     .edgePath path {
-      stroke: darkgrey;
+      stroke: black;
       stroke-width: 1px;
     }
   }
