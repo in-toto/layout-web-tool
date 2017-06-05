@@ -114,47 +114,31 @@ $(function() {
    */
 var draw_graph = function(graph_data) {
   // Create a new directed acyclic graph (dag)
-  var dag = new dagreD3.graphlib.Graph({compound: true, multigraph: true})
+  var dag = new dagreD3.graphlib.Graph({multigraph: true})
 
   // Create a left to right layout
   dag.setGraph({
     nodesep: 5,
     ranksep: 40,
     edgesep: 10,
-    rankdir: "RL",
+    rankdir: "LR",
   });
 
-  // Create links between "child-nodes" (materials or products) of steps or
-  // inspections
-  // identified as <source_type>_<node name>, where source_type is "M" or "P".
+  // Create nodes (steps and inspections) based on passed nodes data.
+  graph_data.nodes.forEach(function(node) {
+    // Create regular node (step or inspection)
+    dag.setNode(node.name, {label: node.name});
+  });
+
+  // Create links between steps and/or inspections
   graph_data.links.forEach(function(link){
-    dag.setEdge(link.source_type + "_" + link.source,
-        link.dest_type + "_" + link.dest,
-      {
+    dag.setEdge(link.dest, link.source, {
         lineInterpolate: "basis"
         // TODO: we could display the path pattern as label
-        //label: "..."
+        // label: "..."
       });
   });
 
-  // Create nodes (steps and inspections) based on passed nodes data and
-  // child-nodes (materials and products) based on passed links.
-  // I.e. a step that e.g. has not material_matchrule, or hasn't got its
-  // materials matched by another step, doesn't get a material subnode.
-  graph_data.nodes.forEach(function(node) {
-
-    // Create regular node (step or inspection)
-    dag.setNode(node.name, {label: node.name, clusterLabelPos: 'top'});
-
-    // Create material or product child node only if they have a degree > 0
-    ["M", "P"].forEach(function(prefix) {
-      var node_child = prefix + "_" + node.name;
-      if (dag.nodeEdges(node_child)) {
-        dag.setNode(node_child, {label: prefix, shape: "circle"});
-        dag.setParent(node_child, node.name);
-      }
-    })
-  });
 
   // The SVG element
   var svg = d3.select("svg.svg-content");
@@ -212,7 +196,6 @@ var draw_graph = function(graph_data) {
   };
 
   // Re-order SVG items - no z-index in SVG :(
-  d3.select(".clusters").toFront();
   d3.select(".edgePaths").toFront();
 }
 
