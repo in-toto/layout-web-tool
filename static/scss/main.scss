@@ -351,6 +351,8 @@ ul.check {
         // ... define form width depending on cell count ...
         .opt-form-cont {
           width: $cnt * 100%;
+          position: relative;
+          z-index: 1;
         }
 
         // ... define form offset depending on cell count and
