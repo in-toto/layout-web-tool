@@ -9,10 +9,10 @@
   {{ lipsum(n=1, html=True, min=50, max=51) }}
 
   <h2 class="mt-5 mb-3">What version control system do you use?</h2>
-  {% call() macros.option_grid(check_type="radio") %}
+  {% call() macros.option_grid(check_type="radio", tools=vcs_tools) %}
     <div class="form-group">
       <label>I fetch my repo using this command:</label>
-      <input type="text" class="form-control" placeholder="$ git clone git@github.com:in-toto/in-toto.git">
+      <input type="text" class="form-control" placeholder="{{kwargs.cmd}}">
       <small class="form-text text-muted">Some descriptive text...</small>
     </div>
   {% endcall %}

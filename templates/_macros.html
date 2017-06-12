@@ -1,22 +1,20 @@
 {% macro option_grid() %}
 <div class="opt-row row no-gutters">
 {# TODO: This is a temp protoype loop, later we will iterate over real data. #}
-{% for i in range(range(4, 30) | random) %}
+{% for tool in kwargs.tools %}
   <div class="opt-cell col-3">
     <div class="opt-content">
       <div class="opt-logo text-center m-2">
-        <img src="">
+        <img src="{{tool['logo']}}">
       </div>
       <div class="opt-check form-check text-center">
-        <label class="form-check-label">
           <input class="form-check-input" type="{{ kwargs.check_type }}" name="opt">
-          cmd
-        </label>
+          {{tool["name"]}}
       </div>
     </div>
     <div class="opt-form-cont collapse">
       <div class="opt-form">
-        {{ caller() }}
+        {{ caller(cmd=tool["cmd"]) }}
       </div>
     </div>
   </div>
