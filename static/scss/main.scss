@@ -282,14 +282,20 @@ ul.check {
     // The cell content showing logo, command and options
     // The form is a sibling of this element
     .opt-content {
+      position: relative;
       border: 1px solid lightgrey;
+      height: 120px;
+
+      input.form-check-input {
+        display: none;
+      }
 
       // Place for a tool/command's logo
       // With SVG placeholder if no logo is specified
       .opt-logo {
         img {
-          width: 30px;
-          height: 30px;
+          width: 40px;
+          /*           height: 30px; */
           &:before {
               content: ' ';
               position: absolute;
@@ -306,6 +312,7 @@ ul.check {
       }
       // ... and also show bottom-centered SVG arrow
       &.active:after {
+        top: 100%;
         left: 50%;
         margin: 0 -8px;
         content: ' ';
