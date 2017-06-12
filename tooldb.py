@@ -1,14 +1,14 @@
-{
+collection = {
   "vcs": [{
     "type": "",
     "prog_lang": "",
     "name": "Git",
-    "logo": "http://javahonk.com/wp-content/uploads/2015/07/git.png",
+    "logo": "https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png",
     "cmd": "git clone [url]"
   }, {
     "type": "",
     "prog_lang": "",
-    "name": "Apache Subversion",
+    "name": "SVN",
     "logo": "https://linuxanswer.org/wp-content/uploads/2017/03/svn.png",
     "cmd": "svn checkout/co URL PATH"
   }, {
@@ -39,12 +39,12 @@
     "type": "",
     "prog_lang": "",
     "name": "Darcs",
-    "logo": "https://images.g2crowd.com/uploads/product/image/social_landscape/social_landscape_1489700446/darcs.png",
+    "logo": "http://darcs.net/img/logos/logo.png",
     "cmd": "darcs clone --lazy URL"
   }, {
     "type": "",
     "prog_lang": "",
-    "name": "Concurrent Versions System",
+    "name": "CVS",
     "logo": "https://upload.wikimedia.org/wikipedia/commons/d/d8/TortoiseCVS_Logo.png",
     "cmd": "cvs -d /home/Project/CVS_root init"
   }, {
