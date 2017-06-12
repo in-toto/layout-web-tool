@@ -25,6 +25,7 @@ from flask import (Flask, render_template, session, redirect, url_for, request,
 
 from in_toto.models.layout import Layout
 import in_toto.artifact_rules
+import tooldb
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
 
@@ -125,7 +126,8 @@ def start():
 def versioning():
   """Step 1.
   Enter information about version control system. """
-  return render_template("versioning.html")
+  vcs_tools = tooldb.collection["vcs"]
+  return render_template("versioning.html", vcs_tools=vcs_tools)
 
 
 @app.route("/building")
