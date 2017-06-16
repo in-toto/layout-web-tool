@@ -49,6 +49,32 @@ $(function() {
     });
   });
 
+  /*
+   * Click listener to copy the enclosing form and add it to the
+   * opt-from-container and show an info message.
+   * If the form-container is also a sort container, re-init sortable
+   */
+  $(document).on("click", "button.copy-btn", function(evt) {
+
+    // Hide opts
+    $(".opt-form-cont").slideUp();
+    $(".opt-content").removeClass("active");
+
+    var $form = $(this).parents(".opt-form").clone().hide();
+    $form.find(".rm-btn").removeClass("d-none");
+    $form.find(".copy-btn").addClass("d-none");
+
+    $form.appendTo("#opt-form-container").slideDown();
+    show_message("The command has been added to your workflow!" +
+        " You can still review and change it below before it gets stored.",
+        "alert-info");
+
+    // If the added item was sortable, re-initialize the sort container
+    if ($form.parents(".sort-container").length) {
+      sortable(".sort-container")
+    }
+
+  });
 
   /*
    * Initialize drag and drop sorting
