@@ -21,18 +21,22 @@
 </div>
 {%- endmacro %}
 
-{% macro option_custom() %}
-<div id="custom-cmd-container" class="mb-3 .fade">
-  <div class="opt-form template" style="display:none;">
-    {{ caller() }}
-  </div>
+{% macro form_container(form_id, form_action, user_data) %}
+<div class="opt-form template" style="display:none;">
+  {{ caller() }}
 </div>
-<button data-templatesource=".opt-form" data-templatedest="#custom-cmd-container" class="add-btn btn btn-outline-primary">
-  {{kwargs.add_btn_text}}
+<form id="{{ form_id }}" action="{{ form_action }}" method="POST">
+  <div id="opt-form-container" class="mb-3 sort-container">
+    {% for user_item in user_data.get("items", []) %}
+      <div class="opt-form">
+        {{ caller(data=user_item) }}
+      </div>
+    {% endfor %}
+  </div>
+<button type="button" data-templatesource=".opt-form" data-templatedest="#opt-form-container" class="add-btn btn btn-outline-primary">Add custom command
 </button>
+</form>
 {%- endmacro %}
-
-
 
 {% macro progress_bar() %}
 <div class="progress">
