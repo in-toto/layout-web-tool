@@ -75,6 +75,10 @@ body {
   }
 }
 
+.d-none {
+  display: none;
+}
+
 .container.content {
   background-color: white;
   border: 1px solid #e3e3e3;
@@ -185,19 +189,28 @@ ul.check {
   .ssc-item {
     @extend .inset;
     padding: 10px 10px;
-  }
-  .drag-handle {
-    font-size: 2em;
+    .drag-handle {
+      font-size: 2em;
+    }
   }
 }
 
+
 .opt-form {
   @extend .inset;
-  padding: 20px 30px 5px;
+  padding: 1.5em 5em 0.5em;
+  position: relative;
 
   // Special styles for custom opt-forms (not in the option grid)
   #opt-form-container & {
     margin-bottom: 20px;
+    &:before {
+      content: "|||";
+      position: absolute;
+      font-size: 2em;
+      top: 0.2em;
+      left: 0.5em;
+    }
   }
 }
 
@@ -294,7 +307,6 @@ ul.check {
     .opt-content {
       position: relative;
       border: 1px solid lightgrey;
-      height: 120px;
 
       input.form-check-input {
         display: none;
@@ -304,8 +316,8 @@ ul.check {
       // With SVG placeholder if no logo is specified
       .opt-logo {
         img {
-          width: 40px;
-          /*           height: 30px; */
+          height: 30px;
+          max-width: 100%;
           &:before {
               content: ' ';
               position: absolute;
