@@ -4,92 +4,94 @@ collection = {
     "prog_lang": "",
     "name": "Git",
     "logo": "https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png",
-    "cmd": "git clone [url]"
+    "cmd": "git clone <repo>"
   }, {
     "type": "",
     "prog_lang": "",
     "name": "SVN",
-    "logo": "https://linuxanswer.org/wp-content/uploads/2017/03/svn.png",
-    "cmd": "svn checkout/co URL PATH"
+    "logo": "https://subversion.apache.org/images/svn-square.jpg",
+    "cmd": "svn checkout <repo>"
   }, {
     "type": "",
     "prog_lang": "",
     "name": "Mercurial",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/New_Mercurial_logo.svg/2000px-New_Mercurial_logo.svg.png",
-    "cmd": "hg clone --uncompressed http://server/repo"
+    "logo": "https://www.mercurial-scm.org/logo-droplets-200.png",
+    "cmd": "hg clone <repo>"
   }, {
     "type": "",
     "prog_lang": "",
     "name": "GNU Bazaar ",
-    "logo": "http://2.bp.blogspot.com/-Yqd0z4K94B0/TfSS8OXf89I/AAAAAAAABJA/fGLt-N9ti2s/s200/bazaar.png",
-    "cmd": "bzr branch lp:bzr bzr.dev"
+    "logo": "http://bazaar.canonical.com/bzricons/bazaar-logo.png",
+    "cmd": "bzr branch <remote repo> <local repo>"
   }, {
     "type": "",
     "prog_lang": "",
     "name": "Monotone",
     "logo": "https://www.monotone.ca/res/logo.png",
-    "cmd": "mtn db init --db=:user"
+    "cmd": "mtn --db=<db> sync <repo>"
   }, {
     "type": "",
     "prog_lang": "",
     "name": "Fossil",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Fossil_SCM_logo.svg/170px-Fossil_SCM_logo.svg.png",
-    "cmd": "fossil clone ?OPTIONS? URI FILENAME"
+    "logo": "https://www.fossil-scm.org/index.html/doc/trunk/www/fossil3.gif",
+    "cmd": "fossil clone <repo>"
   }, {
     "type": "",
     "prog_lang": "",
     "name": "Darcs",
     "logo": "http://darcs.net/img/logos/logo.png",
-    "cmd": "darcs clone --lazy URL"
+    "cmd": "darcs clone <repo>"
   }, {
     "type": "",
     "prog_lang": "",
     "name": "CVS",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/d/d8/TortoiseCVS_Logo.png",
-    "cmd": "cvs -d /home/Project/CVS_root init"
-  }, {
-    "type": "",
-    "prog_lang": "",
-    "name": "AccuRev",
-    "logo": "https://pbs.twimg.com/profile_images/378800000092420461/aeab81f94d12ea387f7cae8868892112_400x400.png",
-    "cmd": "accurev mkstream -s <stream> -b <backing-stream>"
-  }, {
-    "type": "",
-    "prog_lang": "",
-    "name": "Veracity",
-    "logo": "https://discoversdkcdn.azureedge.net/runtimecontent/companyfiles/5875/3191/thumbnail.png",
-    "cmd": ""
-  }, {
-    "type": "",
-    "prog_lang": "",
-    "name": "ArX",
-    "logo": "https://arxequity.com/wp-content/themes/arx/img/logo_big_blue.png",
-    "cmd": "arx make-archive ArchiveName RepositoryDirectory"
-  }, {
+    "logo": "",
+    "cmd": "cvs co <repo>"
+   }, {
+  #   "type": "",
+  #   "prog_lang": "",
+  #   "name": "AccuRev",
+  #   "logo": "https://pbs.twimg.com/profile_images/378800000092420461/aeab81f94d12ea387f7cae8868892112_400x400.png",
+  #   "cmd": "accurev mkstream -s <stream> -b <backing-stream>"
+  # }, {
+  #   "type": "",
+  #   "prog_lang": "",
+  #   "name": "Veracity",
+  #   "logo": "https://discoversdkcdn.azureedge.net/runtimecontent/companyfiles/5875/3191/thumbnail.png",
+  #   "cmd": ""
+  # }, {
+    # "type": "",
+    # "prog_lang": "",
+    # "name": "ArX",
+    # "logo": "https://arxequity.com/wp-content/themes/arx/img/logo_big_blue.png",
+    # "cmd": "arx make-archive ArchiveName RepositoryDirectory"
+  # }, {
     "type": "",
     "prog_lang": "",
     "name": "BitKeeper",
     "logo": "http://www.bitkeeper.org/man/BitKeeper_SN_Blue.png",
-    "cmd": "bk clone <from>"
-  }, {
-    "type": "",
-    "prog_lang": "",
-    "name": "SVK",
-    "logo": "",
-    "cmd": "svk commit [PATH\u2026]"
-  }, {
-    "type": "",
-    "prog_lang": "",
-    "name": "Plastic SCM",
-    "logo": "https://pbs.twimg.com/profile_images/378800000542266610/114e3495e712c5bc736970326ecfb9f2_400x400.png",
-    "cmd": "cm mkwk [name]"
-  }, {
-    "type": "",
-    "prog_lang": "",
-    "name": "Team Foundation Server",
-    "logo": "https://szul.blob.core.windows.net/images/team-foundation-server-2015-header.png",
-    "cmd": "tf get [itemspec]"
+    "cmd": "bk clone <repo>"
+  # }, {
+  #   "type": "",
+  #   "prog_lang": "",
+  #   "name": "SVK",
+  #   "logo": "",
+  #   "cmd": "svk commit [PATH\u2026]"
+  # }, {
+  #   "type": "",
+  #   "prog_lang": "",
+  #   "name": "Plastic SCM",
+  #   "logo": "https://pbs.twimg.com/profile_images/378800000542266610/114e3495e712c5bc736970326ecfb9f2_400x400.png",
+  #   "cmd": "cm mkwk [name]"
+  # }, {
+  #   "type": "",
+  #   "prog_lang": "",
+  #   "name": "Team Foundation Server",
+  #   "logo": "https://szul.blob.core.windows.net/images/team-foundation-server-2015-header.png",
+  #   "cmd": "tf get [itemspec]"
   }],
+
+
   "building": [{
     "type": "make_based",
     "prog_lang": "",
