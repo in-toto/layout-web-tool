@@ -1,45 +1,59 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
+{# BEGIN: Versioning form macro #}
+{% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
+  <div class="form-group">
+    <label>I fetch my repo using this command</label>
+    <input type="text" class="form-control" value="{{ data.get('cmd') if data }}" name="vcs_cmd[]">
+  </div>
+  <div class="form-group">
+    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}">Add to my software supply chain</button>
+    <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
+  </div>
+{% endmacro %}
+{# END: Versioning form macro #}
 
+
+
+{# BEGIN: Rendered content #}
 {% block content %}
   {{ macros.progress_bar(value=20) }}
   <hr>
   <h1>Where does your code live?</h1>
   {{ lipsum(n=1, html=True, min=50, max=51) }}
 
-  <h2 class="mt-5 mb-3">What version control system do you use?</h2>
-  {% call() macros.option_grid(check_type="radio", tools=vcs_tools) %}
-    <div class="form-group">
-      <label>I fetch my repo using this command:</label>
-      <input type="text" class="form-control" placeholder="{{kwargs.cmd}}">
-      <small class="form-text text-muted">Some descriptive text...</small>
-    </div>
+  {# BEGIN: Option Grid #}
+  <h2 class="mt-5 mb-3">Tell us which version control system you use</h2>
+  {% call(data) macros.option_grid(options=options) %}
+    {{ form_content(data={"cmd": data.get('cmd')}, show_add_btn=True, show_rm_btn=False) }} {# data passed back from macro #}
   {% endcall %}
+  {# END: Option Grid #}
 
-  <h2 class="mt-5 mb-3">I use a different version control system</h2>
-  {% call() macros.option_custom(add_btn_text="Add custom VCS command") %}
-    <label>I fetch my repo using this command:</label>
-    <div class="form-group row no-gutters justify-content-between">
-      <div class="col-6">
-        <input type="text" class="form-control" placeholder="">
-      </div>
-      <button data-toremove=".opt-form" class="rm-btn btn-outline-danger btn col-3">Remove</button>
-    </div>
-  {% endcall %}
 
+  {# BEGIN: Postable Form Content #}
+  <h2 class="mt-5 mb-3">This is the version control system I use</h2>
+    {% call(data=None) macros.form_container(form_id="vcs-form", form_action=url_for('versioning'), user_data=user_data) %}
+      {{ form_content(data=data) }} {# data passed back from macro #}
+    {% endcall %}
+  {# END: Postable Form Content #}
+
+  {# BEGIN: Navigation Footer (Previous/Next) #}
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
       <a class="btn btn-primary btn-block" href="{{ url_for('start')}} ">Previous</a>
     </div>
     <div class="col-3">
-      {# <a class="btn btn-primary btn-block" href="{{ url_for('building')}} ">Next</a> #}
-      <button class="btn btn-primary btn-block" data-toggle="modal" data-target="#clone-consent-modal">Next</button>
+      <input type="submit" form="vcs-form" class="btn btn-primary btn-block" value="Next">
+      {# <button class="btn btn-primary btn-block" data-toggle="modal" data-target="#clone-consent-modal">Next</button> #}
     </div>
   </div>
+  {# END: Navigation Footer (Previous/Next) #}
 
-  <div id="clone-consent-modal" class="modal fade" tabindex="-1" role="dialog">
+
+  {# BEGIN: Code clone consent form displayed on click as overlay (modal) #}
+{#   <div id="clone-consent-modal" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-sm mt-5">
       <div class="modal-content">
         <div class="modal-header"></div>
@@ -50,8 +64,10 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> #}
+  {# END: Code clone consent form displayed on click as overlay (modal) #}
 
 {% endblock %}
+{# END: Rendered content #}
 
 
