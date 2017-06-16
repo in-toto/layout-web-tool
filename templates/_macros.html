@@ -1,18 +1,19 @@
-{% macro option_grid() %}
+{% macro option_grid(options) %}
 <div class="opt-row row no-gutters">
 {# TODO: This is a temp protoype loop, later we will iterate over real data. #}
-{% for tool in kwargs.tools %}
+{% for option in options %}
   <div class="opt-cell col-3">
     <div class="opt-content">
       <div class="opt-logo text-center m-2">
-        <img src="{{tool['logo']}}">
+        <img src="{{option['logo']}}">
       </div>
       <div class="text-center">
+          {{option["name"]}}
       </div>
     </div>
     <div class="opt-form-cont collapse">
       <div class="opt-form">
-        {{ caller(cmd=tool["cmd"]) }}
+        {{ caller(data=option) }}
       </div>
     </div>
   </div>
