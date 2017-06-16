@@ -1,57 +1,52 @@
 {% import '_macros.html' as macros %}
-
 {% extends "base.html" %}
 
-{% block content %}
-{{ macros.progress_bar(value=30) }}
-<hr>
-<h1>How do you build your software?</h1>
-{{ lipsum(n=1, html=True, min=50, max=51) }}
-
-<h2 class="mt-4">Order your building steps here</h2>
-<small class="text-muted">You will be able to sort below options here once you selected them below.</small>
-
-<div class="sortable-build-steps row no-gutters inset p-2 sort-container">
-{% for item in range(2) %}
-  <div class="build-step sort-item" draggable="true">
-    <div class="build-step-content">
-      blaaaa-{{loop.index}}
-    </div>
-  </div>
-{% endfor %}
-
-</div>
-
-{% for language in ["C", "Java", "Python"] %}
-  <h2 class="mt-5">{{ language }}</h2>
-  {% call() macros.option_grid(check_type="checkbox") %}
+{# BEGIN: Building form macro #}
+{% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
   <div class="form-group">
-    <label>I build my software using this command:</label>
-    <input type="text" class="form-control" placeholder="$ configure">
-    <small class="form-text text-muted">Some descriptive text...</small>
+    <label>I build my software using this command</label>
+    <input type="text" class="form-control" value="{{ data.get('cmd') if data }}" name="build_cmd[]">
   </div>
+  <div class="form-group">
+    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}">Add to my software supply chain</button>
+    <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
+  </div>
+{% endmacro %}
+{# BEGIN: Building form macro #}
+
+{# BEGIN: Rendered content #}
+{% block content %}
+  {{ macros.progress_bar(value=30) }}
+  <hr>
+  <h1>How do you build your software?</h1>
+  {{ lipsum(n=1, html=True, min=50, max=51) }}
+
+  {# BEGIN: Option Grid #}
+  <h2 class="mt-5 mb-3">Tell us how you build your software</h2>
+  {% call(data) macros.option_grid(options=options) %}
+    {{ form_content(data={"cmd": data.get("cmd")}, show_add_btn=True, show_rm_btn=False) }} {# data passed back from macro #}
   {% endcall %}
-{% endfor %}
+  {# END: Option Grid #}
 
-<h2 class="mt-5 mb-3">I use different build commands</h2>
-{% call() macros.option_custom(add_btn_text="Add custom build command(s)") %}
-  <label>I build my software using this command::</label>
-  <div class="form-group row no-gutters justify-content-between">
-    <div class="col-6">
-      <input type="text" class="form-control" placeholder="">
+  {# BEGIN: Postable Form Content #}
+  <h2 class="mt-5 mb-3">This is how I build my software</h2>
+  {% call(data=None) macros.form_container(form_id="building-form", form_action=url_for('building'), user_data=user_data) %}
+    {{ form_content(data=data) }} {# data passed back from macro #}
+  {% endcall %}
+  {# END: Postable Form Content #}
+
+  {# BEGIN: Navigation Footer (Previous/Next) #}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('versioning')}} ">Previous</a>
     </div>
-    <button type="button" data-toremove=".opt-form" class="rm-btn btn-outline-danger btn col-3">Remove</button>
+    <div class="col-3">
+      <input type="submit" form="building-form" class="btn btn-primary btn-block" value="Next">
+    </div>
   </div>
-{% endcall %}
+  {# END: Navigation Footer (Previous/Next) #}
 
-<hr>
-<div class="row no-gutters justify-content-between">
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('versioning')}} ">Previous</a>
-  </div>
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('quality_management')}} ">Next</a>
-  </div>
-</div>
 
 {% endblock %}
+{# END: Rendered content #}
