@@ -130,7 +130,7 @@ def versioning():
 
   if request.method == "POST":
     # Grab the form posted vcs commands and write it to the session
-    # FIXME: Needs sanatizing and session persistence!!!
+    # FIXME: Needs sanitizing and session persistence!!!
     session["vcs"] = {
       "items": [{"cmd": cmd} for cmd in request.form.getlist("vcs_cmd[]")],
       "comment": request.form.get("comment", "")
@@ -145,11 +145,27 @@ def versioning():
   return render_template("versioning.html", options=options, user_data=user_data)
 
 
-@app.route("/building")
+@app.route("/building", methods=["GET", "POST"])
 def building():
   """Step 2.
   Enter information about building. """
-  return render_template("building.html")
+  options = tooldb.collection["building"]
+
+  if request.method == "POST":
+    # Grab the form posted building commands and write it to the session
+    # FIXME: Needs sanitizing and session persistence!!!
+    session["building"] = {
+      "items": [{"cmd": cmd} for cmd in request.form.getlist("build_cmd[]")],
+      "comment": request.form.get("comment", "")
+    }
+
+    flash("Success! Let's talk about quality management next...", "alert-success")
+    return redirect(url_for("quality_management"))
+
+  # The template can deal with an empty dict, but a dict it must be
+  user_data = session.get("building", {})
+
+  return render_template("building.html", options=options, user_data=user_data)
 
 
 @app.route("/quality")
