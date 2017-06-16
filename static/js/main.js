@@ -107,6 +107,30 @@ $(function() {
 });
 
 
+/*
+ * Append and show message with a certain type
+ * The message gets removed after a fixed amount of time
+ */
+var show_message = function(msg, msg_type) {
+
+  if ($.inArray(msg_type,
+      ["alert-success", "alert-info", "alert-warning", "alert-danger"]) == -1)
+    msg_type = "alert-info";
+
+  var $container = $("#alert-container");
+  var $alert = $container.find(".alert.template").clone();
+  $alert.find("span.alert-msg").text(msg);
+
+  $alert.addClass(msg_type)
+      .appendTo($container)
+      .removeClass("template");
+
+  // Remove message after a fixed amount of time
+  setTimeout(function(){
+    $alert.alert("close");
+  }, 5000);
+}
+
   /*
    * Draw in-toto layout graph using D3.js
    * FIXME: modularize don't use data from global variable `layout_data`

@@ -14,6 +14,27 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.scss.css') }}">
   </head>
   <body>
+    <div class="fixed-top">
+      <div id="alert-container">
+        <script type="text/javascript">
+          $(function(){
+            var messages = {{get_flashed_messages(with_categories=true) | tojson }};
+            messages.forEach(function(msg_data) {
+              show_message(msg_data[1], msg_data[0]);
+            });
+          })
+        </script>
+        <div class="alert alert-dismissible fade show template" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          <div class="container">
+            <span class="alert-msg"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="head">
       <div class="container">
         <div class="row">
