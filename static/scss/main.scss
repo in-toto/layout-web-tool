@@ -262,38 +262,6 @@ ul.check {
 }
 
 
-.sortable-build-steps {
-  min-height: 40px;
-  // The sortable items are grid columns
-  .build-step {
-    @extend .col-2;
-    padding: 10px;
-    .build-step-content {
-      @extend .text-center;
-      border: 1px solid $wizard-blue;
-      padding: 10px;
-      &:after {
-        left: 100%;
-        margin: 0 -19px;
-        content: ' ';
-        position: absolute;
-        width: 16px;
-        height: 16px;
-        // Fixme: there are better tricks to create arrows without using svg e.g. using css borders
-        background: url("data:image/svg+xml;utf8,<svg width='16' height='16' xmlns='http://www.w3.org/2000/svg'><path d='M8 16  L16 8 L8 0' stroke='#67798d' stroke-width='1' fill='#f5f5f5'/></svg>") no-repeat;
-      }
-    }
-  }
-
-  // Dash the placeholder's border
-  .sort-placeholder {
-    @extend .col-2;
-    padding: 10px;
-    border: 1px dashed $wizard-blue;
-  }
-}
-
-
 /********************
  Option Grid
  ********************/
