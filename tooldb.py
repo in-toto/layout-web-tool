@@ -114,7 +114,7 @@ collection = {
     "type": "non_make_based",
     "prog_lang": "",
     "logo": "http://www.scala-sbt.org/assets/typesafe_sbt_svg.svg",
-    "name": "Scala Simple Build Tool",
+    "name": "sbt",
     "cmd": "compile"
   }, {
     "type": "non_make_based",
@@ -141,6 +141,7 @@ collection = {
     "name": "Scons",
     "cmd": "scons foo.out"
   }],
+
   "qa": [{
     "type": "Unit Testing",
     "prog_lang": "C",
