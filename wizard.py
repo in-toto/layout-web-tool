@@ -122,12 +122,27 @@ def start():
   return render_template("start.html")
 
 
-@app.route("/versioning")
+@app.route("/versioning", methods=["GET", "POST"])
 def versioning():
   """Step 1.
   Enter information about version control system. """
-  vcs_tools = tooldb.collection["vcs"]
-  return render_template("versioning.html", vcs_tools=vcs_tools)
+  options = tooldb.collection["vcs"]
+
+  if request.method == "POST":
+    # Grab the form posted vcs commands and write it to the session
+    # FIXME: Needs sanatizing and session persistence!!!
+    session["vcs"] = {
+      "items": [{"cmd": cmd} for cmd in request.form.getlist("vcs_cmd[]")],
+      "comment": request.form.get("comment", "")
+    }
+
+    flash("Success! Now let's see how you build your software...", "alert-success")
+    return redirect(url_for("building"))
+
+  # The template can deal with an empty dict, but a dict it must be
+  user_data = session.get("vcs", {})
+
+  return render_template("versioning.html", options=options, user_data=user_data)
 
 
 @app.route("/building")
