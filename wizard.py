@@ -168,12 +168,69 @@ def building():
   return render_template("building.html", options=options, user_data=user_data)
 
 
-@app.route("/quality")
+@app.route("/quality", methods=["GET", "POST"])
 def quality_management():
   """Step 3.
   Enter information about quality management. """
-  return render_template("quality.html")
+  options = tooldb.collection["qa"]
 
+  if request.method == "POST":
+    # Grab the form posted quality management data  and write it to the session
+    # FIXME: Needs sanitizing and session persistence!!!
+
+    cmd_list = request.form.getlist("cmd[]")
+    when_list = request.form.getlist("when[]")
+    build_cmd_list = request.form.getlist("build_cmd[]")
+    retval_operator_list = request.form.getlist("retval_operator[]")
+    retval_value_list = request.form.getlist("retval_value[]")
+    stdout_operator_list = request.form.getlist("stdout_operator[]")
+    stdout_value_list = request.form.getlist("stdout_value[]")
+    stderr_operator_list = request.form.getlist("stderr_operator[]")
+    stderr_value_list = request.form.getlist("stderr_value[]")
+
+    # Values of a step are related by the same index
+    # All lists should be equally long
+    # FIXME: Don't assert, try!
+    assert(len(cmd_list) == len(when_list) == len(build_cmd_list) ==
+        len(retval_operator_list) == len(retval_value_list) ==
+        len(stdout_operator_list) == len(stdout_value_list) ==
+        len(stderr_operator_list) == len(stderr_value_list))
+
+    qa_steps_cnt = len(cmd_list)
+
+    # There can only be one comment
+    posted_coment = request.form.get("comment", "")
+
+    posted_items = []
+    for i in range(qa_steps_cnt):
+      posted_items.append({
+          "cmd": cmd_list[i],
+          "when": when_list[i],
+          "build_cmd": build_cmd_list[i],
+          "retval_operator": retval_operator_list[i],
+          "retval_value": retval_value_list[i],
+          "stdout_operator": stdout_operator_list[i],
+          "stdout_value": stdout_value_list[i],
+          "stderr_operator": stderr_operator_list[i],
+          "stderr_value": stderr_value_list[i],
+        })
+
+    session["qa"] = {
+      "items": posted_items,
+      "comment": posted_coment
+    }
+
+    flash("Success! Nice quality management, but how to you package up your software?", "alert-success")
+    # return redirect(url_for("packaging"))
+
+  # The template can deal with an empty dict, but a dict it must be
+  user_data = session.get("qa", {})
+
+  # Building commands as set by user in prior template
+  build_steps = session.get("building", {}).get("items", [])
+
+  return render_template("quality.html", options=options, user_data=user_data,
+      build_steps=build_steps)
 
 @app.route("/packaging")
 def packaging():

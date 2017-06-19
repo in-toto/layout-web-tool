@@ -1,110 +1,116 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{% block content %}
-{{ macros.progress_bar(value=40) }}
-<hr>
-<h1>How do you assure your software's quality?
-</h1>
-{{ lipsum(n=1, html=True, min=50, max=51) }}
-
-{% for language in ["Linting", "Testing", "Continuous Integration"] %}
-  <h2 class="mt-5">{{ language }}</h2>
-  {% call() macros.option_grid(check_type="checkbox") %}
-    {# Inner macro defined at the end of this file. #}
-    {# TODO:
-    Forward argument received from `caller(**kwargs)` in `macros.option_grid`
-    #}
-
-    {{ _quality_mgmt_form() }}
-  {% endcall %}
-{% endfor %}
-
-<h2 class="mt-5 mb-3">I use different quality management commands</h2>
-{% call() macros.option_custom(add_btn_text="Add custom command(s)") %}
-{{ _quality_mgmt_form(removable=True) }}
-{% endcall %}
-
-<hr>
-<div class="row no-gutters justify-content-between">
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('building')}} ">Previous</a>
+{# BEGIN: Quality Managment form macro #}
+{% macro form_content(data=None, build_steps=None, show_add_btn=False, show_rm_btn=True) %}
+{# Define default dict/list here (never in signature) so we don't have to check
+for every input #}
+{% with data = data if data else {}, build_steps = build_steps if build_steps else [] %}
+  <div class="form-group">
+    <label>This is how I do quality management</label>
+    <input type="text" class="form-control" value="{{ data.get('cmd', "") }}" name="cmd[]">
   </div>
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('packaging')}} ">Next</a>
+  {% if build_steps %}
+  <div class="form-group row">
+    <div class="col-3 col-form-label">I run above command</div>
+    <div class="input-group col-9">
+      <select class="custom-select input-group-select" name="when[]">
+        <option value="before" {{"selected" if data.get("when", "") == "before"}}>before</option>
+        <option value="after" {{"selected" if data.get("when", "") == "after"}}>after</option>
+      </select>
+      <select class="custom-select input-group-select w-100" name="build_cmd[]">
+      {% for build_step in build_steps %}
+        {% with cmd=build_step.get("cmd") %}
+        <option value="{{cmd}}" {{"selected" if data.get("build_cmd", "") == cmd}}>{{cmd}}</option>
+        {% endwith %}
+      {% endfor %}
+      </select>
+    </div>
   </div>
-</div>
-{% endblock %}
-
-{% macro _quality_mgmt_form() %}
-<div class="form-group">
-  <label>I use this command for quality management...</label>
-  <input type="text" class="form-control" placeholder="$ configure">
-  <small class="form-text text-muted">Some descriptive text...</small>
-</div>
-
-<div class="form-group row">
-  <div class="col-3 col-form-label">I run this command</div>
-  <div class="input-group col-9">
-    <select class="custom-select input-group-select">
-      <option selected value="before">before</option>
-      <option value="after">after</option>
-    </select>
-    <select class="custom-select input-group-select w-100">
-    {# FIXME: Replace with real data and stick whole group in condition block
-    to only ask if a build_step exists. #}
-    {% for build_step in ["configure", "make", "make optimize"] %}
-    <option value="{{build_step}}">{{build_step}}</option>
-    {% endfor %}
-    </select>
+  {% endif %}
+  <h3 class="mt-4 mb-3">How do you know everything's fine?</h3>
+  <div class="form-group row">
+    <div class="col-3 col-form-label">Return value</div>
+    <div class="input-group col-9">
+      <select class="custom-select input-group-select" name="retval_operator[]">
+        <option value="eq" {{"selected" if data.get("retval_operator", "") == "eq"}}>is equal to</option>
+        <option value="ne" {{"selected" if data.get("retval_operator", "") == "ne"}}>is not equal to</option>
+        <option value="gt" {{"selected" if data.get("retval_operator", "") == "gt"}}>is greater than</option>
+        <option value="lt" {{"selected" if data.get("retval_operator", "") == "lt"}}>is lesser than</option>
+        <option value="ge" {{"selected" if data.get("retval_operator", "") == "ge"}}>is greater-equal than</option>
+        <option value="le" {{"selected" if data.get("retval_operator", "") == "le"}}>is lesser-equal than</option>
+      </select>
+      <input type="number" class="form-control" min="0" name="retval_value[]" value="{{ data.get('retval_value', "") }}">
+    </div>
   </div>
-</div>
-
-<h3 class="mt-4 mb-3">How do you know everything's fine?</h3>
-<div class="form-group row">
-  <div class="col-3 col-form-label">Return value</div>
-  <div class="input-group col-9">
-    <select class="custom-select input-group-select">
-      <option selected >is equal to</option>
-      <option>is not equal to</option>
-      <option>is greater than</option>
-      <option>is lesser than</option>
-      <option>is greater-equal than</option>
-      <option>is lesser-equal than</option>
-    </select>
-    <input type="number" class="form-control" placeholder="0">
+  <div class="form-group row">
+    <div class="col-3 col-form-label">Standard output</div>
+    <div class="input-group col-9">
+      <select class="custom-select input-group-select" name="stdout_operator[]">
+        <option value="eq" {{"selected" if data.get("stdout_operator", "") == "eq"}}>is</option>
+        <option value="ne" {{"selected" if data.get("stdout_operator", "") == "ne"}}>is not</option>
+        <option value="contains" {{"selected" if data.get("stdout_operator", "") == "contains"}}>contains</option>
+        <option value="contains_not" {{"selected" if data.get("stdout_operator", "") == "contains_not"}}>contains not</option>
+      </select>
+      <input type="text" class="form-control" name="stdout_value[]" value="{{ data.get('stdout_value', "") }}">
+    </div>
   </div>
-</div>
-
-<div class="form-group row">
-  <div class="col-3 col-form-label">Standard output</div>
-  <div class="input-group col-9">
-    <select class="custom-select input-group-select">
-      <option>is</option>
-      <option>is not</option>
-      <option>contains</option>
-      <option>contains not</option>
-    </select>
-    <input type="text" class="form-control" placeholder="...">
+  <div class="form-group row">
+    <div class="col-3 col-form-label">Standard error</div>
+    <div class="input-group col-9">
+      <select class="custom-select input-group-select" name="stderr_operator[]">
+        <option value="eq" {{"selected" if data.get("stderr_operator", "") == "eq"}}>is</option>
+        <option value="ne" {{"selected" if data.get("stderr_operator", "") == "ne"}}>is not</option>
+        <option value="contains" {{"selected" if data.get("stderr_operator", "") == "contains"}}>contains</option>
+        <option value="contains_not" {{"selected" if data.get("stderr_operator", "") == "contains_not"}}>contains not</option>
+      </select>
+      <input type="text" class="form-control" name="stderr_value[]" value="{{ data.get('stderr_value', "") }}">
+    </div>
   </div>
-</div>
-
-<div class="form-group row">
-  <div class="col-3 col-form-label">Standard error</div>
-  <div class="input-group col-9">
-    <select class="custom-select input-group-select">
-      <option>is</option>
-      <option>is not</option>
-      <option>contains</option>
-      <option>contains not</option>
-    </select>
-    <input type="text" class="form-control" placeholder="...">
+  <div class="form-group">
+    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}">Add to my software supply chain</button>
+    <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
   </div>
-</div>
-{% if kwargs.removable %}
-<div class="form-group">
-  <button type="button" data-toremove=".opt-form" class="rm-btn btn-outline-danger btn col-3">Remove</button>
-</div>
-{% endif %}
-
+{% endwith %}
 {%- endmacro %}
+{# END: Quality Managment form macro #}
+
+
+
+{# BEGIN: Rendered content #}
+{% block content %}
+  {{ macros.progress_bar(value=40) }}
+  <hr>
+  <h1>How do you assure your software's quality?
+  </h1>
+  {{ lipsum(n=1, html=True, min=50, max=51) }}
+
+
+  {# BEGIN: Option Grid #}
+  <h2 class="mt-5">Which tools do you use for quality assurance?</h2>
+  {% call(data) macros.option_grid(options=options) %}
+    {{ form_content(data={ "cmd": data.get("cmd") }, build_steps=build_steps, show_add_btn=True, show_rm_btn=False) }}
+  {% endcall %}
+  {# END: Option Grid #}
+
+  {# BEGIN: Postable Form Content #}
+  <h2 class="mt-5 mb-3">This is how I assure my software's quality</h2>
+  {% call(data=None) macros.form_container(form_id="qa-form", form_action=url_for('quality_management'), user_data=user_data) %}
+    {{ form_content(data=data, build_steps=build_steps) }} {# data passed back from macro #}
+  {% endcall %}
+  {# END: Postable Form Content #}
+
+  {# BEGIN: Navigation Footer (Previous/Next) #}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('building')}} ">Previous</a>
+    </div>
+    <div class="col-3">
+      <input type="submit" form="qa-form" class="btn btn-primary btn-block" value="Next">
+    </div>
+  </div>
+  {# END: Navigation Footer (Previous/Next) #}
+
+{% endblock %}
+{# END: Rendered content #}
