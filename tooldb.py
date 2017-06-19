@@ -163,13 +163,15 @@ collection = {
   }, {
     "type": "Unit Testing",
     "prog_lang": "C#",
-    "name": "Visual Studio Unit Testing Framework",
+    # "name": "Visual Studio Unit Testing Framework",
+    "name": "Visual Studio",
     "logo": "http://www.qatestingtools.com/sites/default/files/tools_shortcuts/Visual%20Studio%20Unite%20Testing%20Framework%20150.png",
     "cmd": ""
   }, {
     "type": "Unit Testing",
     "prog_lang": "C++",
-    "name": "Parasoft C/C++test",
+    # "name": "Parasoft C/C++test",
+    "name": "Parasoft",
     "logo": "https://discoversdkcdn.azureedge.net/runtimecontent/companyfiles/5703/1899/thumbnail.png",
     "cmd": ""
   }, {
