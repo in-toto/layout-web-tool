@@ -221,22 +221,39 @@ def quality_management():
     }
 
     flash("Success! Nice quality management, but how to you package up your software?", "alert-success")
-    # return redirect(url_for("packaging"))
+    return redirect(url_for("packaging"))
 
   # The template can deal with an empty dict, but a dict it must be
   user_data = session.get("qa", {})
 
   # Building commands as set by user in prior template
+  # Note how we deal with non existing and empty building data.
   build_steps = session.get("building", {}).get("items", [])
 
   return render_template("quality.html", options=options, user_data=user_data,
       build_steps=build_steps)
 
-@app.route("/packaging")
+@app.route("/packaging", methods=["GET", "POST"])
 def packaging():
   """Step 4.
   Enter information about packaging. """
-  return render_template("packaging.html")
+  options = tooldb.collection["package"]
+
+  if request.method == "POST":
+    # Grab the form posted building commands and write it to the session
+    # FIXME: Needs sanitizing and session persistence!!!
+    session["package"] = {
+      "items": [{"cmd": cmd} for cmd in request.form.getlist("cmd[]")],
+      "comment": request.form.get("comment", "")
+    }
+
+    flash("Success! Now let's see if we got your software supply chain right...", "alert-success")
+    return redirect(url_for("software_supply_chain"))
+
+  # The template can deal with an empty dict, but a dict it must be
+  user_data = session.get("package", {})
+
+  return render_template("packaging.html", options=options, user_data=user_data)
 
 
 @app.route("/software-supply-chain")

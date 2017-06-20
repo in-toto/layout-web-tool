@@ -1,41 +1,51 @@
 {% import '_macros.html' as macros %}
-
 {% extends "base.html" %}
 
-{% block content %}
-{{ macros.progress_bar(value=50) }}
-<hr>
-
-<h1>How do you package your software?</h1>
-{{ lipsum(n=1, html=True, min=50, max=51) }}
-
-{% call() macros.option_grid(check_type="checkbox") %}
+{# BEGIN: Packaging form macro #}
+{% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
   <div class="form-group">
-    <label>I use this command</label>
-    <input type="text" class="form-control" placeholder="$ configure">
-    <small class="form-text text-muted">Some descriptive text...</small>
+    <label>I use this command to package my software</label>
+    <input type="text" class="form-control" value="{{ data.get('cmd') if data }}" name="cmd[]">
   </div>
-{% endcall %}
+  <div class="form-group">
+    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}">Add to my software supply chain</button>
+    <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
+  </div>
+{% endmacro %}
+{# END: Packaging form macro #}
 
-<h2 class="mt-5 mb-3">I use different packaging commands</h2>
-{% call() macros.option_custom(add_btn_text="Add custom command(s)") %}
-  <label>I use this command</label>
-  <div class="form-group row no-gutters justify-content-between">
-    <div class="col-6">
-      <input type="text" class="form-control" placeholder="">
+{# BEGIN: Rendered content #}
+{% block content %}
+  {{ macros.progress_bar(value=50) }}
+  <hr>
+  <h1>How do you package your software?</h1>
+  {{ lipsum(n=1, html=True, min=50, max=51) }}
+
+  {# BEGIN: Option Grid #}
+  <h2 class="mt-5 mb-3">Tell us how you package you software</h2>
+  {% call(data) macros.option_grid(options=options) %}
+    {{ form_content(data={"cmd": data.get('cmd')}, show_add_btn=True, show_rm_btn=False) }} {# data passed back from macro #}
+  {% endcall %}
+  {# END: Option Grid #}
+
+  {# BEGIN: Postable Form Content #}
+  <h2 class="mt-5 mb-3">This is how I package my software</h2>
+  {% call(data=None) macros.form_container(form_id="package-form", form_action=url_for('packaging'), user_data=user_data) %}
+    {{ form_content(data=data) }} {# data passed back from macro #}
+  {% endcall %}
+  {# END: Postable Form Content #}
+
+  {# BEGIN: Navigation Footer (Previous/Next) #}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('quality_management')}} ">Previous</a>
     </div>
-    <button type="button" data-toremove=".opt-form" class="rm-btn btn-outline-danger btn col-3">Remove</button>
+    <div class="col-3">
+      <input type="submit" form="package-form" class="btn btn-primary btn-block" value="Next">
+    </div>
   </div>
-{% endcall %}
-
-<hr>
-<div class="row no-gutters justify-content-between">
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('quality_management')}} ">Previous</a>
-  </div>
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('software_supply_chain')}} ">Next</a>
-  </div>
-</div>
+  {# END: Navigation Footer (Previous/Next) #}
 
 {% endblock %}
+{# END: Rendered content #}
