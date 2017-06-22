@@ -8,7 +8,7 @@
     <div class="col-md-1 pr-md-2 align-self-center text-center">
       <span class="drag-handle" title="Drag the handle to re-order steps and inspections of your software supply chain">|||</span>
     </div>
-    <div class="col-md-3 pr-md-2">
+    <div class="col-md-2 pr-md-2">
       <label class="small">Name</label>
       <input type="text" class="form-control form-control-sm" value="{{ item.name if item }}">
     </div>
@@ -16,7 +16,14 @@
       <label class="small">{{'Expected' if type == 'step' else 'Executed'}} Command </label>
       <input type="text" class="form-control form-control form-control-sm" value="{{ item.cmd if item }}">
     </div>
-    <div class="col-md-2 align-self-end">
+    {% if type == "inspection" %}
+    {# TODO: A selectize input box that updates when step names are changed/ steps are added would be nice here #}
+    <div class="col-md-2 pr-md-2">
+      <label class="small">Based on Step (optional)</label>
+      <input type="text" class="form-control form-control form-control-sm" value="{{ item.based_on if item }}">
+    </div>
+    {% endif %}
+    <div class="col-md-1 align-self-end">
       <button type="button" data-toremove=".ssc-{{type}}" class="rm-btn btn btn-outline-danger btn-sm">Remove</button>
     </div>
   </div>

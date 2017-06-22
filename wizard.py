@@ -286,7 +286,6 @@ def software_supply_chain():
         "cmd" : step["cmd"],
       })
 
-
     # We suggest an inspection for each set retval, stdout and stderr for each
     # specified QA step
     if step_type == "qa":
@@ -313,8 +312,12 @@ def software_supply_chain():
           inspect_nodes.append({
             "type": "inspection",
             "name": inspect_name,
-            "cmd": run
+            "cmd": run,
+            "based_on": step_name
           })
+
+          #FIXME: We kinda ignore the information
+          # `I run this inspection (before | after) <build step>`
           inspect_links.append({
             "source": step_name,
             "dest": inspect_name
