@@ -1,7 +1,7 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{# BEGIN: Software Supply Chain Item (step and inspection) form macro #}
+{# BEGIN: Software Supply Chain item (step and inspection) form macro #}
 {% macro item_form(type, item=None, template=False) %}
 <div class="ssc-item ssc-{{type}} mb-2 {{'template' if template}}" draggable="true">
   <div class="form-group row no-gutters">
@@ -29,78 +29,87 @@
   </div>
 </div>
 {% endmacro %}
-{# END: Software Supply Chain Item (step and inspection) form macro #}
+{# END: Software Supply Chain item (step and inspection) form macro #}
 
+{# BEGIN: Rendered content #}
 {% block content %}
-{{ macros.progress_bar(value=60) }}
-<hr>
-<h1>Is this what your software supply chain looks like?</h1>
-<script type="text/javascript">
+  <script type="text/javascript">
+    {#
+    FIXME:  For simplicity we directly render the JSON data a global variable
+    here, used on `onload` to generate the D3.js graph (c.f. main.js)
 
-  {#
-  FIXME:  For simplicity we directly render the JSON data a global variable
-  here, used on `onload` to generate the D3.js graph (c.f. main.js)
-
-  CAUTION: the safe filter below indicates that we should be sure that the
-  rendered data is save to be evaluated as JS.
-  #}
-  $(function(){
-    var supply_chain = {{ ssc_graph_data | tojson }};
+    CAUTION: the safe filter below indicates that we should be sure that the
+    rendered data is save to be evaluated as JS.
+    #}
+    $(function(){
+      var supply_chain = {{ ssc_graph_data | tojson }};
 
 
-    // Initialize SVG viewBox width and height to the current container width and height
-    // viewBox (and its contents) get scaled on windowResize preserving aspectRatio.
-    //
-    // FIXME:
-    // The height of the SVG container should scale together with the width of the viewBox
-    // as does the height of the viewBox
-    var svg_width = $(".svg-container").width();
-    var svg_height = $(".svg-container").height();
-    $("svg").attr("viewBox", [0, 0, svg_width, svg_height].join(" "));
+      // Initialize SVG viewBox width and height to the current container width and height
+      // viewBox (and its contents) get scaled on windowResize preserving aspectRatio.
+      //
+      // FIXME:
+      // The height of the SVG container should scale together with the width of the viewBox
+      // as does the height of the viewBox
+      var svg_width = $(".svg-container").width();
+      var svg_height = $(".svg-container").height();
+      $("svg").attr("viewBox", [0, 0, svg_width, svg_height].join(" "));
 
-    // Draw the graph
-    draw_graph(supply_chain);
+      // Draw the graph
+      draw_graph(supply_chain);
 
-  });
-</script>
+    });
+  </script>
 
-<div class="svg-container mb-3">
-  <svg version="1.1" viewBox="0 0 1 1" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>
-</div>
+  {{ macros.progress_bar(value=60) }}
+  <hr>
+  <h1>Is this what your software supply chain looks like?</h1>
 
-{{ lipsum(n=1, html=True, min=200, max=201) }}
-
-<div class="ssc-items mt-5">
-  <h3 class="mt-4 mb-2">This are the steps of my software supply chain</h3>
-  <div class="ssc-steps sort-container mb-2">
-    {{ item_form("step", template=true) }}
-    {% for node in ssc_graph_data.nodes %}
-      {% if node.get("type") == "step" %}
-        {{ item_form("step", item=node) }}
-      {% endif %}
-    {% endfor %}
+  {# BEGIN: Container for software supply chain D3 graph #}
+  <div class="svg-container mb-3">
+    <svg version="1.1" viewBox="0 0 1 1" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>
   </div>
-  <button data-templatesource=".ssc-step" data-templatedest=".ssc-steps" class="add-btn btn-outline-primary btn">Add Step</button>
+  {{ lipsum(n=1, html=True, min=200, max=201) }}
+  {# END: Container for software supply chain D3 graph #}
+
+  {# BEGIN: Postable Form Content #}
+  <div class="ssc-items mt-5">
+    <h3 class="mt-4 mb-2">This are the steps of my software supply chain</h3>
+    <div class="ssc-steps sort-container mb-2">
+      {{ item_form("step", template=true) }}
+      {% for node in ssc_graph_data.nodes %}
+        {% if node.get("type") == "step" %}
+          {{ item_form("step", item=node) }}
+        {% endif %}
+      {% endfor %}
+    </div>
+    <button data-templatesource=".ssc-step" data-templatedest=".ssc-steps" class="add-btn btn-outline-primary btn">Add Step</button>
+
+    <h3 class="mt-4 mb-2">I run the following commands to inspect my software supply chain</h3>
+    <div class="ssc-inspections sort-container mb-2">
+      {{ item_form("inspection", template=true) }}
+      {% for node in ssc_graph_data.nodes %}
+        {% if node.get("type") == "inspection" %}
+          {{ item_form("inspection", item=node) }}
+        {% endif %}
+      {% endfor %}
+    </div>
+    <button data-templatesource=".ssc-inspection" data-templatedest=".ssc-inspections" class="add-btn btn-outline-primary btn">Add Inspection</button>
+  </div>
+  {# END: Postable Form Content #}
 
 
-  <h3 class="mt-4 mb-2">I run the following commands to inspect my software supply chain</h3>
-  <div class="ssc-inspections sort-container mb-2">
-    {{ item_form("inspection", template=true) }}
-    {% for node in ssc_graph_data.nodes %}
-      {% if node.get("type") == "inspection" %}
-        {{ item_form("inspection", item=node) }}
-      {% endif %}
-    {% endfor %}
+  {# BEGIN: Navigation Footer (Previous/Next) #}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('packaging')}} ">Previous</a>
+    </div>
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('authorizing')}} ">Next</a>
+    </div>
   </div>
-  <button data-templatesource=".ssc-inspection" data-templatedest=".ssc-inspections" class="add-btn btn-outline-primary btn">Add Inspection</button>
-
-<hr>
-<div class="row no-gutters justify-content-between">
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('packaging')}} ">Previous</a>
-  </div>
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('authorizing')}} ">Next</a>
-  </div>
-</div>
+  {# END: Navigation Footer (Previous/Next) #}
 {% endblock %}
+{# END: Rendered content #}
+
