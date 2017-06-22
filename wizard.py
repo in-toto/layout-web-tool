@@ -274,6 +274,9 @@ def software_supply_chain():
 
   # Create links based on data posted from previous pages
   # FIXME: Come up with better naming (low priority)
+  # TODO: Do we want to re-order QA steps based on the form posted info from
+  # QA page (`I run this inspection (before | after) <build step>`)??
+  # IMHO a user can re-order the steps here anyway, right?
   for step_type in ["vcs", "building", "qa", "package"]:
     for idx, step in enumerate(session.get(step_type, {}).get("items", [])):
       step_name = "{}-{}".format(step_type, idx + 1)
