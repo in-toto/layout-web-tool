@@ -24,6 +24,7 @@ from flask import (Flask, render_template, session, redirect, url_for, request,
     flash, send_from_directory, abort, json, jsonify)
 
 from in_toto.models.layout import Layout
+from in_toto.models.link import FILENAME_FORMAT_SHORT
 import in_toto.artifact_rules
 import tooldb
 
@@ -46,70 +47,69 @@ layout = Layout.read_from_file(
 # -----------------------------------------------------------------------------
 # Utils
 # -----------------------------------------------------------------------------
-def transform_for_graph(layout):
-  """
-  <Purpose>
-    Takes an in-toto layout and transforms it to a data structure that's more
-    convenient to create a graph from it, e.g. using `dagre-d3` [1]:
+# def layout_to_graph(layout):
+#   """
+#   <Purpose>
+#     Takes an in-toto layout and transforms it to a data structure that's more
+#     convenient to create a graph from it, e.g. using `dagre-d3` [1]:
 
-    Note:
-      We do this on server-side to make use of in-toto functions like
-      `artifact_rules.unpack_rule`.
-  <Returns>
-    Example:
-    {
-      nodes: {
-        "name": <unique step or inspection name">,
-        "type": "step" | "inspection"
-      }
-      links: {
-        "source": <unique step or inspection name">,
-        "source_type": "M" | "P",
-        "dest": <unique step or inspection name">,
-        "dest_type": "M" | "P",
+#     Note:
+#       We do this on server-side to make use of in-toto functions like
+#       `artifact_rules.unpack_rule`.
+#   <Returns>
+#     Example:
+#     {
+#       "nodes": [{
+#         "name": <unique step or inspection name">,
+#         "type": "step" | "inspection"
+#       }, ...]
+#       "links": [{
+#         "source": <unique step or inspection name">,
+#         "source_type": "M" | "P",
+#         "dest": <unique step or inspection name">,
+#         "dest_type": "M" | "P",
+#       }, ...]
+#     }
+#   """
+#   graph_data = {
+#     "nodes": [],
+#     "links": []
+#   }
 
-      }
-    }
-  """
-  graph_data = {
-    "nodes": [],
-    "links": []
-  }
+#   def _get_links(src_type, src_name, rules):
+#     """ Returns links (list) based on passed list of material_matchrules ("M")
+#     or product_matchrules ("P"). """
 
-  def _get_links(src_type, src_name, rules):
-    """ Returns links (list) based on passed list of material_matchrules ("M")
-    or product_matchrules ("P"). """
+#     links = []
+#     for rule in rules:
+#       # Parse rule list into dictionary
+#       rule_data = in_toto.artifact_rules.unpack_rule(rule)
 
-    links = []
-    for rule in rules:
-      # Parse rule list into dictionary
-      rule_data = in_toto.artifact_rules.unpack_rule(rule)
+#       # Only "MATCH" rules are used as links
+#       if rule_data["type"].upper() == "MATCH":
 
-      # Only "MATCH" rules are used as links
-      if rule_data["type"].upper() == "MATCH":
+#         # We can pass additional information here if we want
+#         links.append({
+#             "source": src_name,
+#             "source_type": src_type,
+#             "dest": rule_data["dest_name"],
+#             "dest_type": rule_data["dest_type"][0].upper() # "M" | "P"
+#           })
 
-        # We can pass additional information here if we want
-        links.append({
-            "source": src_name,
-            "source_type": src_type,
-            "dest": rule_data["dest_name"],
-            "dest_type": rule_data["dest_type"][0].upper() # "M" | "P"
-          })
+#     return links
 
-    return links
+#   # Create nodes from steps and inspections
+#   for item in layout.steps + layout.inspect:
+#     graph_data["nodes"].append({
+#         "name": item.name,
+#         "type": item._type
+#       })
 
-  # Create nodes from steps and inspections
-  for item in layout.steps + layout.inspect:
-    graph_data["nodes"].append({
-        "name": item.name,
-        "type": item._type
-      })
+#     # Create links from material- and product- matchrules
+#     graph_data["links"] += _get_links("M", item.name, item.material_matchrules)
+#     graph_data["links"] += _get_links("P", item.name, item.product_matchrules)
 
-    # Create links from material- and product- matchrules
-    graph_data["links"] += _get_links("M", item.name, item.material_matchrules)
-    graph_data["links"] += _get_links("P", item.name, item.product_matchrules)
-
-  return graph_data
+#   return graph_data
 
 
 # -----------------------------------------------------------------------------
@@ -259,11 +259,80 @@ def packaging():
 @app.route("/software-supply-chain")
 def software_supply_chain():
   """Step 5.
-  Visualize and edit software supply chain. """
-  graph_data = transform_for_graph(layout)
+  Create preliminary software supply chain based on form posted steps.
+
+  """
+  # `transform_for_graph` is used in conjunctions with a layout
+  # But actually we take form posted data to create the supply_chain graph.
+  # FIXME: comment out for now (decide later what to do with it
+  # graph_data = layout_to_graph(layout)
+
+  step_nodes = []
+  step_links = []
+  inspect_nodes = []
+  inspect_links = []
+
+  # Create links based on data posted from previous pages
+  # FIXME: Come up with better naming (low priority)
+  for step_type in ["vcs", "building", "qa", "package"]:
+    for idx, step in enumerate(session.get(step_type, {}).get("items", [])):
+      step_name = "{}-{}".format(step_type, idx + 1)
+      step_nodes.append({
+        "type": "step",
+        "name": step_name,
+        "cmd" : step["cmd"],
+      })
+
+
+    # We suggest an inspection for each set retval, stdout and stderr for each
+    # specified QA step
+    if step_type == "qa":
+      for inspect_type in ["retval", "stdout", "stderr"]:
+        val = step.get(inspect_type + "_value")
+        if val:
+          # The (QA) link file we want to inspect uses the link step name
+          # created above
+          link = FILENAME_FORMAT_SHORT.format(step_name=step_name)
+          operator = step.get(inspect_type + "_operator")
+          value = step.get(inspect_type + "_value")
+
+          if inspect_type == "retval":
+            run = ("inspect-return-value --link={link} --{operator} {value}"
+                .format(link=link, operator=operator, value=value))
+
+          elif inspect_type in ["stdout", "stderr"]:
+            run = ("inspect-by-product"
+                " --link={link} --{inspect_type} --{operator} {value}"
+                .format(link=link, inspect_type=inspect_type,
+                operator=operator, value=value))
+
+          inspect_name = "inspection-" + str(len(inspect_nodes) + 1)
+          inspect_nodes.append({
+            "type": "inspection",
+            "name": inspect_name,
+            "cmd": run
+          })
+          inspect_links.append({
+            "source": step_name,
+            "dest": inspect_name
+          })
+
+  # For now we assume that steps are executed sequentially
+  # And that's how we link the steps
+  for idx in range(len(step_nodes)):
+    if idx > 0:
+      step_links.append({
+          "source": step_nodes[idx-1]["name"],
+          "dest": step_nodes[idx]["name"]
+        })
+
+  supply_chain = {
+    "nodes": step_nodes + inspect_nodes,
+    "links": step_links + inspect_links
+  }
 
   return render_template("software_supply_chain.html",
-      graph_json=json.dumps(graph_data), layout=layout)
+      ssc_graph_data=supply_chain)
 
 
 @app.route("/authorizing")
