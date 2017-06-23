@@ -57,13 +57,12 @@ layout = Layout.read_from_file(
 #       We do this on server-side to make use of in-toto functions like
 #       `artifact_rules.unpack_rule`.
 #   <Returns>
-#     Example:
 #     {
 #       "nodes": [{
 #         "name": <unique step or inspection name">,
 #         "type": "step" | "inspection"
 #       }, ...]
-#       "links": [{
+#       "edges": [{
 #         "source": <unique step or inspection name">,
 #         "source_type": "M" | "P",
 #         "dest": <unique step or inspection name">,
@@ -73,30 +72,30 @@ layout = Layout.read_from_file(
 #   """
 #   graph_data = {
 #     "nodes": [],
-#     "links": []
+#     "edges": []
 #   }
 
-#   def _get_links(src_type, src_name, rules):
-#     """ Returns links (list) based on passed list of material_matchrules ("M")
+#   def _get_edges(src_type, src_name, rules):
+#     """ Returns edges (list) based on passed list of material_matchrules ("M")
 #     or product_matchrules ("P"). """
 
-#     links = []
+#     edges = []
 #     for rule in rules:
 #       # Parse rule list into dictionary
 #       rule_data = in_toto.artifact_rules.unpack_rule(rule)
 
-#       # Only "MATCH" rules are used as links
+#       # Only "MATCH" rules are used as edges
 #       if rule_data["type"].upper() == "MATCH":
 
 #         # We can pass additional information here if we want
-#         links.append({
+#         edges.append({
 #             "source": src_name,
 #             "source_type": src_type,
 #             "dest": rule_data["dest_name"],
 #             "dest_type": rule_data["dest_type"][0].upper() # "M" | "P"
 #           })
 
-#     return links
+#     return edges
 
 #   # Create nodes from steps and inspections
 #   for item in layout.steps + layout.inspect:
@@ -105,12 +104,162 @@ layout = Layout.read_from_file(
 #         "type": item._type
 #       })
 
-#     # Create links from material- and product- matchrules
-#     graph_data["links"] += _get_links("M", item.name, item.material_matchrules)
-#     graph_data["links"] += _get_links("P", item.name, item.product_matchrules)
+#     # Create edges from material- and product- matchrules
+#     graph_data["edges"] += _get_edges("M", item.name, item.material_matchrules)
+#     graph_data["edges"] += _get_edges("P", item.name, item.product_matchrules)
 
 #   return graph_data
 
+
+def session_to_graph(session):
+  """
+  <Purpose>
+    Takes an the session and transforms it to a data structure that's more
+    convenient to create a graph from it, e.g. using `dagre-d3` [1]:
+
+  <Returns>
+    {
+      "nodes": [{
+        "type": "step" | "inspection",
+        "name": <unique step or inspection name">,
+        "based_on" <step name> # Only for inspections!!!!
+      }, ...],
+      "edges": [{
+        "source": <unique step or inspection name">,
+        "dest": <unique step or inspection name">,
+      }, ...]
+    }
+  """
+  step_nodes = []
+  step_edges = []
+  inspect_nodes = []
+  inspect_edges = []
+
+  # Create edges based on data posted from previous pages
+  # FIXME: Come up with better naming (low priority)
+  # TODO: Do we want to re-order QA steps based on the form posted info from
+  # QA page (`I run this inspection (before | after) <build step>`)??
+  # IMHO a user can re-order the steps here anyway, right?
+  for step_type in ["vcs", "building", "qa", "package"]:
+    for idx, step in enumerate(session.get(step_type, {}).get("items", [])):
+      step_name = "{}-{}".format(step_type, idx + 1)
+      step_nodes.append({
+        "type": "step",
+        "name": step_name,
+        "cmd" : step["cmd"],
+      })
+
+      # We suggest an inspection for each set retval, stdout and stderr for each
+      # specified QA step
+      if step_type == "qa":
+        for inspect_type in ["retval", "stdout", "stderr"]:
+          val = step.get(inspect_type + "_value")
+          if val:
+            # The (QA) link file we want to inspect uses the link step name
+            # created above
+            link = FILENAME_FORMAT_SHORT.format(step_name=step_name)
+            operator = step.get(inspect_type + "_operator")
+            value = step.get(inspect_type + "_value")
+
+            if inspect_type == "retval":
+              run = ("inspect-return-value --link={link} --{operator} {value}"
+                  .format(link=link, operator=operator, value=value))
+
+            elif inspect_type in ["stdout", "stderr"]:
+              run = ("inspect-by-product"
+                  " --link={link} --{inspect_type} --{operator} {value}"
+                  .format(link=link, inspect_type=inspect_type,
+                  operator=operator, value=value))
+
+            inspect_name = "inspection-" + str(len(inspect_nodes) + 1)
+            inspect_nodes.append({
+              "type": "inspection",
+              "name": inspect_name,
+              "cmd": run,
+              "based_on": step_name
+            })
+
+            #FIXME: We kinda ignore the information
+            # `I run this inspection (before | after) <build step>`
+            inspect_edges.append({
+              "source": step_name,
+              "dest": inspect_name
+            })
+
+  # For now we assume that steps are executed sequentially
+  # And that's how we connect the steps
+  for idx in range(len(step_nodes)):
+    if idx > 0:
+      step_edges.append({
+          "source": step_nodes[idx-1]["name"],
+          "dest": step_nodes[idx]["name"]
+        })
+
+  return {
+    "nodes": step_nodes + inspect_nodes,
+    "edges": step_edges + inspect_edges
+  }
+
+
+def form_data_to_graph(step_names, step_commands, inspection_names,
+    inspection_commands, inspection_step_names):
+  """
+  <Purpose>
+    Takes form posted data (lists) to generate a data structure that's more
+    convenient to create a graph from it, e.g. using `dagre-d3` [1]:
+
+    Each node aggregates the the step or inspection data by list index
+
+  <Returns>
+    {
+      "nodes": [{
+        "type": "step" | "inspection",
+        "name": <unique step or inspection name">,
+        "based_on" <step name> # Only for inspections!!!!
+      }, ...],
+      "edges": [{
+        "source": <unique step or inspection name">,
+        "dest": <unique step or inspection name">,
+      }, ...]
+    }
+  """
+  # Generate ssc_graph based on data posted on the ssc page
+  # FIXME: Some of this is similar to code in `session_to_graph`. DRY?
+  step_nodes = []
+  step_edges = []
+  for i in range(len(step_names)):
+    step_nodes.append({
+        "type": "step",
+        "name": step_names[i],
+        "cmd": step_commands[i]
+      })
+
+  for idx in range(len(step_nodes)):
+    if idx > 0:
+      step_edges.append({
+          "source": step_nodes[idx-1]["name"],
+          "dest": step_nodes[idx]["name"]
+        })
+
+  inspect_nodes = []
+  inspect_edges = []
+  for i in range(len(inspection_names)):
+    inspect_nodes.append({
+        "type": "inspection",
+        "name": inspection_names[i],
+        "cmd": inspection_commands[i],
+        "based_on": inspection_step_names[i]
+      })
+
+    inspect_edges.append({
+      "source": inspection_step_names[i],
+      "dest": inspection_names[i]
+    })
+
+  return {
+    "nodes": step_nodes + inspect_nodes,
+    "edges": step_edges + inspect_edges
+  }
 
 # -----------------------------------------------------------------------------
 # Views
@@ -256,86 +405,59 @@ def packaging():
   return render_template("packaging.html", options=options, user_data=user_data)
 
 
-@app.route("/software-supply-chain")
+@app.route("/software-supply-chain", methods=["GET", "POST"])
 def software_supply_chain():
   """Step 5.
-  Create preliminary software supply chain based on form posted steps.
+  Serve software supply chain graph based on form data posted on previous
+  pages and stored to session (`session_to_graph`).
+  Alternatively accepts a post request to override the generated software
+  supply chain as edited in the here served form (`form_data_to_graph`).
+
+  Latter will be used on subsequent pages.
+
+  FIXMEs/TODOs:
+
+  - Data sanatizing: e.g. restrict step names (unique) and inspection
+    step names (must reference an existing step)
+  - Decide how to prioritize graph data
+    What if a user GET requests this page and the graph generated by using
+    form data from previous pages (vcs, build, ...) is different from the
+    graph as edited in the ssc form (`session["ssc"]`)?
+    Show we ask the user which one he wants to use?
+  - On front-end JS: refresh D3 graph on form change
+  - DRY up graph generation functions: session_to_graph, form_data_to_graph,
+    layout_to_graph (commented out)
+  - In `session_to_graph` use `I run above command before | after <build step>`
+    to reorder the graph (this information is currently ignored)
 
   """
-  # `transform_for_graph` is used in conjunctions with a layout
-  # But actually we take form posted data to create the supply_chain graph.
-  # FIXME: comment out for now (decide later what to do with it
-  # graph_data = layout_to_graph(layout)
 
-  step_nodes = []
-  step_links = []
-  inspect_nodes = []
-  inspect_links = []
+  if request.method == "POST":
+    step_names = request.form.getlist("step_name[]")
+    step_commands = request.form.getlist("step_cmd[]")
+    inspection_names = request.form.getlist("inspection_name[]")
+    inspection_commands = request.form.getlist("inspection_cmd[]")
+    inspection_step_names = request.form.getlist("inspection_step_name[]")
 
-  # Create links based on data posted from previous pages
-  # FIXME: Come up with better naming (low priority)
-  # TODO: Do we want to re-order QA steps based on the form posted info from
-  # QA page (`I run this inspection (before | after) <build step>`)??
-  # IMHO a user can re-order the steps here anyway, right?
-  for step_type in ["vcs", "building", "qa", "package"]:
-    for idx, step in enumerate(session.get(step_type, {}).get("items", [])):
-      step_name = "{}-{}".format(step_type, idx + 1)
-      step_nodes.append({
-        "type": "step",
-        "name": step_name,
-        "cmd" : step["cmd"],
-      })
+    # Names and Commands of a step or inspection are related by the same index
+    # All lists should be equally long
+    # FIXME: Don't assert, try!
+    assert(len(step_names) == len(step_commands))
+    assert(len(inspection_names) == len(inspection_commands) ==
+        len(inspection_step_names))
 
-    # We suggest an inspection for each set retval, stdout and stderr for each
-    # specified QA step
-    if step_type == "qa":
-      for inspect_type in ["retval", "stdout", "stderr"]:
-        val = step.get(inspect_type + "_value")
-        if val:
-          # The (QA) link file we want to inspect uses the link step name
-          # created above
-          link = FILENAME_FORMAT_SHORT.format(step_name=step_name)
-          operator = step.get(inspect_type + "_operator")
-          value = step.get(inspect_type + "_value")
+    supply_chain = form_data_to_graph(step_names, step_commands,
+        inspection_names, inspection_commands, inspection_step_names)
 
-          if inspect_type == "retval":
-            run = ("inspect-return-value --link={link} --{operator} {value}"
-                .format(link=link, operator=operator, value=value))
+    session["ssc"] = supply_chain
 
-          elif inspect_type in ["stdout", "stderr"]:
-            run = ("inspect-by-product"
-                " --link={link} --{inspect_type} --{operator} {value}"
-                .format(link=link, inspect_type=inspect_type,
-                operator=operator, value=value))
+    return redirect(url_for("authorizing"))
 
-          inspect_name = "inspection-" + str(len(inspect_nodes) + 1)
-          inspect_nodes.append({
-            "type": "inspection",
-            "name": inspect_name,
-            "cmd": run,
-            "based_on": step_name
-          })
-
-          #FIXME: We kinda ignore the information
-          # `I run this inspection (before | after) <build step>`
-          inspect_links.append({
-            "source": step_name,
-            "dest": inspect_name
-          })
-
-  # For now we assume that steps are executed sequentially
-  # And that's how we link the steps
-  for idx in range(len(step_nodes)):
-    if idx > 0:
-      step_links.append({
-          "source": step_nodes[idx-1]["name"],
-          "dest": step_nodes[idx]["name"]
-        })
-
-  supply_chain = {
-    "nodes": step_nodes + inspect_nodes,
-    "links": step_links + inspect_links
-  }
+  # If not POST request
+  # Generate a supply chain based on previously posted data (stored in session)
+  # TODO: This overrides anything that was from the ssc form
+  # Should we ask for confirmation?
+  supply_chain = session_to_graph(session)
 
   return render_template("software_supply_chain.html",
       ssc_graph_data=supply_chain)
