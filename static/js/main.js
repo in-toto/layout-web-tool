@@ -162,9 +162,9 @@ var draw_graph = function(graph_data) {
     dag.setNode(node.name, {label: node.name});
   });
 
-  // Create links between steps and/or inspections
-  graph_data.links.forEach(function(link){
-    dag.setEdge(link.source, link.dest, {
+  // Create edges between steps and/or inspections
+  graph_data.edges.forEach(function(edge){
+    dag.setEdge(edge.source, edge.dest, {
         lineInterpolate: "basis"
         // TODO: we could display the path pattern as label
         // label: "..."

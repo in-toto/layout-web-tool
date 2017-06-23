@@ -10,19 +10,19 @@
     </div>
     <div class="col-md-2 pr-md-2">
       <label class="small">Name</label>
-      <input type="text" class="form-control form-control-sm" value="{{ item.name if item }}">
-    </div>
-    <div class="col-md-6 pr-md-2">
-      <label class="small">{{'Expected' if type == 'step' else 'Executed'}} Command </label>
-      <input type="text" class="form-control form-control form-control-sm" value="{{ item.cmd if item }}">
+      <input type="text" class="form-control form-control-sm" name="{{type}}_name[]" value="{{ item.name if item }}">
     </div>
     {% if type == "inspection" %}
     {# TODO: A selectize input box that updates when step names are changed/ steps are added would be nice here #}
     <div class="col-md-2 pr-md-2">
       <label class="small">Based on Step (optional)</label>
-      <input type="text" class="form-control form-control form-control-sm" value="{{ item.based_on if item }}">
+      <input type="text" class="form-control form-control form-control-sm" name="{{type}}_step_name[]" value="{{ item.based_on if item }}">
     </div>
     {% endif %}
+    <div class="col-md-6 pr-md-2">
+      <label class="small">{{'Expected' if type == 'step' else 'Executed'}} Command </label>
+      <input type="text" class="form-control form-control form-control-sm" name="{{type}}_cmd[]" value="{{ item.cmd if item }}">
+    </div>
     <div class="col-md-1 align-self-end">
       <button type="button" data-toremove=".ssc-{{type}}" class="rm-btn btn btn-outline-danger btn-sm">Remove</button>
     </div>
@@ -44,7 +44,7 @@
     $(function(){
       var supply_chain = {{ ssc_graph_data | tojson }};
 
-
+      console.log(supply_chain)
       // Initialize SVG viewBox width and height to the current container width and height
       // viewBox (and its contents) get scaled on windowResize preserving aspectRatio.
       //
@@ -74,39 +74,41 @@
 
   {# BEGIN: Postable Form Content #}
   <div class="ssc-items mt-5">
-    <h3 class="mt-4 mb-2">This are the steps of my software supply chain</h3>
-    <div class="ssc-steps sort-container mb-2">
-      {{ item_form("step", template=true) }}
-      {% for node in ssc_graph_data.nodes %}
-        {% if node.get("type") == "step" %}
-          {{ item_form("step", item=node) }}
-        {% endif %}
-      {% endfor %}
-    </div>
-    <button data-templatesource=".ssc-step" data-templatedest=".ssc-steps" class="add-btn btn-outline-primary btn">Add Step</button>
+    {# Hidden form add templates (not posted)#}
+    {{ item_form("step", template=true) }}
+    {{ item_form("inspection", template=true) }}
+    <form id="ssc-form" method="POST" action="{{ url_for('software_supply_chain')}}">
+      <h3 class="mt-4 mb-2">This are the steps of my software supply chain</h3>
+      <div class="ssc-steps sort-container mb-2">
+        {% for node in ssc_graph_data.nodes %}
+          {% if node.get("type") == "step" %}
+            {{ item_form("step", item=node) }}
+          {% endif %}
+        {% endfor %}
+      </div>
+      <button type="button" data-templatesource=".ssc-step" data-templatedest=".ssc-steps" class="add-btn btn-outline-primary btn">Add Step</button>
 
-    <h3 class="mt-4 mb-2">I run the following commands to inspect my software supply chain</h3>
-    <div class="ssc-inspections sort-container mb-2">
-      {{ item_form("inspection", template=true) }}
-      {% for node in ssc_graph_data.nodes %}
-        {% if node.get("type") == "inspection" %}
-          {{ item_form("inspection", item=node) }}
-        {% endif %}
-      {% endfor %}
-    </div>
-    <button data-templatesource=".ssc-inspection" data-templatedest=".ssc-inspections" class="add-btn btn-outline-primary btn">Add Inspection</button>
+      <h3 class="mt-4 mb-2">I run the following commands to inspect my software supply chain</h3>
+      <div class="ssc-inspections sort-container mb-2">
+        {% for node in ssc_graph_data.nodes %}
+          {% if node.get("type") == "inspection" %}
+            {{ item_form("inspection", item=node) }}
+          {% endif %}
+        {% endfor %}
+      </div>
+      <button type="button" data-templatesource=".ssc-inspection" data-templatedest=".ssc-inspections" class="add-btn btn-outline-primary btn">Add Inspection</button>
+    </form>
   </div>
   {# END: Postable Form Content #}
-
 
   {# BEGIN: Navigation Footer (Previous/Next) #}
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
-      <a class="btn btn-primary btn-block" href="{{ url_for('packaging')}} ">Previous</a>
+      <a class="btn btn-primary btn-block" href="{{ url_for('packaging')}}">Previous</a>
     </div>
     <div class="col-3">
-      <a class="btn btn-primary btn-block" href="{{ url_for('authorizing')}} ">Next</a>
+      <input type="submit" form="ssc-form" class="btn btn-primary btn-block" value="Next">
     </div>
   </div>
   {# END: Navigation Footer (Previous/Next) #}
