@@ -72,27 +72,6 @@
 import os
 import in_toto.models.link
 import in_toto.models.layout
-DEMO_METADATA_DIR = "demo_metadata"
-
-def _get_demo_links():
-  # TODO: Get an ordered list of links
-  # Possible ways
-  #  - store the link files with a sortable filename prefix (1,2,3), ..
-  #  - store a list in a separate file
-  #  - store the steps immediately to a layout
-
-  test_link_filenames = [
-      "clone.0c6c50a1.link",
-      "update-version.0c6c50a1.link",
-      "package.c1ae1e51.link"
-  ]
-
-  links = []
-  for filename in test_link_filenames:
-    path = os.path.join(DEMO_METADATA_DIR, filename)
-    links.append(in_toto.models.link.Link.read_from_file(path))
-
-  return links
 
 def create_material_matchrules(links, index):
   """Create generic material rules (3 variants)
@@ -155,11 +134,24 @@ def create_layout_from_ordered_links(links):
 
 
 def main():
-  links = _get_demo_links()
+
+  # Demo reverse layout creation
+  # Read files from and dump generated "root.layout" to DEMO_METADATA_DIR
+  DEMO_METADATA_DIR = "demo_metadata"
+  test_link_filenames = [
+      "clone.0c6c50a1.link",
+      "update-version.0c6c50a1.link",
+      "package.c1ae1e51.link"
+  ]
+
+  links = []
+  for filename in test_link_filenames:
+    path = os.path.join(DEMO_METADATA_DIR, filename)
+    links.append(in_toto.models.link.Link.read_from_file(path))
+
   layout = create_layout_from_ordered_links(links)
   path = os.path.join(DEMO_METADATA_DIR, "root.layout")
   layout.dump(path)
-
 
 if __name__ == "__main__":
   main()
