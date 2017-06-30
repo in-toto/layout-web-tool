@@ -23,7 +23,8 @@ import os
 from flask import (Flask, render_template, session, redirect, url_for, request,
     flash, send_from_directory, abort, json, jsonify)
 
-import in_toto.models as models
+import in_toto.models.link
+import in_toto.models.mock_link
 import in_toto.artifact_rules
 import securesystemslib.keys
 
@@ -152,7 +153,8 @@ def session_to_graph(session):
           if val:
             # The (QA) link file we want to inspect uses the link step name
             # created above
-            link = models.link.FILENAME_FORMAT_SHORT.format(step_name=step_name)
+            link = in_toto.models.link.FILENAME_FORMAT_SHORT.format(
+                step_name=step_name)
             operator = step.get(inspect_type + "_operator")
             value = step.get(inspect_type + "_value")
 
@@ -644,7 +646,7 @@ def ajax_upload_link():
   try:
     # We try to load the public key to check the format
     link_dict = json.loads(link_file.read())
-    link = models.mock_link.MockLink.read(link_dict)
+    link = in_toto.models.mock_link.MockLink.read(link_dict)
 
     # Reset the filepointer
     link_file.seek(0)
