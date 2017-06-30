@@ -1,58 +1,72 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
+{# BEGIN: Rendered content #}
 {% block content %}
-{{ macros.progress_bar(value=99) }}
-<hr>
+  {{ macros.progress_bar(value=99) }}
+  <hr>
+  <h1>Congrats, you are now the proud owner of a custom in-toto layout!</h1>
+  <p>
+  But not so fast you still have to do a couple of things before your clients can verify your software with in-toto!
+  </p>
 
-<h1>Congrats, you are now the proud owner of a custom in-toto layout!</h1>
-<p>
-But not so fast you still have to do a couple of things before your clients can verify your software with in-toto!
-</p>
+  {# BEGIN: Download layout #}
+  <h2 class="mt-5 mb-2">1. Download the Layout</h2>
+  <div class="row no-gutters">
+    <a href="#" class="col-12 btn btn-outline-primary">Download Layout</a>
+  </div>
+  {# END: Download layout #}
 
-
-<h2 class="mt-5 mb-2">1. Download the Layout</h2>
-<div class="row no-gutters">
-  <a href="#" class="col-12 btn btn-outline-primary">Download Layout</a>
-</div>
-
-
-<h2 class="mt-5 mb-2">2. Create a project owner key pair (if you don't already have one)</h2>
-<div><pre class="code">
-in-toto-keygen project-owner
-</pre></div>
-
-<h2 class="mt-5 mb-2">3. Sign your layout with your project owner key</h2>
-<div><pre class="code">
-in-toto-sign --key project-owner root.layout
-</pre></div>
-
-<h2 class="mt-5 mb-2">4. Instruct your functionaries to use in-toto commands</h2>
-{% for keyid, key in layout.keys.iteritems() %}
-<h3 class="mt-3 mb-2">Functionary {{ keyid | truncate(9, killwords=True) }}</h3>
-<div>
-{#
-"-" strips newlines before/after blocks, which would be displayed in pre elems
-#}
+  {# BEGIN: Create owner key snippet #}
+  <h2 class="mt-5 mb-2">2. Create a project owner key pair (if you don't already have one)</h2>
+  <div>
 <pre class="code">
-{% for step in layout.steps %}
-{%- if keyid in step.pubkeys -%}
-  in-toto-run --key {{ keyid | truncate(9, killwords=True)}} --materials . --products .  --step-name {{step.name}} -- {{step.expected_command | join(" ") }}
+openssl genrsa -out project-owner 2048
+openssl rsa -in project-owner -outform PEM -pubout -out project-owner.pub
+</pre>
+  </div>
+  {# END: Create owner key snippet #}
+
+  {# BEGIN: Sign layout snippet #}
+  <h2 class="mt-5 mb-2">3. Sign your layout with your project owner key</h2>
+  <div>
+<pre class="code">
+in-toto-sign --key project-owner root.layout
+</pre>
+  </div>
+  {# END: Sign layout snippet #}
+
+  {# BEGIN: Per functionary in-toto-run snippets #}
+  <h2 class="mt-5 mb-2">4. Instruct your functionaries to use in-toto commands</h2>
+  {% for functionary in functionaries %}
+    <h3 class="mt-3 mb-2">{{functionary}}</h3>
+      <div>{# "-" strips newlines before/after blocks, which would be
+  displayed in pre elems #}
+<pre class="code">
+{% for step_name, step_data in steps.iteritems() %}
+{%- if functionary in step_data.authorized_functionaries -%}
+in-toto-run --key {{functionary}} --materials . --products . --step-name {{step_name}} -- {{step_data.cmd}}
 {% endif %}
 {%- endfor -%}
 </pre>
-</div>
+      </div>
+  {% endfor %}
+  {# END: Per functionary in-toto-run snippets #}
 
-{% endfor %}
-<h2 class="mt-5 mb-2">5. Ship out in-toto metadata along with your software</h2>
+  {# BEGIN: Begin next step instructions #}
+  <h2 class="mt-5 mb-2">5. Ship out in-toto metadata along with your software</h2>
+  {# END: Begin next step instructions #}
 
-<hr>
-<div class="row no-gutters justify-content-between">
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('chaining')}} ">Previous</a>
+  {# BEGIN: Navigation Footer (Previous/Next) #}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('chaining')}} ">Previous</a>
+    </div>
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('guarantees')}} ">Next</a>
+    </div>
   </div>
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('guarantees')}} ">Next</a>
-  </div>
-</div>
+  {# END: Navigation Footer (Previous/Next) #}
 {% endblock %}
+{# END: Rendered content #}
