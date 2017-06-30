@@ -634,16 +634,62 @@ def authorizing():
 
 @app.route("/chaining")
 def chaining():
-  """Step 7.
+  """Step 8.
   Dry run snippet and link metadata upload. """
-  return render_template("chaining.html")
+  steps = session.get("authorizing", {})
+  return render_template("chaining.html", steps=steps)
 
 
 @app.route("/chaining/upload", methods=["POST"])
 def ajax_upload_link():
   """Ajax upload link metadata. """
-  return jsonify({})
+  link_file = request.files.get("step_link", None)
 
+  if not link_file:
+    flash = {
+      "msg": "Could not store uploaded file - No file uploaded",
+      "type":  "alert-danger"
+    }
+    return jsonify({"flash": flash, "error": True})
+
+  if link_file.filename == "":
+    flash = {
+      "msg": "Could not store uploaded file - No file selected",
+      "type":  "alert-danger"
+    }
+    return jsonify({"flash": flash, "error": True})
+
+  try:
+    # We try to load the public key to check the format
+    link_dict = json.loads(link_file.read())
+    link = models.mock_link.MockLink.read(link_dict)
+
+    # Reset the filepointer
+    link_file.seek(0)
+
+  except Exception as e:
+    flash = {
+      "msg": "Could not store '{}': Not a valid Link file. {}".format(
+          link_file.filename, e),
+      "type":  "alert-danger"
+    }
+    return jsonify({"flash": flash, "error": True})
+
+  else:
+    fn = link_file.filename
+    path = os.path.join(app.config["USER_FILES"], fn)
+    link_file.save(path)
+
+  session_chaining = session.get("chaining", {})
+  session_chaining[link.name] = path
+  session["chaining"] = session_chaining
+
+  flash = {
+    "msg": "Successfully uploaded link '{fn}' for step '{name}'!".
+      format(fn=fn, name=link.name),
+    "type": "alert-success"
+  }
+  return jsonify({"flash": flash, "error": False})
 
 @app.route("/wrap-up")
 def wrap_up():
