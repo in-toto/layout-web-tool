@@ -558,6 +558,80 @@ def ajax_remove_key():
 
   return jsonify({"flash": flash, "error": error})
 
+
+
+@app.route("/authorizing", methods=["GET", "POST"])
+def authorizing():
+  """Step 7.
+  Associate functionaries with steps. """
+
+  if request.method == "POST":
+    step_names = request.form.getlist("step_name[]")
+    step_cmds = request.form.getlist("step_cmd[]")
+    thresholds = request.form.getlist("threshold[]")
+
+    # Steps names, commands and thresholds are related by the same index
+    # These lists should be equally long
+    # FIXME: Don't assert, try!
+    assert(len(step_names) == len(step_cmds) == len(thresholds))
+
+    # The authorized functionaries multi select form element has the
+    # respective step name in its name
+    session_authorizing = session.get("authorizing", {})
+    for idx, step_name in enumerate(step_names):
+      functionaries_for_step = request.form.getlist(
+          "functionary_name_" + step_name + "[]")
+
+      session_authorizing[step_name] = {
+        "cmd": step_cmds[idx],
+        "threshold": int(thresholds[idx]),
+        "authorized_functionaries": functionaries_for_step
+      }
+
+    # Validate
+    # We validate after we have processed everything so we can return all data
+    # to the form
+
+    valid = True
+    for step_name, step_data in session_authorizing.iteritems():
+      if not step_data.get("authorized_functionaries", []):
+        valid = False
+        flash("Step '{name}': Authorize at least one functionary!"
+            .format(name=step_name), "alert-danger")
+
+      if step_data["threshold"] > len(step_data.get("authorized_functionaries", [])):
+        valid = False
+        flash(("Step '{name}': Threshold can't be higher than the "
+            " number of authorized functionaries!").format(name=step_name),
+                "alert-danger")
+
+    if valid:
+      flash("Success! It's time to do a test run of your software supply chain.", "alert-success")
+      session["authorizing"] = session_authorizing
+      return redirect(url_for("chaining"))
+
+    else:
+      # Return to form so that the user can fix the errors
+      return render_template("authorizing.html", steps=session_authorizing,
+        functionaries=session.get("functionaries", {}))
+
+
+  nodes = session.get("ssc", {}).get("nodes", [])
+  # FIXME: Probably we should have two different steps lists for steps and
+  # inspections in the first place
+  steps = {}
+  for item in nodes:
+    if item.get("type") == "step":
+      steps[item["name"]] = {
+        "cmd": item["cmd"],
+        "threshold": 1,
+        "authorized_functionaries": []
+      }
+  functionaries = session.get("functionaries", {})
+
+  return render_template("authorizing.html", functionaries=functionaries,
+      steps=steps)
+
 @app.route("/chaining")
 def chaining():
   """Step 7.
