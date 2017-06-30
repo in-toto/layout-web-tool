@@ -1,75 +1,76 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
+{# BEGIN: Rendered content #}
 {% block content %}
-{{ macros.progress_bar(value=80) }}
-<hr>
+  {{ macros.progress_bar(value=80) }}
+  <hr>
+  <h1>Security Restriction Assessment (linking the chain)</h1>
+  {{ lipsum(n=1, html=True, min=80, max=81) }}
 
-<h1>Security Restriction Assessment (linking the chain)</h1>
-{{ lipsum(n=1, html=True, min=80, max=81) }}
-
-<h2 class="mt-5 mb-2">Copy/Paste Commands</h2>
-
-<div>
+  {# BEGIN: Mock run command snippet  #}
+  <h2 class="mt-5 mb-2">Copy/Paste Commands</h2>
+  <div>
 <pre class="code">
-in-toto-run --dry --name clone -- git clone myproject.git
-in-toto-run --dry --name lint -- lint myproject
-in-toto-run --dry --name build-1 -- configure myproject
-in-toto-run --dry --name build-2 -- make myproject
-in-toto-run --dry --name test -- runtests myproject
-in-toto-run --dry --name package -- tar -czf myproject.tar.gz myproject
-tar czf all-links.tar.gz clone.link lint.link build-1.link build-2.link test.link package.link
+{%- for step_name, step_data in steps.iteritems() %}
+in-toto-mock --name {{step_name}} -- {{step_data.cmd}}
+{%- endfor -%}
 </pre>
-</div>
+  </div>
+  {# END: Mock run command snippet  #}
 
+  {# BEGIN: Link file upload dropzone #}
+  <script type="text/javascript">
+    {# Initialize drag and drop file upload for pubkey uploads #}
+    {# FIXME: Factor out to JavaScript file #}
+    {# FIXME: DRY!!! c.f. authorizing #}
+    Dropzone.autoDiscover = false;
+    $(function(){
 
-<script type="text/javascript">
-  {# Initialize drag and drop file upload for pubkey uploads #}
-  {# FIXME: Factor out to JavaScript file #}
-  {# FIXME: DRY!!! c.f. authorizing #}
-  Dropzone.autoDiscover = false;
-  $(function(){
+      $(".dropzone").dropzone({
+          paramName: "step_link",
 
-    $(".dropzone").dropzone({
-        paramName: "dropped_file",
+          init: function () {
+            // Show already uploaded files in dropzone
+            {% for filename in filenames %}
+              var dropzone_file = {
+                  name: "{{ filename }}"
+                };
 
-        init: function () {
-          // Show already uploaded files in dropzone
-          {% for filename in filenames %}
-            var dropzone_file = {
-                name: "{{ filename }}"
-              };
+              this.options.addedfile.call(this, dropzone_file);
+              dropzone_file.previewElement.classList.add('dz-complete');
 
-            this.options.addedfile.call(this, dropzone_file);
-            dropzone_file.previewElement.classList.add('dz-complete');
-
-          {% endfor %}
-        },
-        complete: function(file) {
-          // Remove the file place holder from the dropzone if the upload failed
-          if (response.error) {
-            this.removeFile(file);
+            {% endfor %}
+          },
+          success: function(file, response) {
+            // Remove the file place holder from the dropzone if the upload failed
+            if (response.error) {
+              this.removeFile(file);
+            }
+            show_message(response.flash.msg, response.flash.type);
           }
-        }
+      });
     });
-  });
-</script>
-
-<h2 class="mt-5 mb-2">Upload Links (Archive)</h2>
-<small>Drop Links (archive) here or click to upload!</small>
-<div class="dz-container d-flex align-items-stretch p-3">
-  <form class="dropzone d-flex flex-wrap" method="POST", enctype="multipart/form-data"
-      action="{{ url_for('ajax_upload_link') }}">
-  </form>
-</div>
-
-<hr>
-<div class="row no-gutters justify-content-between">
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('authorizing')}} ">Previous</a>
+  </script>
+  <h2 class="mt-5 mb-2">Upload Links</h2>
+  <small>Drop Links here or click to upload!</small>
+  <div class="dz-container d-flex align-items-stretch p-3">
+    <form class="dropzone d-flex flex-wrap" method="POST", enctype="multipart/form-data"
+        action="{{ url_for('ajax_upload_link') }}">
+    </form>
   </div>
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('wrap_up')}} ">Next</a>
+  {# END: Link file upload dropzone #}
+
+  {# BEGIN: Navigation Footer (Previous/Next) #}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('authorizing')}} ">Previous</a>
+    </div>
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('wrap_up')}} ">Next</a>
+    </div>
   </div>
-</div>
+  {# END: Navigation Footer (Previous/Next) #}
 {% endblock %}
+{# END: Rendered content #}
