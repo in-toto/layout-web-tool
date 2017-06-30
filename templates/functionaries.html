@@ -1,0 +1,83 @@
+{% import '_macros.html' as macros %}
+{% extends "base.html" %}
+
+{# BEGIN: Functionary form macro #}
+{% macro item_form(functionary=None, template=False) %}
+<div class="functionary dz-container p-3 m-2 {{'template' if template}}">
+  <div class="m-2">
+    <span class="functionary-name">{{functionary.name if functionary}}</span>
+    <small>(Drop public key or click in box to upload)</small>
+  </div>
+  <form class="dropzone m-2 w-100" method="POST", enctype="multipart/form-data"
+      action="{{ url_for('ajax_upload_key') }}">
+    <input type="hidden" name="functionary_name" value="{{functionary.name if functionary}}">
+    {% if functionary %}
+    {# FIXME: Should we rather let the dropzone JS plugin add this? #}
+    <div class="dz-preview dz-file-preview dz-processing dz-complete">
+      <div class="dz-details">
+        <div class="dz-filename">
+          <span data-dz-name="">{{functionary.filename}}</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </form>
+  <button type="button" class="rm-func-btn btn btn-outline-danger m-2">Remove Functionary</button>
+</div>
+{% endmacro %}
+{# END: Functionary form macro #}
+
+
+{# BEGIN: Rendered content #}
+{% block content %}
+  {{ macros.progress_bar(value=65) }}
+  <hr>
+  <h1>Tell us who is on your Project</h1>
+
+  {# BEGIN: Add functionary (name) #}
+  <h2 class="mt-5 mb-2">Add functionary</h2>
+  <div class="row no-gutters">
+    <div class="col-8 pr-md-2">
+      <input class="form-control add-func-input" type="text" placeholder="Name" value="">
+    </div>
+    <button type="button" class="btn btn-outline-primary col-4 add-func-btn">Add Functionary</button>
+  </div>
+  {# END: Add functionary (name) #}
+
+  {# BEGIN: Key creation snippet #}
+  <h2 class="mt-5 mb-2">Upload Functionary Keys</h2>
+  <p>Once you added your functionaries above you will be able to upload keys for them.
+  If you don't have keys yet you can create them using these commands.</p>
+
+  <div>
+<pre class="code">
+# TODO:Provide in-toto-keygen/Suggest encryption/Make dynamic (based on added functionaries)
+
+openssl genrsa -out &ltFILENAME&gt 2048
+openssl rsa -in &ltFILENAME&gt -outform PEM -pubout -out &ltFILENAME&gt.pub
+</pre>
+  </div>
+
+  {# BEGIN: Functionary key uploads #}
+  <div id="functionary-container">
+    {{ item_form(template=True) }}
+    {% for name, fn in functionaries.iteritems() %}
+      {{ item_form(functionary={"name": name, "filename": fn}) }}
+    {% endfor %}
+  </div>
+  {# END: Functionary key uploads #}
+
+  {# BEGIN: Navigation Footer (Previous/Next) #}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('software_supply_chain')}} ">Previous</a>
+    </div>
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('authorizing')}} ">Next</a>
+    </div>
+  </div>
+  {# END: Navigation Footer (Previous/Next) #}
+
+{% endblock %}
+{# END: Rendered content #}

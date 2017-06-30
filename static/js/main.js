@@ -76,6 +76,92 @@ $(function() {
 
   });
 
+
+  /*
+   * Click listener to add a new functionary name with a file upload dropzone
+   * to upload a public key
+   */
+  $(document).on("click", "button.add-func-btn", function(evt){
+    var $input = $(".add-func-input");
+    var val = $input.val();
+
+    // Two cheap frontend name validations (must be unique and not "")
+    if (val == "") {
+      show_message("Your functionary needs a name!", "alert-warning");
+
+    } else if ($("#functionary-container input[value='"+ val + "']").length > 0) {
+      show_message("You already have a functionary '"+ val + "'!",
+          "alert-warning");
+
+    } else {
+      // Clone functionary template
+      var $func = $(".template.functionary").clone();
+
+      // Copy input functionary name
+      // one displayed and one hidden input sent to server on file upload
+      $func.find("span.functionary-name").text(val);
+      $func.find("input[name='functionary_name']").val(val);
+
+      // Append the functionary dropzone to the appropriate place
+      $func.appendTo("#functionary-container")
+        .slideDown(function(){
+          $(this).removeClass("template");
+
+          // Inits the file upload dropzone
+          $func.find(".dropzone").dropzone({
+            paramName: "functionary_key",
+            maxFiles: 1,
+            success: function(file, response) {
+              // Remove the file place holder from dropzone if upload failed
+              if (response.error) {
+                this.removeFile(file);
+              }
+              show_message(response.flash.msg, response.flash.type);
+            }
+          });
+      });
+    }
+  })
+
+  /*
+   * Click listener to remove a functionary
+   * Removes the functionary dropzone and the according key on the server
+   * # TODO: Maybe we should allow to just use remove a key (on the server)
+   * without removing the functionary?
+   */
+  $(document).on("click", "button.rm-func-btn", function(evt) {
+    $functionary = $(this).closest(".functionary");
+    name = $functionary.find("input[name='functionary_name']").val();
+
+    //FIXME: This is a hackish way to find out if there's already a file in
+    // that dropzone.
+    // We should use
+    // $(".dropzone").get(0).dropzone.files
+    // but we can't because currently we don't initialize the dropzone
+    // if the functionary page is served with already uploaded pubkeys
+    var preview = $functionary.find(".dz-file-preview");
+
+    // We only try to delete the key on the server if there is one
+    if (preview.length > 0) {
+      // Post the name of the functionary to remove
+      $.post("/functionaries/remove", {"functionary_name": name},
+        function(response) {
+          show_message(response.flash.msg, response.flash.type);
+
+          //Only remove on client side if server side removal was successful
+          if (!response.error) {
+            $functionary.slideUp(function(){
+              $(this).remove();
+            });
+          }
+        });
+    } else {
+      $functionary.slideUp(function(){
+        $(this).remove();
+      });
+    }
+  });
+
   /*
    * Initialize drag and drop sorting
    * Note: Needs to be re-initialized when elements are added
@@ -230,5 +316,3 @@ var draw_graph = function(graph_data) {
   // Re-order SVG items - no z-index in SVG :(
   d3.select(".edgePaths").toFront();
 }
-
-

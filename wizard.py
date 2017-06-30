@@ -19,30 +19,28 @@
   software supply chain layout creation.
 
 """
-
+import os
 from flask import (Flask, render_template, session, redirect, url_for, request,
     flash, send_from_directory, abort, json, jsonify)
 
-from in_toto.models.layout import Layout
-from in_toto.models.link import FILENAME_FORMAT_SHORT
+import in_toto.models as models
 import in_toto.artifact_rules
+import securesystemslib.keys
+
 import tooldb
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
 
 app.config.update(dict(
     DEBUG=True,
-    SECRET_KEY="do not use the development key in production!!!"
+    SECRET_KEY="do not use the development key in production!!!",
+    # FIXME: Isolate files per session like in old version of tool
+    USER_FILES=os.path.join(os.path.dirname(os.path.abspath(__file__)), "files"),
 ))
 
 # Supply a config file at "instance/config.py" that carries
 # e.g. your deployment secret key
 app.config.from_pyfile("config.py")
-
-
-# FIXME: For prototyping, we statically serve an example  layout on some pages
-layout = Layout.read_from_file(
-    "demo_metadata/root.layout") # WARNING: layout file not in VCS
 
 # -----------------------------------------------------------------------------
 # Utils
@@ -157,7 +155,7 @@ def session_to_graph(session):
           if val:
             # The (QA) link file we want to inspect uses the link step name
             # created above
-            link = FILENAME_FORMAT_SHORT.format(step_name=step_name)
+            link = models.link.FILENAME_FORMAT_SHORT.format(step_name=step_name)
             operator = step.get(inspect_type + "_operator")
             value = step.get(inspect_type + "_value")
 
@@ -451,7 +449,7 @@ def software_supply_chain():
 
     session["ssc"] = supply_chain
 
-    return redirect(url_for("authorizing"))
+    return redirect(url_for("functionaries"))
 
   # If not POST request
   # Generate a supply chain based on previously posted data (stored in session)
@@ -463,18 +461,102 @@ def software_supply_chain():
       ssc_graph_data=supply_chain)
 
 
-@app.route("/authorizing")
-def authorizing():
+@app.route("/functionaries")
+def functionaries():
   """Step 6.
   Functionary keys upload and keys dropzone. """
-  return render_template("authorizing.html", layout=layout)
+  functionaries = session.get("functionaries", {})
+
+  return render_template("functionaries.html", functionaries=functionaries)
 
 
-@app.route("/authorizing/upload", methods=["POST"])
+@app.route("/functionaries/upload", methods=["POST"])
 def ajax_upload_key():
-  """Ajax upload functionary keys. """
-  return jsonify({})
+  """Ajax upload a functionary key. """
+  functionary_key = request.files.get("functionary_key", None)
+  functionary_name = request.form.get("functionary_name", None)
 
+  if not functionary_name:
+    flash = {
+      "msg": ("Something went wrong - we don't know which functionary,"
+              " this key belongs to"),
+      "type":  "alert-danger"
+    }
+    return jsonify({"flash": flash, "error": True})
+
+  if not functionary_key:
+    flash = {
+      "msg": "Could not store uploaded file - No file uploaded",
+      "type":  "alert-danger"
+    }
+    return jsonify({"flash": flash, "error": True})
+
+  if functionary_key.filename == "":
+    flash = {
+      "msg": "Could not store uploaded file - No file selected",
+      "type":  "alert-danger"
+    }
+    return jsonify({"flash": flash, "error": True})
+
+  try:
+    # We try to load the public key to check the format
+    securesystemslib.keys.import_rsakey_from_public_pem(
+        functionary_key.read())
+
+    # Reset the filepointer
+    functionary_key.seek(0)
+
+  except Exception as e:
+    flash = {
+      "msg": "Could not store uploaded file - Not a valid public key",
+      "type":  "alert-danger"
+    }
+    return jsonify({"flash": flash, "error": True})
+
+  else:
+    fn = functionary_key.filename
+    functionary_key_path = os.path.join(app.config["USER_FILES"], fn)
+    functionary_key.save(functionary_key_path)
+
+  session_functionaries = session.get("functionaries", {})
+  session_functionaries[functionary_name] = fn
+  session["functionaries"] = session_functionaries
+
+  flash = {
+    "msg": "Successfully uploaded key '{fn}' for functionary '{functionary}'!".
+      format(fn=fn, functionary=functionary_name),
+    "type": "alert-success"
+  }
+  return jsonify({"flash": flash, "error": False})
+
+
+@app.route("/functionaries/remove", methods=["POST"])
+def ajax_remove_key():
+  """ Remove the posted functionary (by name) from the functionary session
+  store.
+  FIXME: We probably should also remove the key file
+  """
+  functionary_name = request.form.get("functionary_name", None)
+  session_functionaries = session.get("functionaries", {})
+  if functionary_name in session_functionaries:
+    del session_functionaries[functionary_name]
+    session["functionaries"] = session_functionaries
+    flash = {
+      "msg": "Successfully removed functionary '{functionary}'!".
+        format(functionary=functionary_name),
+      "type": "alert-success"
+    }
+    error = False
+
+  else:
+    flash = {
+      "msg": "Could not remove non-existing functionary '{functionary}'!".
+        format(functionary=functionary_name),
+      "type": "alert-danger"
+    }
+    error = True
+
+  return jsonify({"flash": flash, "error": error})
 
 @app.route("/chaining")
 def chaining():

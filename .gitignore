@@ -11,6 +11,9 @@ node_modules
 static/vendor/*
 !static/vendor/.keep
 
+files/*
+!files/.keep
+
 # Exclude *.css files, compile them freshly using:
 # `sass static/scss/main.scss:static/css/main.scss.css`
 .sass-cache
