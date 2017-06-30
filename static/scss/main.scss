@@ -126,14 +126,25 @@ ul.check {
   }
 }
 
+.functionary-name {
+  font-size: 1.3em;
+}
+
 .dz-container {
   @extend .inset;
-  min-height: 100px;
+
   .dropzone {
     @include border-radius(20px);
-    border: 5px dashed #e3e3e3;
-    width: 100%
+    border: 0.2em dashed #e3e3e3;
+    text-align: center;
+    min-height: 2em;
+    width: 100%;
+    &:hover {
+      background-color: #e4e4e4;
+      border-color: white;
+    }
   }
+
   .dz-preview {
     position: relative;
     text-align: center;
@@ -160,6 +171,7 @@ ul.check {
   .dz-success-mark,
   .dz-error-mark,
   .dz-message,
+  .dz-error,
   .dz-image {
     display: none;
   }
@@ -183,7 +195,6 @@ ul.check {
   width: 100%;
 }
 
-
 // Form on software supply chain page
 .ssc-items {
   .ssc-item {
@@ -194,7 +205,6 @@ ul.check {
     }
   }
 }
-
 
 .opt-form {
   @extend .inset;
