@@ -29,6 +29,7 @@ import in_toto.artifact_rules
 import securesystemslib.keys
 
 import tooldb
+import reverse_layout
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
 
@@ -690,6 +691,32 @@ def wrap_up():
   auths = session.get("authorizing", {})
   items = session.get("ssc", {}).get("nodes", [])
   return render_template("wrap_up.html", items=items, auths=auths, functionaries=functionaries)
+
+@app.route("/download-layout")
+def download_layout():
+  """Create layout based on session data and uploaded links. """
+  links = []
+  for item in session.get("ssc", {}).get("nodes", []):
+    if item["type"] != "step":
+      continue
+
+    link_filename = session.get("chaining", {}).get(item["name"])
+    if not link_filename:
+      continue
+
+    link_path = os.path.join(app.config["USER_FILES"], link_filename)
+    link = in_toto.models.mock_link.MockLink.read_from_file(link_path)
+    if link:
+      links.append(link)
+
+  layout = reverse_layout.create_layout_from_ordered_links(links)
+
+  # TODO: Authorization (add pubkeys, keyids, thresholds)
+  # Add inspections
+
+  # Serve file
+  return redirect(url_for("wrap_up"))
+
 
 @app.route("/guarantees")
 def guarantees():
