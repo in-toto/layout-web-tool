@@ -620,8 +620,9 @@ def authorizing():
 def chaining():
   """Step 8.
   Dry run snippet and link metadata upload. """
-  steps = session.get("authorizing", {})
-  return render_template("chaining.html", steps=steps)
+  items = session.get("ssc", {}).get("nodes", [])
+  links = session.get("chaining")
+  return render_template("chaining.html", items=items, link_dict=links)
 
 
 @app.route("/chaining/upload", methods=["POST"])
@@ -686,9 +687,9 @@ def wrap_up():
    - Release instructions ??
   """
   functionaries = session.get("functionaries", {}).keys()
-  steps = session.get("authorizing", {})
-  return render_template("wrap_up.html", steps=steps, functionaries=functionaries)
-
+  auths = session.get("authorizing", {})
+  items = session.get("ssc", {}).get("nodes", [])
+  return render_template("wrap_up.html", items=items, auths=auths, functionaries=functionaries)
 
 @app.route("/guarantees")
 def guarantees():

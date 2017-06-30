@@ -12,8 +12,10 @@
   <h2 class="mt-5 mb-2">Copy/Paste Commands</h2>
   <div>
 <pre class="code">
-{%- for step_name, step_data in steps.iteritems() %}
-in-toto-mock --name {{step_name}} -- {{step_data.cmd}}
+{% for item in items %}
+{%- if item.type == "step" -%}
+in-toto-mock --name {{item.name}} -- {{item.cmd}}
+{% endif %}
 {%- endfor -%}
 </pre>
   </div>
@@ -32,14 +34,15 @@ in-toto-mock --name {{step_name}} -- {{step_data.cmd}}
 
           init: function () {
             // Show already uploaded files in dropzone
-            {% for filename in filenames %}
-              var dropzone_file = {
-                  name: "{{ filename }}"
+            {% for item in items %}
+              {% if link_dict.get(item.name) %}
+                var dropzone_file = {
+                  name: "{{ link_dict.get(item.name) }}"
                 };
 
-              this.options.addedfile.call(this, dropzone_file);
-              dropzone_file.previewElement.classList.add('dz-complete');
-
+                this.options.addedfile.call(this, dropzone_file);
+                dropzone_file.previewElement.classList.add('dz-complete');
+              {% endif %}
             {% endfor %}
           },
           success: function(file, response) {

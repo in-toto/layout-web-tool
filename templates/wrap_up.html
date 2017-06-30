@@ -13,7 +13,7 @@
   {# BEGIN: Download layout #}
   <h2 class="mt-5 mb-2">1. Download the Layout</h2>
   <div class="row no-gutters">
-    <a href="#" class="col-12 btn btn-outline-primary">Download Layout</a>
+    <a href="{{url_for('download_layout')}}" target="_blank" class="col-12 btn btn-outline-primary">Download Layout</a>
   </div>
   {# END: Download layout #}
 
@@ -43,9 +43,9 @@ in-toto-sign --key project-owner root.layout
       <div>{# "-" strips newlines before/after blocks, which would be
   displayed in pre elems #}
 <pre class="code">
-{% for step_name, step_data in steps.iteritems() %}
-{%- if functionary in step_data.authorized_functionaries -%}
-in-toto-run --key {{functionary}} --materials . --products . --step-name {{step_name}} -- {{step_data.cmd}}
+{% for item in items %}
+{%- if item.type == "step" and functionary in auths.get(item.name).get("authorized_functionaries", []) -%}
+in-toto-run --key {{functionary}} --materials . --products . --step-name {{item.name}} -- {{item.cmd}}
 {% endif %}
 {%- endfor -%}
 </pre>
