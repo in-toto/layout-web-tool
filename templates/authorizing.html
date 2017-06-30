@@ -1,95 +1,56 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
+{# BEGIN: Rendered content #}
 {% block content %}
-{{ macros.progress_bar(value=70) }}
-<hr>
+  {{ macros.progress_bar(value=75) }}
+  <hr>
+  <h1>Who is authorized to do what in your Project?</h1>
+  {{ lipsum(n=1, html=True, min=40, max=41) }}
 
-<h1>Who is authorized to do what in you project?</h1>
-<h2 class="mt-5 mb-2">Generate Public Keys</h2>
-{{ lipsum(n=1, html=True, min=50, max=51) }}
-
-<h2 class="mt-5 mb-2">Upload Public Keys</h2>
-{{ lipsum(n=1, html=True, min=50, max=51) }}
-
-
-<script type="text/javascript">
-  {# Initialize drag and drop file upload for pubkey uploads #}
-  {# FIXME: Factor out to JavaScript file #}
-  Dropzone.autoDiscover = false;
-  $(function(){
-
-    $(".dropzone").dropzone({
-        paramName: "dropped_file",
-
-        init: function () {
-          // Show already uploaded files in dropzone
-          {% for filename in filenames %}
-            var dropzone_file = {
-                name: "{{ filename }}"
-              };
-
-            this.options.addedfile.call(this, dropzone_file);
-            dropzone_file.previewElement.classList.add('dz-complete');
-
-          {% endfor %}
-        },
-        complete: function(file) {
-          // Remove the file place holder from the dropzone if the upload failed
-          if (response.error) {
-            this.removeFile(file);
-          }
-        }
+  {# BEGIN: Functionary to step mapping #}
+  <h2 class="mt-5 mb-3">Assign Public Keys and configure Threshold</h2>
+  <script type="text/javascript">
+    {# Initialize select2 for pubkey-to-step association #}
+    {# FIXME: Factor out to JavaScript file #}
+    $(function(){
+      $(".select2").select2();
     });
-  });
-</script>
+  </script>
 
-<small>Drop Public Keys here or click to upload!</small>
-<div class="dz-container d-flex align-items-stretch p-3">
-  <form class="dropzone d-flex flex-wrap" method="POST", enctype="multipart/form-data"
-      action="{{ url_for('ajax_upload_key') }}">
+  <form id="authorizing-form" action="{{ url_for('authorizing') }}" method="POST">
+  {% for step_name, step_data in steps.iteritems() %}
+    <input type="hidden" name="step_name[]" value="{{step_name}}">
+    <input type="hidden" name="step_cmd[]" value="{{step_data.cmd}}">
+    <div class="form-group row">
+      <div class="col-10">
+        <label><strong>{{step_name}}</strong> (authorized functionaries)</label>
+        <select name="functionary_name_{{step_name}}[]" multiple class="form-control select2">
+          {% for functionary, fn in functionaries.iteritems() %}
+           <option {{'selected' if functionary in step_data.authorized_functionaries}}  value="{{functionary}}"> {{ functionary }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-2">
+        <label>Threshold</label>
+        <input name="threshold[]" class="form-control" type="number" min="1" value="{{step_data.get('threshold', 1)}}">
+      </div>
+    </div>
+  {% endfor %}
   </form>
-</div>
+  {# END: Functionary to step mapping #}
 
-<script type="text/javascript">
-  {# Initialize select2 for pubkey-to-step association #}
-  {# FIXME: Factor out to JavaScript file #}
-  $(function(){
-    $(".select2").select2();
-  });
-
-</script>
-
-<h2 class="mt-5 mb-3">Assign Public Keys</h2>
-{{ lipsum(n=1, html=True, min=40, max=41) }}
-
-{% for step in layout.steps %}
-  <h3 class="mt-3 mb-2">Step {{loop.index}}. "{{step.name}}"</h3>
-  <div class="form-group row">
-    <div class="col-10">
-      <label>Authorized functionaries</label>
-      <select multiple class="form-control select2">
-        {% for keyid, key in layout.keys.iteritems() %}
-         <option> {{ keyid | truncate(9, killwords=True)}}</option>
-        {% endfor %}
-      </select>
+  {# BEGIN: Navigation Footer (Previous/Next) #}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-primary btn-block" href="{{ url_for('functionaries')}} ">Previous</a>
     </div>
-    <div class="col-2">
-      <label>Threshold</label>
-      <input class="form-control" type="number" value="{{ step.threshold | int }}" min="1">
+    <div class="col-3">
+      <input type="submit" form="authorizing-form" class="btn btn-primary btn-block" value="Next">
     </div>
   </div>
-{% endfor %}
-
-
-<hr>
-<div class="row no-gutters justify-content-between">
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('software_supply_chain')}} ">Previous</a>
-  </div>
-  <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('chaining')}} ">Next</a>
-  </div>
-</div>
+  {# END: Navigation Footer (Previous/Next) #}
 
 {% endblock %}
+{# END: Rendered content #}
