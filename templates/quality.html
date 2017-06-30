@@ -2,32 +2,14 @@
 {% extends "base.html" %}
 
 {# BEGIN: Quality Managment form macro #}
-{% macro form_content(data=None, build_steps=None, show_add_btn=False, show_rm_btn=True) %}
+{% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
 {# Define default dict/list here (never in signature) so we don't have to check
 for every input #}
-{% with data = data if data else {}, build_steps = build_steps if build_steps else [] %}
+{% with data = data if data else {} %}
   <div class="form-group">
     <label>This is how I do quality management</label>
     <input type="text" class="form-control" value="{{ data.get('cmd', "") }}" name="cmd[]">
   </div>
-  {% if build_steps %}
-  <div class="form-group row">
-    <div class="col-3 col-form-label">I run above command</div>
-    <div class="input-group col-9">
-      <select class="custom-select input-group-select" name="when[]">
-        <option value="before" {{"selected" if data.get("when", "") == "before"}}>before</option>
-        <option value="after" {{"selected" if data.get("when", "") == "after"}}>after</option>
-      </select>
-      <select class="custom-select input-group-select w-100" name="build_cmd[]">
-      {% for build_step in build_steps %}
-        {% with cmd=build_step.get("cmd") %}
-        <option value="{{cmd}}" {{"selected" if data.get("build_cmd", "") == cmd}}>{{cmd}}</option>
-        {% endwith %}
-      {% endfor %}
-      </select>
-    </div>
-  </div>
-  {% endif %}
   <h3 class="mt-4 mb-3">How do you know everything's fine?</h3>
   <div class="form-group row">
     <div class="col-3 col-form-label">Return value</div>
@@ -89,14 +71,14 @@ for every input #}
   {# BEGIN: Option Grid #}
   <h2 class="mt-5">Which tools do you use for quality assurance?</h2>
   {% call(data) macros.option_grid(options=options) %}
-    {{ form_content(data={ "cmd": data.get("cmd") }, build_steps=build_steps, show_add_btn=True, show_rm_btn=False) }}
+    {{ form_content(data={ "cmd": data.get("cmd") }, show_add_btn=True, show_rm_btn=False) }}
   {% endcall %}
   {# END: Option Grid #}
 
   {# BEGIN: Postable Form Content #}
   <h2 class="mt-5 mb-3">This is how I assure my software's quality</h2>
   {% call(data=None) macros.form_container(form_id="qa-form", form_action=url_for('quality_management'), user_data=user_data) %}
-    {{ form_content(data=data, build_steps=build_steps) }} {# data passed back from macro #}
+    {{ form_content(data=data) }} {# data passed back from macro #}
   {% endcall %}
   {# END: Postable Form Content #}
 
