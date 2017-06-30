@@ -135,9 +135,6 @@ def session_to_graph(session):
 
   # Create edges based on data posted from previous pages
   # FIXME: Come up with better naming (low priority)
-  # TODO: Do we want to re-order QA steps based on the form posted info from
-  # QA page (`I run this inspection (before | after) <build step>`)??
-  # IMHO a user can re-order the steps here anyway, right?
   for step_type in ["vcs", "building", "qa", "package"]:
     for idx, step in enumerate(session.get(step_type, {}).get("items", [])):
       step_name = "{}-{}".format(step_type, idx + 1)
@@ -177,8 +174,6 @@ def session_to_graph(session):
               "based_on": step_name
             })
 
-            #FIXME: We kinda ignore the information
-            # `I run this inspection (before | after) <build step>`
             inspect_edges.append({
               "source": step_name,
               "dest": inspect_name
@@ -324,10 +319,7 @@ def quality_management():
   if request.method == "POST":
     # Grab the form posted quality management data  and write it to the session
     # FIXME: Needs sanitizing and session persistence!!!
-
     cmd_list = request.form.getlist("cmd[]")
-    when_list = request.form.getlist("when[]")
-    build_cmd_list = request.form.getlist("build_cmd[]")
     retval_operator_list = request.form.getlist("retval_operator[]")
     retval_value_list = request.form.getlist("retval_value[]")
     stdout_operator_list = request.form.getlist("stdout_operator[]")
@@ -338,7 +330,7 @@ def quality_management():
     # Values of a step are related by the same index
     # All lists should be equally long
     # FIXME: Don't assert, try!
-    assert(len(cmd_list) == len(when_list) == len(build_cmd_list) ==
+    assert(len(cmd_list) ==
         len(retval_operator_list) == len(retval_value_list) ==
         len(stdout_operator_list) == len(stdout_value_list) ==
         len(stderr_operator_list) == len(stderr_value_list))
@@ -352,8 +344,6 @@ def quality_management():
     for i in range(qa_steps_cnt):
       posted_items.append({
           "cmd": cmd_list[i],
-          "when": when_list[i],
-          "build_cmd": build_cmd_list[i],
           "retval_operator": retval_operator_list[i],
           "retval_value": retval_value_list[i],
           "stdout_operator": stdout_operator_list[i],
@@ -373,12 +363,7 @@ def quality_management():
   # The template can deal with an empty dict, but a dict it must be
   user_data = session.get("qa", {})
 
-  # Building commands as set by user in prior template
-  # Note how we deal with non existing and empty building data.
-  build_steps = session.get("building", {}).get("items", [])
-
-  return render_template("quality.html", options=options, user_data=user_data,
-      build_steps=build_steps)
+  return render_template("quality.html", options=options, user_data=user_data)
 
 @app.route("/packaging", methods=["GET", "POST"])
 def packaging():
@@ -425,9 +410,6 @@ def software_supply_chain():
   - On front-end JS: refresh D3 graph on form change
   - DRY up graph generation functions: session_to_graph, form_data_to_graph,
     layout_to_graph (commented out)
-  - In `session_to_graph` use `I run above command before | after <build step>`
-    to reorder the graph (this information is currently ignored)
-
   """
 
   if request.method == "POST":
