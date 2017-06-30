@@ -693,7 +693,7 @@ def ajax_upload_link():
 
 @app.route("/wrap-up")
 def wrap_up():
-  """Step 8.
+  """Step 9.
   Explain what to do with generated layout.
    - Download layout
    - Create project owner key (keygen snippet)
@@ -701,7 +701,9 @@ def wrap_up():
    - Per functionary commands (in-toto-run snippet)
    - Release instructions ??
   """
-  return render_template("wrap_up.html", layout=layout)
+  functionaries = session.get("functionaries", {}).keys()
+  steps = session.get("authorizing", {})
+  return render_template("wrap_up.html", steps=steps, functionaries=functionaries)
 
 
 @app.route("/guarantees")
