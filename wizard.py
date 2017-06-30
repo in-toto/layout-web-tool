@@ -665,7 +665,7 @@ def ajax_upload_link():
     link_file.save(path)
 
   session_chaining = session.get("chaining", {})
-  session_chaining[link.name] = path
+  session_chaining[link.name] = fn
   session["chaining"] = session_chaining
 
   flash = {
