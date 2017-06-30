@@ -68,13 +68,10 @@
       match only those that already were in the previous step
       allow the rest, by name
 
-
 """
 import os
 import in_toto.models.link
 import in_toto.models.layout
-from layout_tool import _get_default_expiration_date
-
 DEMO_METADATA_DIR = "demo_metadata"
 
 def _get_demo_links():
@@ -147,14 +144,10 @@ def create_layout_from_ordered_links(links):
 
   for index, link in enumerate(links):
     step_name = link.name
-    step = in_toto.models.layout.Step(name=step_name)
-
-    step.expires = _get_default_expiration_date()
-    if isinstance(link.command, list):
-      step.expected_command = " ".join(link.command)
-
-    step.material_matchrules = create_material_matchrules(links, index)
-    step.product_matchrules = create_product_matchrules(links, index)
+    step = in_toto.models.layout.Step(name=step_name,
+      material_matchrules=create_material_matchrules(links, index),
+      product_matchrules=create_product_matchrules(links, index),
+      expected_command=link.command)
 
     layout.steps.append(step)
 
