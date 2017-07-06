@@ -505,6 +505,7 @@ def ajax_upload_key():
     functionary_key_path = os.path.join(app.config["USER_FILES"], fn)
     functionary_key.save(functionary_key_path)
 
+  #FIXME: Arrrgh, race condition....
   session_functionaries = session.get("functionaries", {})
   session_functionaries[functionary_name] = fn
   session["functionaries"] = session_functionaries
