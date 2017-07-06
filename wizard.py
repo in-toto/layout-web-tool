@@ -714,9 +714,14 @@ def download_layout():
   # TODO: Authorization (add pubkeys, keyids, thresholds)
   # Add inspections
 
-  # Serve file
-  return redirect(url_for("wrap_up"))
 
+  layout_name = "root.layout"
+  layout_path = os.path.join(app.config["USER_FILES"], layout_name)
+  layout.dump(layout_path)
+
+  # Serve file
+  return send_from_directory(app.config["USER_FILES"], layout_name,
+      as_attachment=True)
 
 @app.route("/guarantees")
 def guarantees():
