@@ -564,15 +564,20 @@ def authorizing():
     # The authorized functionaries multi select form element has the
     # respective step name in its name
     session_authorizing = session.get("authorizing", {})
+    steps = []
     for idx, step_name in enumerate(step_names):
       functionaries_for_step = request.form.getlist(
           "functionary_name_" + step_name + "[]")
 
-      session_authorizing[step_name] = {
+      auth_data = {
         "cmd": step_cmds[idx],
         "threshold": int(thresholds[idx]),
         "authorized_functionaries": functionaries_for_step
       }
+
+      session_authorizing[step_name] = auth_data
+      steps.append(auth_data)
+
 
     # Validate
     # We validate after we have processed everything so we can return all data
@@ -598,21 +603,22 @@ def authorizing():
 
     else:
       # Return to form so that the user can fix the errors
-      return render_template("authorizing.html", steps=session_authorizing,
+      return render_template("authorizing.html", steps=steps,
         functionaries=session.get("functionaries", {}))
 
 
   nodes = session.get("ssc", {}).get("nodes", [])
   # FIXME: Probably we should have two different steps lists for steps and
   # inspections in the first place
-  steps = {}
+  steps = []
   for item in nodes:
     if item.get("type") == "step":
-      steps[item["name"]] = {
+      steps.append({
+        "name": item["name"],
         "cmd": item["cmd"],
         "threshold": 1,
         "authorized_functionaries": []
-      }
+      })
   functionaries = session.get("functionaries", {})
 
   return render_template("authorizing.html", functionaries=functionaries,
