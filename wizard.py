@@ -23,6 +23,7 @@ import os
 from flask import (Flask, render_template, session, redirect, url_for, request,
     flash, send_from_directory, abort, json, jsonify)
 
+import in_toto.util
 import in_toto.models.link
 import in_toto.models.mock_link
 import in_toto.artifact_rules
@@ -694,9 +695,16 @@ def wrap_up():
 
 @app.route("/download-layout")
 def download_layout():
-  """Create layout based on session data and uploaded links. """
+  """Create layout based on session data and uploaded links and
+  serve with layout name from session directory as attachment
+  (Content-Disposition: attachment).  """
+
+  # Iterate over items in ssc dictionary and create an ordered list
+  # of according link objects
   links = []
   for item in session.get("ssc", {}).get("nodes", []):
+
+    # FIXME: split ssc["nodes"] into steps and inspections
     if item["type"] != "step":
       continue
 
@@ -711,9 +719,36 @@ def download_layout():
 
   layout = reverse_layout.create_layout_from_ordered_links(links)
 
-  # TODO: Authorization (add pubkeys, keyids, thresholds)
-  # Add inspections
+  functionary_keyids = {}
+  # Add uploaded functionary pubkeys to layout
+  for functionary_name, pubkey_path in session.get("functionaries",
+      {}).iteritems():
 
+    # Load and check the format of the uploaded public keys
+    key = in_toto.util.import_rsa_key_from_file(pubkey_path)
+    securesystemslib.formats.PUBLIC_KEY_SCHEMA.check_match(key)
+
+    # Add keys to layout's key store
+    layout.keys[key["keyid"]] = key
+
+    # Add keys to functionary name-keyid map needed below
+    functionary_keyids[functionary_name] = key["keyid"]
+
+
+  # Add authorized functionaries to steps and set signing threshold
+  for idx in range(len(layout.steps)):
+    step_name = layout.steps[idx].name
+    auth_data = session.get("authorizing", {}).get(step_name, {})
+
+    for functionary_name in auth_data.get("authorized_functionaries", []):
+      keyid = functionary_keyids.get(functionary_name)
+      if keyid:
+        layout.steps[idx].pubkeys.append(keyid)
+
+    layout.steps[idx].threshold = auth_data.get("threshold")
+
+  # TODO: Create inspections
+  layout.validate()
 
   layout_name = "root.layout"
   layout_path = os.path.join(app.config["USER_FILES"], layout_name)
