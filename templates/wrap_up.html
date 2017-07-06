@@ -19,10 +19,10 @@
 
   {# BEGIN: Create owner key snippet #}
   <h2 class="mt-5 mb-2">2. Create a project owner key pair (if you don't already have one)</h2>
+  <small>You can use this command to create an RSA keypair:</small>
   <div>
 <pre class="code">
-openssl genrsa -out project-owner 2048
-openssl rsa -in project-owner -outform PEM -pubout -out project-owner.pub
+in-toto-keygen &ltFILENAME&gt
 </pre>
   </div>
   {# END: Create owner key snippet #}

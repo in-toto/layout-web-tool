@@ -47,14 +47,11 @@
   {# BEGIN: Key creation snippet #}
   <h2 class="mt-5 mb-2">Upload Functionary Keys</h2>
   <p>Once you added your functionaries above you will be able to upload keys for them.
-  If you don't have keys yet you can create them using these commands.</p>
-
+  </p>
+  <small>You can use this command to create RSA keypairs:</small>
   <div>
 <pre class="code">
-# TODO:Provide in-toto-keygen/Suggest encryption/Make dynamic (based on added functionaries)
-
-openssl genrsa -out &ltFILENAME&gt 2048
-openssl rsa -in &ltFILENAME&gt -outform PEM -pubout -out &ltFILENAME&gt.pub
+in-toto-keygen &ltFILENAME&gt
 </pre>
   </div>
 
