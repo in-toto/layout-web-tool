@@ -26,6 +26,7 @@ from flask import (Flask, render_template, session, redirect, url_for, request,
 import in_toto.util
 import in_toto.models.link
 import in_toto.models.mock_link
+import in_toto.models.layout
 import in_toto.artifact_rules
 import securesystemslib.keys
 
@@ -707,23 +708,37 @@ def download_layout():
 
   # Iterate over items in ssc dictionary and create an ordered list
   # of according link objects
+  # FIXME: split ssc["nodes"] into steps and inspections
   links = []
+  inspections = []
   for item in session.get("ssc", {}).get("nodes", []):
+    if item["type"] == "inspection":
+      inspections.append(item)
 
-    # FIXME: split ssc["nodes"] into steps and inspections
-    if item["type"] != "step":
-      continue
+    elif item["type"] == "step":
+      link_filename = session.get("chaining", {}).get(item["name"])
 
-    link_filename = session.get("chaining", {}).get(item["name"])
-    if not link_filename:
-      continue
+      if not link_filename:
+        continue
 
-    link_path = os.path.join(app.config["USER_FILES"], link_filename)
-    link = in_toto.models.mock_link.MockLink.read_from_file(link_path)
-    if link:
+      link_path = os.path.join(app.config["USER_FILES"], link_filename)
+
+      if not os.path.exists(link_path):
+        continue
+
+      link = in_toto.models.mock_link.MockLink.read_from_file(link_path)
       links.append(link)
 
+
+
+  ######
+  # Create basic layout with steps based on links
+  ######
   layout = reverse_layout.create_layout_from_ordered_links(links)
+
+  ######
+  # Add pubkeys and authorization to layout
+  ######
 
   functionary_keyids = {}
   # Add uploaded functionary pubkeys to layout
@@ -740,7 +755,6 @@ def download_layout():
     # Add keys to functionary name-keyid map needed below
     functionary_keyids[functionary_name] = key["keyid"]
 
-
   # Add authorized functionaries to steps and set signing threshold
   for idx in range(len(layout.steps)):
     step_name = layout.steps[idx].name
@@ -753,7 +767,24 @@ def download_layout():
 
     layout.steps[idx].threshold = auth_data.get("threshold")
 
-  # TODO: Create inspections
+
+  ######
+  # Add inpsections to layout
+  ######
+  # TODO: Move this to reverse_layout.py
+
+  for inspection_data in inspections:
+    inspection = in_toto.models.layout.Inspection(
+        name=inspection_data["name"],
+        run=inspection_data["cmd"],
+        material_matchrules=[
+          ["MATCH", "*", "WITH", "PRODUCTS", "FROM", inspection_data["based_on"]]
+        ])
+
+    layout.inspect.append(inspection)
+
+
+
   layout.validate()
 
   layout_name = "root.layout"
