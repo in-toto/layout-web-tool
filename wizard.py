@@ -622,7 +622,7 @@ def chaining():
   """Step 8.
   Dry run snippet and link metadata upload. """
   items = session.get("ssc", {}).get("nodes", [])
-  links = session.get("chaining")
+  links = session.get("chaining", {})
   return render_template("chaining.html", items=items, link_dict=links)
 
 
