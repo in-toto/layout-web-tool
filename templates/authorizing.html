@@ -19,13 +19,13 @@
   </script>
 
   <form id="authorizing-form" action="{{ url_for('authorizing') }}" method="POST">
-  {% for step_name, step_data in steps.iteritems() %}
-    <input type="hidden" name="step_name[]" value="{{step_name}}">
+  {% for step_data in steps %}
+    <input type="hidden" name="step_name[]" value="{{step_data.name}}">
     <input type="hidden" name="step_cmd[]" value="{{step_data.cmd}}">
     <div class="form-group row">
       <div class="col-10">
-        <label><strong>{{step_name}}</strong> (authorized functionaries)</label>
-        <select name="functionary_name_{{step_name}}[]" multiple class="form-control select2">
+        <label><strong>{{step_data.name}}</strong> (authorized functionaries)</label>
+        <select name="functionary_name_{{step_data.name}}[]" multiple class="form-control select2">
           {% for functionary, fn in functionaries.iteritems() %}
            <option {{'selected' if functionary in step_data.authorized_functionaries}}  value="{{functionary}}"> {{ functionary }}</option>
           {% endfor %}
