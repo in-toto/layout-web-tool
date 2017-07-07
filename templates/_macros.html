@@ -35,13 +35,15 @@
 {%- endmacro %}
 
 {% macro form_container(form_id, form_action, user_data) %}
-<form id="{{ form_id }}" action="{{ form_action }}" method="POST">
+<form class="mt-5" id="{{ form_id }}" action="{{ form_action }}" method="POST">
+  <h2 class="opt-form-container-info {{'d-none' if not user_data.get('items')}}">Workflow</h2>
+  <small class="opt-form-container-info {{'d-none' if not user_data.get('items')}}">You can change and re-order your commands here before you go to the next page</small>
   <div id="opt-form-container" class="mb-3 sort-container">
-    {% for user_item in user_data.get("items", []) %}
+    {%-for user_item in user_data.get("items", []) %}
       <div class="opt-form">
         {{ caller(data=user_item) }}
       </div>
-    {% endfor %}
+    {% endfor-%}
   </div>
 <hr class="mt-5">
 <h2>Doing things differently?</h2>

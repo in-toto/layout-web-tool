@@ -84,6 +84,8 @@ $(function() {
           " You can still review and change it below before it gets stored.",
           "alert-info");
 
+      $(".opt-form-container-info").removeClass("d-none");
+
       // If the added item was sortable, re-initialize the sort container
       if ($opt_form.parents(".sort-container").length) {
         sortable(".sort-container")

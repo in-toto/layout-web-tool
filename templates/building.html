@@ -29,7 +29,6 @@
   {# END: Option Grid #}
 
   {# BEGIN: Postable Form Content #}
-  <h2 class="mt-5 mb-3">This is how I build my software</h2>
   {% call(data=None) macros.form_container(form_id="building-form", form_action=url_for('building'), user_data=user_data) %}
     {{ form_content(data=data) }} {# data passed back from macro #}
   {% endcall %}
