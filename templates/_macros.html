@@ -1,5 +1,19 @@
 {% macro option_grid(options) %}
 <div class="opt-row row no-gutters">
+  <div class="opt-cell col opt-cell-top">
+    <div class="opt-content">
+      <div class="text-center">
+          Add a custom command
+      </div>
+    </div>
+    <div class="opt-form-cont collapse">
+      <div class="opt-form">
+        {{ caller(data={"cmd":""}) }}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="opt-row row no-gutters">
 {% for option in options %}
   <div class="opt-cell col-3">
     <div class="opt-content">
@@ -32,9 +46,7 @@
       </div>
     {% endfor %}
   </div>
-<button type="button" data-templatesource=".opt-form" data-templatedest="#opt-form-container" class="add-btn btn btn-outline-primary">Add custom command
-</button>
-<hr>
+<hr class="mt-5">
 <h2>Doing things differently?</h2>
 Let us know if the tool does not let you describe what you are doing and we will try to make it better.
 <div class="form-group">
