@@ -275,6 +275,52 @@ ul.check {
 /********************
  Option Grid
  ********************/
+
+@mixin make-opt-cells($cells-per-breakpoint) {
+  // Media Query Grid Magic:
+  // All option cells are inside one Bootstrap `.row` div. Nevertheless, the
+  // amount of cells actually displayed on a row depends on the screen width
+  // and above definitions `cells-per-breakpoint` for each breakpoint.
+  //
+  // Depending on the cell per row count we
+  // - define col-width of the cell,
+  // - define width and offset of the form child of a cell,
+  // - and identify the cells where we want to disable the left border to prevent
+  //   double borders. (Note: We can't use the standard -1px margin trick here,
+  //   as this would mess up the form's width and offset)
+
+  // Iterate over breakpoints...
+  @each $bp, $cnt in $cells-per-breakpoint {
+    // ... use Bootstrap's media query mixin for different screen widths ...
+    @include media-breakpoint-only($bp) {
+
+      // ... customize columns width for cells ...
+      @include make-col($grid-columns / $cnt);
+
+      // ... define form width depending on cell count ...
+      .opt-form-cont {
+        width: $cnt * 100%;
+        position: relative;
+        z-index: 1;
+      }
+
+      // ... define form offset depending on cell count and
+      // position ...
+      @for $i from 1 through $cnt {
+        &:nth-child(#{$cnt}n-#{$cnt - $i}) .opt-form-cont  {
+          margin-left: ($i - 1) * -100%;
+        }
+      }
+
+      // ... and disable left border for not-first childs in
+      // a row to prevent double border.
+      &:not(:nth-child(#{$cnt}n-#{$cnt - 1})) .opt-content {
+        border-left: 0;
+      }
+    }
+  }
+}
+
 .opt-row {
   .opt-cell {
     // Hack to prevent double horizontal borders
@@ -327,54 +373,17 @@ ul.check {
     // Breakpoints for cells for different screen widths
     // Note: We must define all available breakpoints in order
     // to use below mixin `media-breakpoint-only`
-    $cells-per-breakpoint: (
-      'xs': 6,
-      'sm': 6,
-      'md': 8,
-      'lg': 12,
-      'xl': 12
-    );
+    @include make-opt-cells(('xs': 6, 'sm': 6, 'md': 8, 'lg': 12, 'xl': 12));
 
-    // Media Query Grid Magic:
-    // All option cells are inside one Bootstrap `.row` div. Nevertheless, the
-    // amount of cells actually displayed on a row depends on the screen width
-    // and above definitions `cells-per-breakpoint` for each breakpoint.
-    //
-    // Depending on the cell per row count we
-    // - define col-width of the cell,
-    // - define width and offset of the form child of a cell,
-    // - and identify the cells where we want to disable the left border to prevent
-    //   double borders. (Note: We can't use the standard -1px margin trick here,
-    //   as this would mess up the form's width and offset)
+    // For the top cell(s), currently only "add a custom command", we
+    // define differnt cells per breakpoint
+    // This might seem like an overkill
+    &.opt-cell-top {
+      @include make-opt-cells(('xs': 1, 'sm': 1, 'md': 1, 'lg': 1, 'xl': 1));
+      margin-bottom: 2px;
+      .opt-content {
+        font-weight: bold;
 
-    // Iterate over breakpoints...
-    @each $bp, $cnt in $cells-per-breakpoint {
-      // ... use Bootstrap's media query mixin for different screen widths ...
-      @include media-breakpoint-only($bp) {
-
-        // ... customize columns width for cells ...
-        @include make-col($grid-columns / $cnt);
-
-        // ... define form width depending on cell count ...
-        .opt-form-cont {
-          width: $cnt * 100%;
-          position: relative;
-          z-index: 1;
-        }
-
-        // ... define form offset depending on cell count and
-        // position ...
-        @for $i from 1 through $cnt {
-          &:nth-child(#{$cnt}n-#{$cnt - $i}) .opt-form-cont  {
-            margin-left: ($i - 1) * -100%;
-          }
-        }
-
-        // ... and disable left border for not-first childs in
-        // a row to prevent double border.
-        &:not(:nth-child(#{$cnt}n-#{$cnt - 1})) .opt-content {
-          border-left: 0;
-        }
       }
     }
   }
