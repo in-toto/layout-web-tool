@@ -153,12 +153,13 @@ def session_to_graph(session):
       if step_type == "qa":
         for inspect_type in ["retval", "stdout", "stderr"]:
           val = step.get(inspect_type + "_value")
-          if val:
+          operator = step.get(inspect_type + "_operator")
+
+          if (val != None and operator != None):
             # The (QA) link file we want to inspect uses the link step name
             # created above
             link = in_toto.models.link.FILENAME_FORMAT_SHORT.format(
                 step_name=step_name)
-            operator = step.get(inspect_type + "_operator")
             value = step.get(inspect_type + "_value")
 
             if inspect_type == "retval":
@@ -166,8 +167,11 @@ def session_to_graph(session):
                   .format(link=link, operator=operator, value=value))
 
             elif inspect_type in ["stdout", "stderr"]:
-              run = ("inspect-by-product"
-                  " --link={link} --{inspect_type} --{operator} {value}"
+              if operator == "empty":
+                operator = "is"
+                value = ""
+              run = ("inspect-byproducts"
+                  " --link={link} --{inspect_type} --{operator} \"{value}\""
                   .format(link=link, inspect_type=inspect_type,
                   operator=operator, value=value))
 

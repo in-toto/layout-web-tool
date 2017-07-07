@@ -29,10 +29,11 @@ for every input #}
     <div class="col-3 col-form-label">Standard output</div>
     <div class="input-group col-9">
       <select class="custom-select input-group-select" name="stdout_operator[]">
-        <option value="eq" {{"selected" if data.get("stdout_operator", "") == "eq"}}>is</option>
-        <option value="ne" {{"selected" if data.get("stdout_operator", "") == "ne"}}>is not</option>
+        <option value="is" {{"selected" if data.get("stdout_operator", "") == "eq"}}>is</option>
+        <option value="is-not" {{"selected" if data.get("stdout_operator", "") == "ne"}}>is not</option>
         <option value="contains" {{"selected" if data.get("stdout_operator", "") == "contains"}}>contains</option>
-        <option value="contains_not" {{"selected" if data.get("stdout_operator", "") == "contains_not"}}>contains not</option>
+        <option value="contains-not" {{"selected" if data.get("stdout_operator", "") == "contains_not"}}>does not contain</option>
+        <option value="empty" {{"selected" if data.get("stdout_operator", "") == "empty"}}>is empty</option>
       </select>
       <input type="text" class="form-control" name="stdout_value[]" value="{{ data.get('stdout_value', "") }}">
     </div>
@@ -41,10 +42,11 @@ for every input #}
     <div class="col-3 col-form-label">Standard error</div>
     <div class="input-group col-9">
       <select class="custom-select input-group-select" name="stderr_operator[]">
-        <option value="eq" {{"selected" if data.get("stderr_operator", "") == "eq"}}>is</option>
-        <option value="ne" {{"selected" if data.get("stderr_operator", "") == "ne"}}>is not</option>
+        <option value="is" {{"selected" if data.get("stderr_operator", "") == "eq"}}>is</option>
+        <option value="is-not" {{"selected" if data.get("stderr_operator", "") == "ne"}}>is not</option>
         <option value="contains" {{"selected" if data.get("stderr_operator", "") == "contains"}}>contains</option>
-        <option value="contains_not" {{"selected" if data.get("stderr_operator", "") == "contains_not"}}>contains not</option>
+        <option value="contains-not" {{"selected" if data.get("stderr_operator", "") == "contains_not"}}>does not contain</option>
+        <option value="empty" {{"selected" if data.get("stderr_operator", "") == "empty"}}>is empty</option>
       </select>
       <input type="text" class="form-control" name="stderr_value[]" value="{{ data.get('stderr_value', "") }}">
     </div>
