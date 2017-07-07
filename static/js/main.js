@@ -50,9 +50,14 @@ $(function() {
   });
 
   /*
-   * Click listener to copy the enclosing form and add it to the
-   * opt-from-container and show an info message.
-   * If the form-container is also a sort container, re-init sortable
+   * Click listener to copy the enclosing opt-form and add it to an element
+   * with id #opt-from-container.
+   * If the clicked copy button has a value on the "data-submit" attribute
+   * that value will be used to query the actual postable form and submit it
+   * to the server.
+   * If not the user stays the opt-form will be added and if the target
+   * opt-form-container is also a sort container the sortable plugin will be
+   * re-initialized.
    */
   $(document).on("click", "button.copy-btn", function(evt) {
 
@@ -60,20 +65,30 @@ $(function() {
     $(".opt-form-cont").slideUp();
     $(".opt-content").removeClass("active");
 
-    var $form = $(this).parents(".opt-form").clone().hide();
-    $form.find(".rm-btn").removeClass("d-none");
-    $form.find(".copy-btn").addClass("d-none");
+    var $opt_form = $(this).parents(".opt-form").clone().hide();
 
-    $form.appendTo("#opt-form-container").slideDown();
-    show_message("The command has been added to your workflow!" +
-        " You can still review and change it below before it gets stored.",
-        "alert-info");
+    // TODO: Replace hack that hides "add" buttons and shows "remove" button
+    // instead
+    $opt_form.find(".rm-btn").removeClass("d-none");
+    $opt_form.find(".copy-btn").addClass("d-none");
 
-    // If the added item was sortable, re-initialize the sort container
-    if ($form.parents(".sort-container").length) {
-      sortable(".sort-container")
+    // Every opt_form in the opt-grid has two copy buttons
+    var form_id = $(this).data("submit");
+    if (form_id) {
+      $opt_form.appendTo("#opt-form-container");
+      $("#" + form_id).submit();
+
+    } else {
+      $opt_form.appendTo("#opt-form-container").slideDown();
+      show_message("The command has been added to your workflow!" +
+          " You can still review and change it below before it gets stored.",
+          "alert-info");
+
+      // If the added item was sortable, re-initialize the sort container
+      if ($opt_form.parents(".sort-container").length) {
+        sortable(".sort-container")
+      }
     }
-
   });
 
 

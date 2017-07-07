@@ -8,7 +8,11 @@
     <input type="text" class="form-control" value="{{ data.get('cmd') if data }}" name="vcs_cmd[]">
   </div>
   <div class="form-group">
-    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}">Add to my software supply chain</button>
+    {# TODO: Having all buttons here and toggle visibility depending on where
+    (in the opt grid or in the postable form section)
+    they are is kind of hackish, but it does the trick for now #}
+    <button type="button" class="copy-btn btn btn-outline-warning {{'d-none' if not show_add_btn}}">Add and continue on this page</button>
+    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}" data-submit="vcs-form">Add and continue on next page</button>
     <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
   </div>
 {% endmacro %}

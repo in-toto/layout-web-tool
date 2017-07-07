@@ -8,8 +8,8 @@
     <input type="text" class="form-control" value="{{ data.get('cmd') if data }}" name="build_cmd[]">
   </div>
   <div class="form-group">
-    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}">Add to my software supply chain</button>
-    <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
+    <button type="button" class="copy-btn btn btn-outline-warning {{'d-none' if not show_add_btn}}">Add and continue on this page</button>
+    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}" data-submit="building-form">Add and continue on next page</button>    <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
   </div>
 {% endmacro %}
 {# BEGIN: Building form macro #}
