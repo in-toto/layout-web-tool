@@ -35,9 +35,6 @@
 {%- endmacro %}
 
 {% macro form_container(form_id, form_action, user_data) %}
-<div class="opt-form template" style="display:none;">
-  {{ caller() }}
-</div>
 <form id="{{ form_id }}" action="{{ form_action }}" method="POST">
   <div id="opt-form-container" class="mb-3 sort-container">
     {% for user_item in user_data.get("items", []) %}
