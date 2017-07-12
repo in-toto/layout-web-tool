@@ -371,20 +371,22 @@ def versioning():
   options = tooldb.collection["vcs"]
 
   if request.method == "POST":
-    # Grab the form posted vcs commands and write it to the session
-    # FIXME: Needs sanitizing and session persistence!!!
-    session["vcs"] = {
+    # Grab the form posted vcs commands and persist
+    # FIXME: Needs sanitizing
+    vcs_data = {
       "items": [{"cmd": cmd} for cmd in request.form.getlist("vcs_cmd[]")],
       "comment": request.form.get("comment", "")
     }
+    _persist_session_subdocument_ts({"vcs": vcs_data})
 
-    flash("Success! Now let's see how you build your software...", "alert-success")
+    # We are done here, let's go to the next page
+    flash("Success! Now let's see how you build your software...",
+        "alert-success")
     return redirect(url_for("building"))
 
-  # The template can deal with an empty dict, but a dict it must be
-  user_data = session.get("vcs", {})
-
-  return render_template("versioning.html", options=options, user_data=user_data)
+  user_data = _get_session_subdocument("vcs")
+  return render_template("versioning.html", options=options,
+      user_data=user_data)
 
 
 @app.route("/building", methods=["GET", "POST"])
@@ -395,19 +397,19 @@ def building():
   options = tooldb.collection["building"]
 
   if request.method == "POST":
-    # Grab the form posted building commands and write it to the session
-    # FIXME: Needs sanitizing and session persistence!!!
-    session["building"] = {
+    # Grab the form posted building commands and persist
+    # FIXME: Needs sanitizing
+    building_data = {
       "items": [{"cmd": cmd} for cmd in request.form.getlist("build_cmd[]")],
       "comment": request.form.get("comment", "")
     }
+    _persist_session_subdocument_ts({"building": building_data})
 
-    flash("Success! Let's talk about quality management next...", "alert-success")
+    flash("Success! Let's talk about quality management next...",
+        "alert-success")
     return redirect(url_for("quality_management"))
 
-  # The template can deal with an empty dict, but a dict it must be
-  user_data = session.get("building", {})
-
+  user_data = _get_session_subdocument("building")
   return render_template("building.html", options=options, user_data=user_data)
 
 
@@ -419,8 +421,8 @@ def quality_management():
   options = tooldb.collection["qa"]
 
   if request.method == "POST":
-    # Grab the form posted quality management data  and write it to the session
-    # FIXME: Needs sanitizing and session persistence!!!
+    # Grab the form posted quality management data and persist
+    # FIXME: Needs sanitizing
     cmd_list = request.form.getlist("cmd[]")
     retval_operator_list = request.form.getlist("retval_operator[]")
     retval_value_list = request.form.getlist("retval_value[]")
@@ -454,18 +456,19 @@ def quality_management():
           "stderr_value": stderr_value_list[i],
         })
 
-    session["qa"] = {
+    qa_data = {
       "items": posted_items,
       "comment": posted_coment
     }
+    _persist_session_subdocument_ts({"qa": qa_data})
 
-    flash("Success! Nice quality management, but how to you package up your software?", "alert-success")
+    flash("Success! Nice quality management, but how to you package"
+        " up your software?", "alert-success")
     return redirect(url_for("packaging"))
 
-  # The template can deal with an empty dict, but a dict it must be
-  user_data = session.get("qa", {})
-
+  user_data = _get_session_subdocument("qa")
   return render_template("quality.html", options=options, user_data=user_data)
+
 
 @app.route("/packaging", methods=["GET", "POST"])
 @with_session_id
@@ -475,19 +478,19 @@ def packaging():
   options = tooldb.collection["package"]
 
   if request.method == "POST":
-    # Grab the form posted building commands and write it to the session
-    # FIXME: Needs sanitizing and session persistence!!!
-    session["package"] = {
+    # Grab the form posted building commands and persist
+    # FIXME: Needs sanitizing
+    package_data = {
       "items": [{"cmd": cmd} for cmd in request.form.getlist("cmd[]")],
       "comment": request.form.get("comment", "")
     }
+    _persist_session_subdocument_ts({"package": package_data})
 
-    flash("Success! Now let's see if we got your software supply chain right...", "alert-success")
+    flash("Success! Now let's see if we got your software supply chain right...",
+        "alert-success")
     return redirect(url_for("software_supply_chain"))
 
-  # The template can deal with an empty dict, but a dict it must be
-  user_data = session.get("package", {})
-
+  user_data = _get_session_subdocument("package")
   return render_template("packaging.html", options=options, user_data=user_data)
 
 
@@ -533,15 +536,16 @@ def software_supply_chain():
     supply_chain = form_data_to_graph(step_names, step_commands,
         inspection_names, inspection_commands, inspection_step_names)
 
-    session["ssc"] = supply_chain
+    _persist_session_subdocument_ts({"ssc": supply_chain})
 
     return redirect(url_for("functionaries"))
 
   # If not POST request
-  # Generate a supply chain based on previously posted data (stored in session)
+  # Generate a supply chain based on previously posted data
   # TODO: This overrides anything that was from the ssc form
   # Should we ask for confirmation?
-  supply_chain = session_to_graph(session)
+  session_data = _get_session_document()
+  supply_chain = session_to_graph(session_data)
 
   return render_template("software_supply_chain.html",
       ssc_graph_data=supply_chain)
@@ -552,8 +556,7 @@ def software_supply_chain():
 def functionaries():
   """Step 6.
   Functionary keys upload and keys dropzone. """
-  functionaries = session.get("functionaries", {})
-
+  functionaries = _get_session_subdocument("functionaries")
   return render_template("functionaries.html", functionaries=functionaries)
 
 
@@ -606,10 +609,10 @@ def ajax_upload_key():
     functionary_key_path = os.path.join(app.config["USER_FILES"], fn)
     functionary_key.save(functionary_key_path)
 
-  #FIXME: Arrrgh, race condition....
-  session_functionaries = session.get("functionaries", {})
-  session_functionaries[functionary_name] = fn
-  session["functionaries"] = session_functionaries
+  # FIXME: Fix race condition!
+  functionary_data = _get_session_subdocument("functionaries")
+  functionary_data[functionary_name] = fn
+  _persist_session_subdocument_ts({"functionaries": functionary_data})
 
   flash = {
     "msg": "Successfully uploaded key '{fn}' for functionary '{functionary}'!".
@@ -624,13 +627,17 @@ def ajax_upload_key():
 def ajax_remove_key():
   """ Remove the posted functionary (by name) from the functionary session
   store.
+
   FIXME: We probably should also remove the key file
   """
   functionary_name = request.form.get("functionary_name", None)
-  session_functionaries = session.get("functionaries", {})
-  if functionary_name in session_functionaries:
-    del session_functionaries[functionary_name]
-    session["functionaries"] = session_functionaries
+
+  # FIXME: Fix race condition
+  functionary_data = _get_session_subdocument("functionaries")
+  if functionary_name in functionary_data:
+    del functionary_data[functionary_name]
+    _persist_session_subdocument_ts({"functionaries": functionary_data})
+
     flash = {
       "msg": "Successfully removed functionary '{functionary}'!".
         format(functionary=functionary_name),
@@ -656,6 +663,9 @@ def authorizing():
   """Step 7.
   Associate functionaries with steps. """
 
+  # This is needed for POST and GET requests
+  session_functionaries = _get_session_subdocument("functionaries")
+
   if request.method == "POST":
     step_names = request.form.getlist("step_name[]")
     step_cmds = request.form.getlist("step_cmd[]")
@@ -668,7 +678,7 @@ def authorizing():
 
     # The authorized functionaries multi select form element has the
     # respective step name in its name
-    session_authorizing = session.get("authorizing", {})
+    session_authorizing = _get_session_subdocument("authorizing")
     steps = []
     for idx, step_name in enumerate(step_names):
       functionaries_for_step = request.form.getlist(
@@ -684,10 +694,8 @@ def authorizing():
       steps.append(auth_data)
 
 
-    # Validate
-    # We validate after we have processed everything so we can return all data
-    # to the form
-
+    # Validate, we validate after we have processed everything so we can
+    # return all data to the form
     valid = True
     for step_name, step_data in session_authorizing.iteritems():
       if not step_data.get("authorized_functionaries", []):
@@ -695,24 +703,25 @@ def authorizing():
         flash("Step '{name}': Authorize at least one functionary!"
             .format(name=step_name), "alert-danger")
 
-      if step_data["threshold"] > len(step_data.get("authorized_functionaries", [])):
+      if step_data["threshold"] > len(step_data.get("authorized_functionaries",
+          [])):
         valid = False
         flash(("Step '{name}': Threshold can't be higher than the "
             " number of authorized functionaries!").format(name=step_name),
                 "alert-danger")
 
     if valid:
-      flash("Success! It's time to do a test run of your software supply chain.", "alert-success")
-      session["authorizing"] = session_authorizing
+      flash("Success! It's time to do a test run of your software supply "
+          "chain.", "alert-success")
+      _persist_session_subdocument_ts({"authorizing": session_authorizing})
       return redirect(url_for("chaining"))
 
     else:
       # Return to form so that the user can fix the errors
       return render_template("authorizing.html", steps=steps,
-        functionaries=session.get("functionaries", {}))
+          functionaries=session_functionaries)
 
-
-  nodes = session.get("ssc", {}).get("nodes", [])
+  nodes = _get_session_subdocument("ssc").get("nodes", [])
   # FIXME: Probably we should have two different steps lists for steps and
   # inspections in the first place
   steps = []
@@ -724,18 +733,17 @@ def authorizing():
         "threshold": 1,
         "authorized_functionaries": []
       })
-  functionaries = session.get("functionaries", {})
 
-  return render_template("authorizing.html", functionaries=functionaries,
-      steps=steps)
+  return render_template("authorizing.html",
+      functionaries=session_functionaries, steps=steps)
 
 @app.route("/chaining")
 @with_session_id
 def chaining():
   """Step 8.
   Dry run snippet and link metadata upload. """
-  items = session.get("ssc", {}).get("nodes", [])
-  links = session.get("chaining", {})
+  items = _get_session_subdocument("ssc").get("nodes", [])
+  links = _get_session_subdocument("chaining")
   return render_template("chaining.html", items=items, link_dict=links)
 
 
@@ -780,9 +788,10 @@ def ajax_upload_link():
     path = os.path.join(app.config["USER_FILES"], fn)
     link_file.save(path)
 
-  session_chaining = session.get("chaining", {})
+  # FIXME: Fix race condition
+  session_chaining = _get_session_subdocument("chaining")
   session_chaining[link.name] = fn
-  session["chaining"] = session_chaining
+  _persist_session_subdocument_ts({"chaining": session_chaining})
 
   flash = {
     "msg": "Successfully uploaded link '{fn}' for step '{name}'!".
@@ -802,29 +811,34 @@ def wrap_up():
    - Per functionary commands (in-toto-run snippet)
    - Release instructions ??
   """
-  functionaries = session.get("functionaries", {}).keys()
-  auths = session.get("authorizing", {})
-  items = session.get("ssc", {}).get("nodes", [])
-  return render_template("wrap_up.html", items=items, auths=auths, functionaries=functionaries)
+  functionaries = _get_session_subdocument("functionaries").keys()
+  auths = _get_session_subdocument("authorizing")
+  items = _get_session_subdocument("ssc").get("nodes", [])
+  return render_template("wrap_up.html", items=items, auths=auths,
+      functionaries=functionaries)
+
 
 @app.route("/download-layout")
 @with_session_id
 def download_layout():
   """Create layout based on session data and uploaded links and
   serve with layout name from session directory as attachment
-  (Content-Disposition: attachment).  """
+  (Content-Disposition: attachment).
 
+  TODO: Move out layout creation functionality to reverse_layout.py
+  """
   # Iterate over items in ssc dictionary and create an ordered list
   # of according link objects
   # FIXME: split ssc["nodes"] into steps and inspections
   links = []
   inspections = []
-  for item in session.get("ssc", {}).get("nodes", []):
+  session_chaining = _get_session_subdocument("chaining")
+  for item in _get_session_subdocument("ssc").get("nodes", []):
     if item["type"] == "inspection":
       inspections.append(item)
 
     elif item["type"] == "step":
-      link_filename = session.get("chaining", {}).get(item["name"])
+      link_filename = session_chaining.get(item["name"])
 
       if not link_filename:
         continue
@@ -838,20 +852,15 @@ def download_layout():
       links.append(link)
 
 
-
-  ######
   # Create basic layout with steps based on links
-  ######
   layout = reverse_layout.create_layout_from_ordered_links(links)
 
-  ######
   # Add pubkeys and authorization to layout
-  ######
-
   functionary_keyids = {}
+
   # Add uploaded functionary pubkeys to layout
-  for functionary_name, pubkey_fn in session.get("functionaries",
-      {}).iteritems():
+  for functionary_name, pubkey_fn in _get_session_subdocument(
+      "functionaries").iteritems():
 
     # Load and check the format of the uploaded public keys
     pubkey_path = os.path.join(app.config["USER_FILES"], pubkey_fn)
@@ -867,7 +876,7 @@ def download_layout():
   # Add authorized functionaries to steps and set signing threshold
   for idx in range(len(layout.steps)):
     step_name = layout.steps[idx].name
-    auth_data = session.get("authorizing", {}).get(step_name, {})
+    auth_data = _get_session_subdocument("authorizing").get(step_name, {})
 
     for functionary_name in auth_data.get("authorized_functionaries", []):
       keyid = functionary_keyids.get(functionary_name)
@@ -876,12 +885,7 @@ def download_layout():
 
     layout.steps[idx].threshold = auth_data.get("threshold")
 
-
-  ######
   # Add inpsections to layout
-  ######
-  # TODO: Move this to reverse_layout.py
-
   for inspection_data in inspections:
     inspection = in_toto.models.layout.Inspection(
         name=inspection_data["name"],
@@ -892,10 +896,8 @@ def download_layout():
 
     layout.inspect.append(inspection)
 
-
-
   layout.validate()
-
+  # TODO: Use a dyniamic name?
   layout_name = "root.layout"
   layout_path = os.path.join(app.config["USER_FILES"], layout_name)
   layout.dump(layout_path)
