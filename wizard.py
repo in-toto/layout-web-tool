@@ -20,6 +20,10 @@
 
 """
 import os
+import random
+import hashlib
+
+from functools import wraps
 from flask import (Flask, render_template, session, redirect, url_for, request,
     flash, send_from_directory, abort, json, jsonify)
 
@@ -264,9 +268,31 @@ def form_data_to_graph(step_names, step_commands, inspection_names,
   }
 
 # -----------------------------------------------------------------------------
+# View Decorator
+# -----------------------------------------------------------------------------
+def with_session_id(wrapped_func):
+  """
+  Generate new session id if it does not exist.
+
+  For now, a user could start a new session on any page
+  TODO: Should we redirect to the start page if the session is new?
+  """
+  @wraps(wrapped_func)
+  def decorated_function(*args, **kwargs):
+    if not session.get("id"):
+      # Sessions use a MD5 hexdigest of a random value
+      # Security is not paramount, we don't store sensitive data, right?
+      session["id"] = hashlib.md5(str(random.random())).hexdigest()
+
+    return wrapped_func(*args, **kwargs)
+  return decorated_function
+
+
+# -----------------------------------------------------------------------------
 # Views
 # -----------------------------------------------------------------------------
 @app.route("/")
+@with_session_id
 def start():
   """Step 0.
   Wizard entry point, static landing page. """
@@ -274,6 +300,7 @@ def start():
 
 
 @app.route("/versioning", methods=["GET", "POST"])
+@with_session_id
 def versioning():
   """Step 1.
   Enter information about version control system. """
@@ -297,6 +324,7 @@ def versioning():
 
 
 @app.route("/building", methods=["GET", "POST"])
+@with_session_id
 def building():
   """Step 2.
   Enter information about building. """
@@ -320,6 +348,7 @@ def building():
 
 
 @app.route("/quality", methods=["GET", "POST"])
+@with_session_id
 def quality_management():
   """Step 3.
   Enter information about quality management. """
@@ -375,6 +404,7 @@ def quality_management():
   return render_template("quality.html", options=options, user_data=user_data)
 
 @app.route("/packaging", methods=["GET", "POST"])
+@with_session_id
 def packaging():
   """Step 4.
   Enter information about packaging. """
@@ -398,6 +428,7 @@ def packaging():
 
 
 @app.route("/software-supply-chain", methods=["GET", "POST"])
+@with_session_id
 def software_supply_chain():
   """Step 5.
   Serve software supply chain graph based on form data posted on previous
@@ -453,6 +484,7 @@ def software_supply_chain():
 
 
 @app.route("/functionaries")
+@with_session_id
 def functionaries():
   """Step 6.
   Functionary keys upload and keys dropzone. """
@@ -462,6 +494,7 @@ def functionaries():
 
 
 @app.route("/functionaries/upload", methods=["POST"])
+@with_session_id
 def ajax_upload_key():
   """Ajax upload a functionary key. """
   functionary_key = request.files.get("functionary_key", None)
@@ -523,6 +556,7 @@ def ajax_upload_key():
 
 
 @app.route("/functionaries/remove", methods=["POST"])
+@with_session_id
 def ajax_remove_key():
   """ Remove the posted functionary (by name) from the functionary session
   store.
@@ -553,6 +587,7 @@ def ajax_remove_key():
 
 
 @app.route("/authorizing", methods=["GET", "POST"])
+@with_session_id
 def authorizing():
   """Step 7.
   Associate functionaries with steps. """
@@ -631,6 +666,7 @@ def authorizing():
       steps=steps)
 
 @app.route("/chaining")
+@with_session_id
 def chaining():
   """Step 8.
   Dry run snippet and link metadata upload. """
@@ -640,6 +676,7 @@ def chaining():
 
 
 @app.route("/chaining/upload", methods=["POST"])
+@with_session_id
 def ajax_upload_link():
   """Ajax upload link metadata. """
   link_file = request.files.get("step_link", None)
@@ -691,6 +728,7 @@ def ajax_upload_link():
   return jsonify({"flash": flash, "error": False})
 
 @app.route("/wrap-up")
+@with_session_id
 def wrap_up():
   """Step 9.
   Explain what to do with generated layout.
@@ -706,6 +744,7 @@ def wrap_up():
   return render_template("wrap_up.html", items=items, auths=auths, functionaries=functionaries)
 
 @app.route("/download-layout")
+@with_session_id
 def download_layout():
   """Create layout based on session data and uploaded links and
   serve with layout name from session directory as attachment
@@ -802,6 +841,7 @@ def download_layout():
       as_attachment=True)
 
 @app.route("/guarantees")
+@with_session_id
 def guarantees():
   """ Show what the software supply chain protects against and give advice for
   more guarantees. """
