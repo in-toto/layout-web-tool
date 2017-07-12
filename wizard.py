@@ -22,6 +22,7 @@
 import os
 import random
 import hashlib
+import time
 
 from functools import wraps
 from flask import (Flask, render_template, session, redirect, url_for, request,
@@ -268,6 +269,67 @@ def form_data_to_graph(step_names, step_commands, inspection_names,
     "nodes": step_nodes + inspect_nodes,
     "edges": step_edges + inspect_edges
   }
+
+# -----------------------------------------------------------------------------
+# NoSQL Helpers
+# -----------------------------------------------------------------------------
+
+# NOTE:
+# Below functions rely on the current session having an id. If there is no id
+# in the session, all fucntions redirect to `404`.
+# This should never happen because all calling views should be decorated with
+# @with_session_id, which ensures that the current session does have an id.
+def _persist_session_subdocument(subdocument):
+  """Update a subdocument (e.g. vcs, ssc, functionaries...) in session document
+  identified by current session id. """
+  if not session.get("id"):
+    abort(404)
+
+  # Search session document by session ID and update (replace) sub-document
+  # If the entire document does not exist it is inserted
+  mongo.db.session_collection.update_one(
+    {"_id": session["id"]},
+    {"$set": subdocument},
+    upsert=True)
+
+
+def _persist_session_subdocument_ts(subdocument):
+  """Updates/adds last_modified to the subdocument before persisting it. """
+  subdocument["last_modified"] = time.time()
+  _persist_session_subdocument(subdocument)
+
+
+def _get_session_subdocument(key):
+  """Returns a subdocument (e.g. vcs, ssc, functionaries...) identified by
+  passed key from session document identified by current session id.
+  Returns an empty dict if document or subdocument are not found.  """
+  if not session.get("id"):
+    abort(404)
+
+    # Get session document (use short circuit for default empty dict)
+  session_doc = mongo.db.session_collection.find_one(
+      {"_id": session["id"]})
+
+  if not session_doc:
+    return {}
+
+  # Get vcs data from session document or empty dict
+  return session_doc.get(key, {})
+
+
+def _get_session_document():
+  """Returns the entire session document (default: {}) """
+  if not session.get("id"):
+    abort(404)
+
+  session_doc = mongo.db.session_collection.find_one(
+    {"_id": session["id"]})
+
+  if not session_doc:
+    return {}
+
+  return session_doc
+
 
 # -----------------------------------------------------------------------------
 # View Decorator
