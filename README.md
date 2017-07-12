@@ -11,9 +11,15 @@ Mockups can be found at [`editor-and-wizard-wip/mockups`](https://github.com/in-
 - [Python 2.7](https://www.python.org/download/releases/2.7/) --  backend
 - [npm](https://www.npmjs.com/) -- frontend dependencies
 - [Ruby](https://www.ruby-lang.org/en/documentation/installation/) and [SASS](http://sass-lang.com/install) -- CSS preprocessor
+- [MongoDB](https://docs.mongodb.com/manual/installation/) -- to persist
+user session data (for usage analysis)
 
 
 ```shell
+# Start `mongod` (if not already running)
+# This command should work on many Linux systems
+sudo service mongod start
+
 # Install backend (c.f. requirements.txt)
 pip install -r requirements.txt
 

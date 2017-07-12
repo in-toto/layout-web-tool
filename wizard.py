@@ -26,6 +26,7 @@ import hashlib
 from functools import wraps
 from flask import (Flask, render_template, session, redirect, url_for, request,
     flash, send_from_directory, abort, json, jsonify)
+from flask_pymongo import PyMongo
 
 import in_toto.util
 import in_toto.models.link
@@ -38,6 +39,7 @@ import tooldb
 import reverse_layout
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
+mongo = PyMongo(app)
 
 app.config.update(dict(
     DEBUG=True,
