@@ -747,10 +747,11 @@ def download_layout():
 
   functionary_keyids = {}
   # Add uploaded functionary pubkeys to layout
-  for functionary_name, pubkey_path in session.get("functionaries",
+  for functionary_name, pubkey_fn in session.get("functionaries",
       {}).iteritems():
 
     # Load and check the format of the uploaded public keys
+    pubkey_path = os.path.join(app.config["USER_FILES"], pubkey_fn)
     key = in_toto.util.import_rsa_key_from_file(pubkey_path)
     securesystemslib.formats.PUBLIC_KEY_SCHEMA.check_match(key)
 
