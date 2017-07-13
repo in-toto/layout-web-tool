@@ -120,43 +120,48 @@ app.config.from_pyfile("config.py")
 #   return graph_data
 
 
-def session_to_graph(session):
+def session_to_ssc(session_data):
   """
   <Purpose>
-    Takes an the session and transforms it to a data structure that's more
-    convenient to create a graph from it, e.g. using `dagre-d3` [1]:
+    Takes a session document, which can contain form posted data from previous
+    pages (vcs, building, qa, ...) to generate a dict of lists of step data and
+    inspection data dicts.
 
   <Returns>
+    Software Supply Chain Data, i.e. a dictionary of step and inspection data
+    (these are not not actual in-toto Step and Insepction objects), e.g.:
     {
-      "nodes": [{
-        "type": "step" | "inspection",
-        "name": <unique step or inspection name">,
-        "based_on" <step name> # Only for inspections!!!!
-      }, ...],
-      "edges": [{
-        "source": <unique step or inspection name">,
-        "dest": <unique step or inspection name">,
-      }, ...]
+      steps: [
+        {
+          "name": <unique step name>,
+          "cmd": <expected command>
+        }, ...
+      ],
+      inspections: [
+        {
+          "name": <unique inspection name>,
+          "cmd": <command to run inspecting>,
+          "based_on": <step name whose products are used for that inspection>
+        }
+      ]
     }
   """
-  step_nodes = []
-  step_edges = []
-  inspect_nodes = []
-  inspect_edges = []
+  steps = []
+  inspections = []
 
-  # Create edges based on data posted from previous pages
-  # FIXME: Come up with better naming (low priority)
   for step_type in ["vcs", "building", "qa", "package"]:
-    for idx, step in enumerate(session.get(step_type, {}).get("items", [])):
+    for idx, step in enumerate(session_data.get(step_type, {}).get(
+        "items", [])):
+      # FIXME: Come up with better naming (low priority)
       step_name = "{}-{}".format(step_type, idx + 1)
-      step_nodes.append({
-        "type": "step",
+      steps.append({
         "name": step_name,
         "cmd" : step["cmd"],
+        # "step_type": "vcs" | "buiding" | "qa" | "package"
       })
 
-      # We suggest an inspection for each set retval, stdout and stderr for each
-      # specified QA step
+      # We suggest an inspection for each set retval, stdout and stderr for
+      # each specified QA step
       if step_type == "qa":
         for inspect_type in ["retval", "stdout", "stderr"]:
           val = step.get(inspect_type + "_value")
@@ -182,93 +187,74 @@ def session_to_graph(session):
                   .format(link=link, inspect_type=inspect_type,
                   operator=operator, value=value))
 
-            inspect_name = "inspection-" + str(len(inspect_nodes) + 1)
-            inspect_nodes.append({
-              "type": "inspection",
+            inspect_name = "inspection-" + str(len(inspections) + 1)
+            inspections.append({
               "name": inspect_name,
               "cmd": run,
               "based_on": step_name
             })
 
-            inspect_edges.append({
-              "source": step_name,
-              "dest": inspect_name
-            })
-
-  # For now we assume that steps are executed sequentially
-  # And that's how we connect the steps
-  for idx in range(len(step_nodes)):
-    if idx > 0:
-      step_edges.append({
-          "source": step_nodes[idx-1]["name"],
-          "dest": step_nodes[idx]["name"]
-        })
-
-  return {
-    "nodes": step_nodes + inspect_nodes,
-    "edges": step_edges + inspect_edges
+  ssc_data = {
+    "steps": steps,
+    "inspections": inspections
   }
+  return ssc_data
 
-
-def form_data_to_graph(step_names, step_commands, inspection_names,
+def form_data_to_ssc(step_names, step_commands, inspection_names,
     inspection_commands, inspection_step_names):
   """
   <Purpose>
-    Takes form posted data (lists) to generate a data structure that's more
-    convenient to create a graph from it, e.g. using `dagre-d3` [1]:
-
-    Each node aggregates the the step or inspection data by list index
+    Takes form posted data (lists) to generate a dict of lists of step data and
+    inspection data dicts.
+    Each item aggregates the step or inspection data by list index
 
   <Returns>
+    Software Supply Chain Data, i.e. a dictionary of step and inspection data
+    (these are not not actual in-toto Step and Insepction objects), e.g.:
     {
-      "nodes": [{
-        "type": "step" | "inspection",
-        "name": <unique step or inspection name">,
-        "based_on" <step name> # Only for inspections!!!!
-      }, ...],
-      "edges": [{
-        "source": <unique step or inspection name">,
-        "dest": <unique step or inspection name">,
-      }, ...]
+      steps: [
+        {
+          "name": <unique step name>,
+          "cmd": <expected command>
+        }, ...
+      ],
+      inspections: [
+        {
+          "name": <unique inspection name>,
+          "cmd": <command to run inspecting>,
+          "based_on": <step name whose products are used for that inspection>
+        }
+      ]
     }
+
   """
-  # Generate ssc_graph based on data posted on the ssc page
-  # FIXME: Some of this is similar to code in `session_to_graph`. DRY?
-  step_nodes = []
-  step_edges = []
+  steps = []
   for i in range(len(step_names)):
-    step_nodes.append({
-        "type": "step",
+    steps.append({
         "name": step_names[i],
-        "cmd": step_commands[i]
+        "cmd": step_commands[i],
+        # We need a step type to know how to link the steps
+        # e.g. qa steps don't have products
+        # "step_type": "vcs" | "buiding" | "qa" | "package"
+        # or
+        # "step_type": "reporting" | "modifying"
+        # What if the user adds new steps here (i.e. we don't know the type)?
+        # Should we ask the user?
       })
 
-  for idx in range(len(step_nodes)):
-    if idx > 0:
-      step_edges.append({
-          "source": step_nodes[idx-1]["name"],
-          "dest": step_nodes[idx]["name"]
-        })
-
-  inspect_nodes = []
-  inspect_edges = []
+  inspections = []
   for i in range(len(inspection_names)):
-    inspect_nodes.append({
-        "type": "inspection",
+    inspections.append({
         "name": inspection_names[i],
         "cmd": inspection_commands[i],
         "based_on": inspection_step_names[i]
       })
 
-    inspect_edges.append({
-      "source": inspection_step_names[i],
-      "dest": inspection_names[i]
-    })
-
-  return {
-    "nodes": step_nodes + inspect_nodes,
-    "edges": step_edges + inspect_edges
+  ssc_data = {
+    "steps": steps,
+    "inspections": inspections
   }
+  return ssc_data
 
 # -----------------------------------------------------------------------------
 # NoSQL Helpers
@@ -497,8 +483,9 @@ def packaging():
 
 
 @app.route("/software-supply-chain", methods=["GET", "POST"])
+# @app.route("/software-supply-chain/refresh", methods=["GET"])
 @with_session_id
-def software_supply_chain():
+def software_supply_chain(refresh=False):
   """Step 5.
   Serve software supply chain graph based on form data posted on previous
   pages and stored to session (`session_to_graph`).
@@ -511,11 +498,6 @@ def software_supply_chain():
 
   - Data sanatizing: e.g. restrict step names (unique) and inspection
     step names (must reference an existing step)
-  - Decide how to prioritize graph data
-    What if a user GET requests this page and the graph generated by using
-    form data from previous pages (vcs, build, ...) is different from the
-    graph as edited in the ssc form (`session["ssc"]`)?
-    Show we ask the user which one he wants to use?
   - On front-end JS: refresh D3 graph on form change
   - DRY up graph generation functions: session_to_graph, form_data_to_graph,
     layout_to_graph (commented out)
@@ -535,22 +517,32 @@ def software_supply_chain():
     assert(len(inspection_names) == len(inspection_commands) ==
         len(inspection_step_names))
 
-    supply_chain = form_data_to_graph(step_names, step_commands,
+    # Create and persist software supply chain data from posted form
+    ssc_data = form_data_to_ssc(step_names, step_commands,
         inspection_names, inspection_commands, inspection_step_names)
-
-    _persist_session_subdocument_ts({"ssc": supply_chain})
+    _persist_session_subdocument_ts({"ssc": ssc_data})
 
     return redirect(url_for("functionaries"))
 
-  # If not POST request
-  # Generate a supply chain based on previously posted data
-  # TODO: This overrides anything that was from the ssc form
-  # Should we ask for confirmation?
+
   session_data = _get_session_document()
-  supply_chain = session_to_graph(session_data)
+  ssc_data = session_data.get("ssc", {})
+  ssc_last_modified = ssc_data.get("last_modified", 0)
+
+  # If stored ssc data is older than any of stored
+  # vcs/building/qa/package data, we (re-)generate the software supply chain,
+  # otherwise we serve the stored software supply chain
+  # If an entry does not exist the last_modified property is 0
+  for step_type in ["vcs", "building", "qa", "package"]:
+    data_last_modified = session_data.get(step_type, {}).get("last_modified", 0)
+    if ssc_last_modified < data_last_modified:
+      ssc_data = session_to_ssc(session_data)
+      break
+
+  # TODO: Maybe we shouldn't auto RE-generate but ask user for confirmation
 
   return render_template("software_supply_chain.html",
-      ssc_graph_data=supply_chain)
+      ssc_data=ssc_data)
 
 
 @app.route("/functionaries")
@@ -667,34 +659,30 @@ def authorizing():
 
   # This is needed for POST and GET requests
   session_functionaries = _get_session_subdocument("functionaries")
+  session_authorizing = _get_session_subdocument("authorizing")
+  session_steps = _get_session_subdocument("ssc").get("steps", [])
 
   if request.method == "POST":
     step_names = request.form.getlist("step_name[]")
-    step_cmds = request.form.getlist("step_cmd[]")
     thresholds = request.form.getlist("threshold[]")
 
     # Steps names, commands and thresholds are related by the same index
     # These lists should be equally long
     # FIXME: Don't assert, try!
-    assert(len(step_names) == len(step_cmds) == len(thresholds))
+    assert(len(step_names) == len(thresholds))
 
     # The authorized functionaries multi select form element has the
     # respective step name in its name
-    session_authorizing = _get_session_subdocument("authorizing")
-    steps = []
     for idx, step_name in enumerate(step_names):
       functionaries_for_step = request.form.getlist(
           "functionary_name_" + step_name + "[]")
 
       auth_data = {
-        "cmd": step_cmds[idx],
         "threshold": int(thresholds[idx]),
         "authorized_functionaries": functionaries_for_step
       }
 
       session_authorizing[step_name] = auth_data
-      steps.append(auth_data)
-
 
     # Validate, we validate after we have processed everything so we can
     # return all data to the form
@@ -705,7 +693,7 @@ def authorizing():
         flash("Step '{name}': Authorize at least one functionary!"
             .format(name=step_name), "alert-danger")
 
-      if step_data["threshold"] > len(step_data.get("authorized_functionaries",
+      elif step_data["threshold"] > len(step_data.get("authorized_functionaries",
           [])):
         valid = False
         flash(("Step '{name}': Threshold can't be higher than the "
@@ -718,35 +706,21 @@ def authorizing():
       _persist_session_subdocument({"authorizing": session_authorizing})
       return redirect(url_for("chaining"))
 
-    else:
-      # Return to form so that the user can fix the errors
-      return render_template("authorizing.html", steps=steps,
-          functionaries=session_functionaries)
-
-  nodes = _get_session_subdocument("ssc").get("nodes", [])
-  # FIXME: Probably we should have two different steps lists for steps and
-  # inspections in the first place
-  steps = []
-  for item in nodes:
-    if item.get("type") == "step":
-      steps.append({
-        "name": item["name"],
-        "cmd": item["cmd"],
-        "threshold": 1,
-        "authorized_functionaries": []
-      })
+    #If not valid return to form so that the user can fix the errors
 
   return render_template("authorizing.html",
-      functionaries=session_functionaries, steps=steps)
+      functionaries=session_functionaries, steps=session_steps,
+      authorizing=session_authorizing)
+
 
 @app.route("/chaining")
 @with_session_id
 def chaining():
   """Step 8.
   Dry run snippet and link metadata upload. """
-  items = _get_session_subdocument("ssc").get("nodes", [])
+  steps = _get_session_subdocument("ssc").get("steps", [])
   links = _get_session_subdocument("chaining")
-  return render_template("chaining.html", items=items, link_dict=links)
+  return render_template("chaining.html", steps=steps, link_dict=links)
 
 
 @app.route("/chaining/upload", methods=["POST"])
@@ -815,8 +789,8 @@ def wrap_up():
   """
   functionaries = _get_session_subdocument("functionaries").keys()
   auths = _get_session_subdocument("authorizing")
-  items = _get_session_subdocument("ssc").get("nodes", [])
-  return render_template("wrap_up.html", items=items, auths=auths,
+  steps = _get_session_subdocument("ssc").get("steps", [])
+  return render_template("wrap_up.html", steps=steps, auths=auths,
       functionaries=functionaries)
 
 
@@ -831,27 +805,25 @@ def download_layout():
   """
   # Iterate over items in ssc dictionary and create an ordered list
   # of according link objects
-  # FIXME: split ssc["nodes"] into steps and inspections
-  links = []
-  inspections = []
+  session_ssc = _get_session_subdocument("ssc")
   session_chaining = _get_session_subdocument("chaining")
-  for item in _get_session_subdocument("ssc").get("nodes", []):
-    if item["type"] == "inspection":
-      inspections.append(item)
 
-    elif item["type"] == "step":
-      link_filename = session_chaining.get(item["name"])
+  links = []
+  inspections = session_ssc.get("inspections", [])
 
-      if not link_filename:
-        continue
+  for item in session_ssc.get("steps", []):
+    link_filename = session_chaining.get(item["name"])
 
-      link_path = os.path.join(app.config["USER_FILES"], link_filename)
+    if not link_filename:
+      continue
 
-      if not os.path.exists(link_path):
-        continue
+    link_path = os.path.join(app.config["USER_FILES"], link_filename)
 
-      link = in_toto.models.mock_link.MockLink.read_from_file(link_path)
-      links.append(link)
+    if not os.path.exists(link_path):
+      continue
+
+    link = in_toto.models.mock_link.MockLink.read_from_file(link_path)
+    links.append(link)
 
 
   # Create basic layout with steps based on links
