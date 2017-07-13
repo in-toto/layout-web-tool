@@ -42,21 +42,21 @@
     rendered data is save to be evaluated as JS.
     #}
     $(function(){
-      var supply_chain = {{ ssc_graph_data | tojson }};
+      // var supply_chain = {{ ssc_data | tojson }};
 
-      console.log(supply_chain)
-      // Initialize SVG viewBox width and height to the current container width and height
-      // viewBox (and its contents) get scaled on windowResize preserving aspectRatio.
-      //
-      // FIXME:
-      // The height of the SVG container should scale together with the width of the viewBox
-      // as does the height of the viewBox
-      var svg_width = $(".svg-container").width();
-      var svg_height = $(".svg-container").height();
-      $("svg").attr("viewBox", [0, 0, svg_width, svg_height].join(" "));
+      // console.log(supply_chain)
+      // // Initialize SVG viewBox width and height to the current container width and height
+      // // viewBox (and its contents) get scaled on windowResize preserving aspectRatio.
+      // //
+      // // FIXME:
+      // // The height of the SVG container should scale together with the width of the viewBox
+      // // as does the height of the viewBox
+      // var svg_width = $(".svg-container").width();
+      // var svg_height = $(".svg-container").height();
+      // $("svg").attr("viewBox", [0, 0, svg_width, svg_height].join(" "));
 
-      // Draw the graph
-      draw_graph(supply_chain);
+      // // Draw the graph
+      // draw_graph(supply_chain);
 
     });
   </script>
@@ -80,20 +80,16 @@
     <form id="ssc-form" method="POST" action="{{ url_for('software_supply_chain')}}">
       <h3 class="mt-4 mb-2">This are the steps of my software supply chain</h3>
       <div class="ssc-steps sort-container mb-2">
-        {% for node in ssc_graph_data.nodes %}
-          {% if node.get("type") == "step" %}
-            {{ item_form("step", item=node) }}
-          {% endif %}
+        {% for step in ssc_data.steps %}
+          {{ item_form("step", item=step) }}
         {% endfor %}
       </div>
       <button type="button" data-templatesource=".ssc-step" data-templatedest=".ssc-steps" class="add-btn btn-outline-primary btn">Add Step</button>
 
       <h3 class="mt-4 mb-2">I run the following commands to inspect my software supply chain</h3>
       <div class="ssc-inspections sort-container mb-2">
-        {% for node in ssc_graph_data.nodes %}
-          {% if node.get("type") == "inspection" %}
-            {{ item_form("inspection", item=node) }}
-          {% endif %}
+        {% for inspection in ssc_data.inspections %}
+          {{ item_form("inspection", item=inspection) }}
         {% endfor %}
       </div>
       <button type="button" data-templatesource=".ssc-inspection" data-templatedest=".ssc-inspections" class="add-btn btn-outline-primary btn">Add Inspection</button>

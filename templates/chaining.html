@@ -12,11 +12,9 @@
   <h2 class="mt-5 mb-2">Copy/Paste Commands</h2>
   <div>
 <pre class="code">
-{% for item in items %}
-{%- if item.type == "step" -%}
-in-toto-mock --name {{item.name}} -- {{item.cmd}}
-{% endif %}
-{%- endfor -%}
+{%- for step in steps %}
+in-toto-mock --name {{step.name}} -- {{step.cmd}}
+{%- endfor %}
 </pre>
   </div>
   {# END: Mock run command snippet  #}
@@ -34,10 +32,10 @@ in-toto-mock --name {{item.name}} -- {{item.cmd}}
 
           init: function () {
             // Show already uploaded files in dropzone
-            {% for item in items %}
-              {% if link_dict.get(item.name) %}
+            {% for step in steps %}
+              {% if link_dict.get(step.name) %}
                 var dropzone_file = {
-                  name: "{{ link_dict.get(item.name) }}"
+                  name: "{{ link_dict.get(step.name) }}"
                 };
 
                 this.options.addedfile.call(this, dropzone_file);

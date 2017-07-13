@@ -43,9 +43,9 @@ in-toto-sign --key project-owner root.layout
       <div>{# "-" strips newlines before/after blocks, which would be
   displayed in pre elems #}
 <pre class="code">
-{% for item in items %}
-{%- if item.type == "step" and functionary in auths.get(item.name).get("authorized_functionaries", []) -%}
-in-toto-run --key {{functionary}} --materials . --products . --step-name {{item.name}} -- {{item.cmd}}
+{% for step in steps %}
+{%- if functionary in auths.get(step.name).get("authorized_functionaries", []) -%}
+in-toto-run --key {{functionary}} --materials . --products . --step-name {{step.name}} -- {{step.cmd}}
 {% endif %}
 {%- endfor -%}
 </pre>
