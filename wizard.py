@@ -295,7 +295,9 @@ def _persist_session_subdocument(subdocument):
 
 def _persist_session_subdocument_ts(subdocument):
   """Updates/adds last_modified to the subdocument before persisting it. """
-  subdocument["last_modified"] = time.time()
+
+  for key in subdocument.keys():
+    subdocument[key]["last_modified"] = time.time()
   _persist_session_subdocument(subdocument)
 
 
