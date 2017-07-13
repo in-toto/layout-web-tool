@@ -612,7 +612,7 @@ def ajax_upload_key():
   # FIXME: Fix race condition!
   functionary_data = _get_session_subdocument("functionaries")
   functionary_data[functionary_name] = fn
-  _persist_session_subdocument_ts({"functionaries": functionary_data})
+  _persist_session_subdocument({"functionaries": functionary_data})
 
   flash = {
     "msg": "Successfully uploaded key '{fn}' for functionary '{functionary}'!".
@@ -636,7 +636,7 @@ def ajax_remove_key():
   functionary_data = _get_session_subdocument("functionaries")
   if functionary_name in functionary_data:
     del functionary_data[functionary_name]
-    _persist_session_subdocument_ts({"functionaries": functionary_data})
+    _persist_session_subdocument({"functionaries": functionary_data})
 
     flash = {
       "msg": "Successfully removed functionary '{functionary}'!".
@@ -713,7 +713,7 @@ def authorizing():
     if valid:
       flash("Success! It's time to do a test run of your software supply "
           "chain.", "alert-success")
-      _persist_session_subdocument_ts({"authorizing": session_authorizing})
+      _persist_session_subdocument({"authorizing": session_authorizing})
       return redirect(url_for("chaining"))
 
     else:
@@ -791,7 +791,7 @@ def ajax_upload_link():
   # FIXME: Fix race condition
   session_chaining = _get_session_subdocument("chaining")
   session_chaining[link.name] = fn
-  _persist_session_subdocument_ts({"chaining": session_chaining})
+  _persist_session_subdocument({"chaining": session_chaining})
 
   flash = {
     "msg": "Successfully uploaded link '{fn}' for step '{name}'!".
