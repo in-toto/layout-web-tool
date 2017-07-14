@@ -32,6 +32,8 @@ $(function() {
         })
 
     // If the added item was sortable, re-initialize the sort container
+    // TODO: We should trigger a custom "add" event on the container
+     // and listen on it. if is also sort-container and then re-initialize
     if ($(template_src_selector).parents(".sort-container").length) {
       sortable(".sort-container")
     }
@@ -46,6 +48,7 @@ $(function() {
 
     $(this).closest(element_to_remove_selector).slideUp(function(){
       $(this).remove();
+      $(document).trigger("custom.removed", element_to_remove_selector);
     });
   });
 
@@ -87,6 +90,8 @@ $(function() {
       $(".opt-form-container-info").removeClass("d-none");
 
       // If the added item was sortable, re-initialize the sort container
+      // TODO: We should trigger a custom "add" event on the container
+      // and listen on it. if is also sort-container and then re-initialize
       if ($opt_form.parents(".sort-container").length) {
         sortable(".sort-container")
       }
@@ -180,6 +185,25 @@ $(function() {
   });
 
   /*
+   * Re-generate/re-draw the the graph when step name inputs loose focus
+   * Re-generate/re-draw the graph when and ssc step is removed
+   * Re-generate/re-draw the graph when ssc steps get sorted
+   */
+  $(document).on("blur", ".ssc-steps .ssc-step input[name='step_name[]']",
+    function(evt){
+      draw_graph(generate_graph_from_ssc_steps());
+  });
+  $(document).on("custom.removed",
+    function(evt, removed_elem_class){
+      if (removed_elem_class == ".ssc-step")
+        draw_graph(generate_graph_from_ssc_steps());
+  });
+  $(".sort-container.ssc-steps").on("sortupdate",
+    function(evt) {
+      draw_graph(generate_graph_from_ssc_steps());
+  });
+
+  /*
    * Initialize drag and drop sorting
    * Note: Needs to be re-initialized when elements are added
    */
@@ -242,12 +266,69 @@ var show_message = function(msg, msg_type) {
   }, 5000);
 }
 
-  /*
-   * Draw in-toto layout graph using D3.js
-   * FIXME: modularize don't use data from global variable `layout_data`
-   * (c.f. software_supply_chain.html)
-   */
+
+/*
+ * Traverse `.ssc_steps` (c.f. softare_supply_chain.html)
+ * and generate graph data suitable for `draw_graph`
+ *
+ * TODO:
+ *  - Distinguish steps that have and steps that don't (e.g. QA) have products
+ *  - Display inspections
+ *
+ *
+ * Returns
+{
+  nodes: [
+    {
+      name: <step name>
+    }
+  ]
+  edges: [
+    {
+      source: <step name> ,
+      dest: <step name>
+    }, ...
+  ]
+}
+ */
+var generate_graph_from_ssc_steps = function() {
+  // Make a list of node objects (i.e.: [{name: <step_name>}] from
+  // step name input fields Ignore steps without name
+  var nodes = $.map($(".ssc-steps .ssc-step input[name='step_name[]']"),
+    function(elem) {
+      var val = $(elem).val();
+      if (val)
+        return { name: val };
+      return;
+    });
+
+  var edges = [];
+  for (var i = 0; i < nodes.length - 1; i++) {
+    edges.push({
+      source: nodes[i].name,
+      dest: nodes[i+1].name
+    })
+  }
+  return {
+    nodes: nodes,
+    edges: edges
+  }
+}
+
+/*
+ * Draw in-toto layout graph using D3.js
+ */
 var draw_graph = function(graph_data) {
+  // The SVG element
+  var svg = d3.select("svg.svg-content");
+
+  // Remove existing content (could be re-draw)
+  svg.selectAll("*").remove();
+
+  // Abort drawing if no nodes were passed
+  if (graph_data.nodes.length < 1)
+    return;
+
   // Create a new directed acyclic graph (dag)
   var dag = new dagreD3.graphlib.Graph({multigraph: true})
 
@@ -275,8 +356,7 @@ var draw_graph = function(graph_data) {
   });
 
 
-  // The SVG element
-  var svg = d3.select("svg.svg-content");
+
 
   // An SVG group element that wraps the graph
   var inner = svg.append("g");
