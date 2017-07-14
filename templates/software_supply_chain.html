@@ -29,8 +29,8 @@
     {% if type == "step" %}
     <div class="form-check col-md-11 offset-md-1 mt-2">
       <label class="form-check-label">
-        <input type="hidden" name="step_modifies[]" value="true">
-        <input class="form-check-input step-modifies-checkbox" type="checkbox" checked>
+        <input type="hidden" name="step_modifies[]" value="{{'true' if not item or item.modifies else 'false'}}">
+        <input class="form-check-input step-modifies-checkbox" type="checkbox" {{"checked" if not item or item.modifies}}>
         This step modifies my software
       </label>
     </div>
