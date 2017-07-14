@@ -269,10 +269,14 @@ var show_message = function(msg, msg_type) {
 
 /*
  * Traverse `.ssc_steps` (c.f. softare_supply_chain.html)
- * and generate graph data suitable for `draw_graph`
+ * and generate graph data suitable for `draw_graph`.
+ *
+ * Directed edges are created sequentially: E {node_i, node_i+1}
+ * Only modifying nodes have outdegree
+ * A modifying node remains edge source for all subsequent nodes,
+ * until the next modifying node in the list.
  *
  * TODO:
- *  - Distinguish steps that have and steps that don't (e.g. QA) have products
  *  - Display inspections
  *
  *
@@ -294,25 +298,41 @@ var show_message = function(msg, msg_type) {
 var generate_graph_from_ssc_steps = function() {
   // Make a list of node objects (i.e.: [{name: <step_name>}] from
   // step name input fields Ignore steps without name
-  var nodes = $.map($(".ssc-steps .ssc-step input[name='step_name[]']"),
+  var nodes = $.map($(".ssc-steps .ssc-step"),
     function(elem) {
-      var val = $(elem).val();
-      if (val)
-        return { name: val };
+      var step_name = $(elem).find("input[name='step_name[]']").val();
+      var step_modifies = ($(elem).find("input[name='step_modifies[]']").val()
+          === "true");
+      if (step_name) {
+        return {
+          name: step_name,
+          modifies: step_modifies
+        };
+      }
       return;
     });
 
   var edges = [];
+  var src_i = null;
   for (var i = 0; i < nodes.length - 1; i++) {
-    edges.push({
-      source: nodes[i].name,
-      dest: nodes[i+1].name
-    })
+    // Only modifying steps, i.e. steps have products, have an outdegree
+    // Skip non-modifying steps for edge sources
+    if (nodes[i].modifies) {
+       src_i = i;
+    }
+    if (src_i !== null) {
+      edges.push({
+        source: nodes[src_i].name,
+        dest: nodes[i+1].name
+      })
+    }
   }
+
   return {
     nodes: nodes,
     edges: edges
-  }
+  };
+
 }
 
 /*
@@ -354,9 +374,6 @@ var draw_graph = function(graph_data) {
         // label: "..."
       });
   });
-
-
-
 
   // An SVG group element that wraps the graph
   var inner = svg.append("g");
