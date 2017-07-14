@@ -16,14 +16,14 @@
     {# TODO: A selectize input box that updates when step names are changed/ steps are added would be nice here #}
     <div class="col-md-2 pr-md-2">
       <label class="small">Based on Step (optional)</label>
-      <input type="text" class="form-control form-control form-control-sm" name="{{type}}_step_name[]" value="{{ item.based_on if item }}">
+      <input type="text" class="form-control form-control-sm" name="{{type}}_step_name[]" value="{{ item.based_on if item }}">
     </div>
     {% endif %}
     <div class="col-md-6 pr-md-2">
       <label class="small">{{'Expected' if type == 'step' else 'Executed'}} Command </label>
-      <input type="text" class="form-control form-control form-control-sm" name="{{type}}_cmd[]" value="{{ item.cmd if item }}">
+      <input type="text" class="form-control form-control-sm" name="{{type}}_cmd[]" value="{{ item.cmd if item }}">
     </div>
-    <div class="col-md-1 align-self-end">
+    <div class="col-md-1 mt-2 align-self-end">
       <button type="button" data-toremove=".ssc-{{type}}" class="rm-btn btn btn-outline-danger btn-sm">Remove</button>
     </div>
   </div>
