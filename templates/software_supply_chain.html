@@ -26,7 +26,17 @@
     <div class="col-md-1 mt-2 align-self-end">
       <button type="button" data-toremove=".ssc-{{type}}" class="rm-btn btn btn-outline-danger btn-sm">Remove</button>
     </div>
+    {% if type == "step" %}
+    <div class="form-check col-md-11 offset-md-1 mt-2">
+      <label class="form-check-label">
+        <input type="hidden" name="step_modifies[]" value="true">
+        <input class="form-check-input step-modifies-checkbox" type="checkbox" checked>
+        This step modifies my software
+      </label>
+    </div>
+    {% endif %}
   </div>
+
 </div>
 {% endmacro %}
 {# END: Software Supply Chain item (step and inspection) form macro #}
@@ -48,6 +58,19 @@
 
       var graph_data = generate_graph_from_ssc_steps();
       draw_graph(graph_data);
+
+      /*
+       * Re-generate/re-draw the graph when ssc step type changes
+       */
+      $(document).on("change", ".step-modifies-checkbox", function(){
+        // Workaround: Checkboxes are only posted if checked, but we need a
+        // value per step to be able to aggregate step values by index.
+        var checked = $(this).is(':checked');
+        $(this).prev("input[name='step_modifies[]']").val(checked);
+
+        // Re-generate/re-draw graph
+        draw_graph(generate_graph_from_ssc_steps());
+      });
     });
   </script>
 
