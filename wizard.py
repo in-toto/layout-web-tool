@@ -134,7 +134,8 @@ def session_to_ssc(session_data):
       steps: [
         {
           "name": <unique step name>,
-          "cmd": <expected command>
+          "cmd": <expected command>,
+          "modifies": boolean
         }, ...
       ],
       inspections: [
@@ -146,23 +147,27 @@ def session_to_ssc(session_data):
       ]
     }
   """
-  steps = []
-  inspections = []
+  ssc_steps = []
+  ssc_inspections = []
 
   for step_type in ["vcs", "building", "qa", "package"]:
     for idx, step in enumerate(session_data.get(step_type, {}).get(
         "items", [])):
       # FIXME: Come up with better naming (low priority)
       step_name = "{}-{}".format(step_type, idx + 1)
-      steps.append({
+      ssc_step = {
         "name": step_name,
         "cmd" : step["cmd"],
-        # "step_type": "vcs" | "buiding" | "qa" | "package"
-      })
+        "modifies": True
+      }
 
       # We suggest an inspection for each set retval, stdout and stderr for
       # each specified QA step
       if step_type == "qa":
+        # QA steps don't have products, we need this information to visualize
+        # this ssc graph
+        ssc_step["modifies"] = False
+
         for inspect_type in ["retval", "stdout", "stderr"]:
           val = step.get(inspect_type + "_value")
           operator = step.get(inspect_type + "_operator")
@@ -182,26 +187,30 @@ def session_to_ssc(session_data):
               if operator == "empty":
                 operator = "is"
                 value = ""
+
               run = ("inspect-byproducts"
                   " --link={link} --{inspect_type} --{operator} \"{value}\""
                   .format(link=link, inspect_type=inspect_type,
                   operator=operator, value=value))
 
-            inspect_name = "inspection-" + str(len(inspections) + 1)
-            inspections.append({
+            inspect_name = "inspection-" + str(len(ssc_inspections) + 1)
+            ssc_inspections.append({
               "name": inspect_name,
               "cmd": run,
               "based_on": step_name
             })
 
+      ssc_steps.append(ssc_step)
+
   ssc_data = {
-    "steps": steps,
-    "inspections": inspections
+    "steps": ssc_steps,
+    "inspections": ssc_inspections
   }
   return ssc_data
 
-def form_data_to_ssc(step_names, step_commands, inspection_names,
-    inspection_commands, inspection_step_names):
+
+def form_data_to_ssc(step_names, step_commands, step_modifies,
+    inspection_names, inspection_commands, inspection_step_names):
   """
   <Purpose>
     Takes form posted data (lists) to generate a dict of lists of step data and
@@ -216,6 +225,7 @@ def form_data_to_ssc(step_names, step_commands, inspection_names,
         {
           "name": <unique step name>,
           "cmd": <expected command>
+          "modifies": boolean
         }, ...
       ],
       inspections: [
@@ -233,13 +243,7 @@ def form_data_to_ssc(step_names, step_commands, inspection_names,
     steps.append({
         "name": step_names[i],
         "cmd": step_commands[i],
-        # We need a step type to know how to link the steps
-        # e.g. qa steps don't have products
-        # "step_type": "vcs" | "buiding" | "qa" | "package"
-        # or
-        # "step_type": "reporting" | "modifying"
-        # What if the user adds new steps here (i.e. we don't know the type)?
-        # Should we ask the user?
+        "modifies": step_modifies[i] == "true"
       })
 
   inspections = []
@@ -506,6 +510,7 @@ def software_supply_chain(refresh=False):
   if request.method == "POST":
     step_names = request.form.getlist("step_name[]")
     step_commands = request.form.getlist("step_cmd[]")
+    step_modifies = request.form.getlist("step_modifies[]")
     inspection_names = request.form.getlist("inspection_name[]")
     inspection_commands = request.form.getlist("inspection_cmd[]")
     inspection_step_names = request.form.getlist("inspection_step_name[]")
@@ -513,12 +518,12 @@ def software_supply_chain(refresh=False):
     # Names and Commands of a step or inspection are related by the same index
     # All lists should be equally long
     # FIXME: Don't assert, try!
-    assert(len(step_names) == len(step_commands))
+    assert(len(step_names) == len(step_commands) == len(step_modifies))
     assert(len(inspection_names) == len(inspection_commands) ==
         len(inspection_step_names))
 
     # Create and persist software supply chain data from posted form
-    ssc_data = form_data_to_ssc(step_names, step_commands,
+    ssc_data = form_data_to_ssc(step_names, step_commands, step_modifies,
         inspection_names, inspection_commands, inspection_step_names)
     _persist_session_subdocument_ts({"ssc": ssc_data})
 
