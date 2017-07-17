@@ -11,10 +11,10 @@ for every input #}
     <input type="text" class="form-control" value="{{ data.get('cmd', "") }}" name="cmd[]">
   </div>
   <h3 class="mt-4 mb-3">How do you know everything's fine?</h3>
-  <div class="form-group row">
-    <div class="col-3 col-form-label">Return value</div>
-    <div class="input-group col-9">
-      <select class="custom-select input-group-select" name="retval_operator[]">
+  <div class="form-group row inspect-type-container">
+    <div class="col-md-3 col-form-label"><input class="inspect-include" type="hidden" name="retval_include[]" value="{{'true' if data.get('retval') else 'false'}}"><input class="inspect-type-checkbox mr-3" type="checkbox" {{'checked' if data.get('retval')}}>Return value</div>
+    <div class="input-group col-md-9 inspect-type-input {{'invisible' if not data.get('retval')}}">
+      <select class="custom-select input-group-select " name="retval_operator[]">
         <option value="eq" {{"selected" if data.get("retval_operator", "") == "eq"}}>is equal to</option>
         <option value="ne" {{"selected" if data.get("retval_operator", "") == "ne"}}>is not equal to</option>
         <option value="gt" {{"selected" if data.get("retval_operator", "") == "gt"}}>is greater than</option>
@@ -25,27 +25,27 @@ for every input #}
       <input type="number" class="form-control" min="0" name="retval_value[]" value="{{ data.get('retval_value', "") }}">
     </div>
   </div>
-  <div class="form-group row">
-    <div class="col-3 col-form-label">Standard output</div>
-    <div class="input-group col-9">
+  <div class="form-group row inspect-type-container">
+    <div class="col-md-3 col-form-label"><input class="inspect-include" type="hidden" name="stdout_include[]" value="{{'true' if data.get('stdout') else 'false'}}"><input class="inspect-type-checkbox mr-3" type="checkbox" {{'checked' if data.get('stdout')}}>Standard output</div>
+    <div class="input-group col-md-9 inspect-type-input {{'invisible' if not data.get('stdout')}}">
       <select class="custom-select input-group-select" name="stdout_operator[]">
-        <option value="is" {{"selected" if data.get("stdout_operator", "") == "eq"}}>is</option>
-        <option value="is-not" {{"selected" if data.get("stdout_operator", "") == "ne"}}>is not</option>
+        <option value="is" {{"selected" if data.get("stdout_operator", "") == "is"}}>is</option>
+        <option value="is-not" {{"selected" if data.get("stdout_operator", "") == "is-not"}}>is not</option>
         <option value="contains" {{"selected" if data.get("stdout_operator", "") == "contains"}}>contains</option>
-        <option value="contains-not" {{"selected" if data.get("stdout_operator", "") == "contains_not"}}>does not contain</option>
+        <option value="contains-not" {{"selected" if data.get("stdout_operator", "") == "contains-not"}}>does not contain</option>
         <option value="empty" {{"selected" if data.get("stdout_operator", "") == "empty"}}>is empty</option>
       </select>
       <input type="text" class="form-control" name="stdout_value[]" value="{{ data.get('stdout_value', "") }}">
     </div>
   </div>
-  <div class="form-group row">
-    <div class="col-3 col-form-label">Standard error</div>
-    <div class="input-group col-9">
+  <div class="form-group row inspect-type-container">
+    <div class="col-md-3 col-form-label"><input class="inspect-include" type="hidden" name="stderr_include[]" value="{{'true' if data.get('stderr') else 'false'}}"><input class="inspect-type-checkbox mr-3" type="checkbox" {{'checked' if data.get('stderr')}}>Standard error</div>
+    <div class="input-group col-md-9 inspect-type-input {{'invisible' if not data.get('stderr')}}">
       <select class="custom-select input-group-select" name="stderr_operator[]">
-        <option value="is" {{"selected" if data.get("stderr_operator", "") == "eq"}}>is</option>
-        <option value="is-not" {{"selected" if data.get("stderr_operator", "") == "ne"}}>is not</option>
+        <option value="is" {{"selected" if data.get("stderr_operator", "") == "is"}}>is</option>
+        <option value="is-not" {{"selected" if data.get("stderr_operator", "") == "is-not"}}>is not</option>
         <option value="contains" {{"selected" if data.get("stderr_operator", "") == "contains"}}>contains</option>
-        <option value="contains-not" {{"selected" if data.get("stderr_operator", "") == "contains_not"}}>does not contain</option>
+        <option value="contains-not" {{"selected" if data.get("stderr_operator", "") == "contains-not"}}>does not contain</option>
         <option value="empty" {{"selected" if data.get("stderr_operator", "") == "empty"}}>is empty</option>
       </select>
       <input type="text" class="form-control" name="stderr_value[]" value="{{ data.get('stderr_value', "") }}">
@@ -61,9 +61,27 @@ for every input #}
 {# END: Quality Managment form macro #}
 
 
-
 {# BEGIN: Rendered content #}
 {% block content %}
+  <script type="text/javascript">
+    $(function(){
+      $(document).on("change", ".inspect-type-checkbox", function(){
+        // Workaround: Checkboxes are only posted if checked, but we need a
+        // value per step to be able to aggregate step values by index.
+        // TODO: DRY with checkbox workaround in main.js
+        var checked = $(this).is(':checked');
+        $(this).prev("input.inspect-include").val(checked);
+
+        // Toggle inspection input fields visibility
+        // It would be nicer to disable the form inputs, but then they don't
+        // get posted which messes up the aggregation by index.
+        // Readonly would work, but only for input fields and not for select
+        $(this).parents(".inspect-type-container")
+            .find(".inspect-type-input")
+            .toggleClass("invisible");
+      });
+    });
+  </script>
   {{ macros.progress_bar(value=40) }}
   <hr>
   <h1>How do you assure your software's quality?
