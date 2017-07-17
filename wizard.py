@@ -169,10 +169,11 @@ def session_to_ssc(session_data):
         ssc_step["modifies"] = False
 
         for inspect_type in ["retval", "stdout", "stderr"]:
+          enabled = step.get(inspect_type)
           val = step.get(inspect_type + "_value")
           operator = step.get(inspect_type + "_operator")
 
-          if (val != None and operator != None):
+          if enabled:
             # The (QA) link file we want to inspect uses the link step name
             # created above
             link = in_toto.models.link.FILENAME_FORMAT_SHORT.format(
@@ -416,10 +417,16 @@ def quality_management():
     # Grab the form posted quality management data and persist
     # FIXME: Needs sanitizing
     cmd_list = request.form.getlist("cmd[]")
+
+    retval_include_list = request.form.getlist("retval_include[]")
     retval_operator_list = request.form.getlist("retval_operator[]")
     retval_value_list = request.form.getlist("retval_value[]")
+
+    stdout_include_list = request.form.getlist("stdout_include[]")
     stdout_operator_list = request.form.getlist("stdout_operator[]")
     stdout_value_list = request.form.getlist("stdout_value[]")
+
+    stderr_include_list = request.form.getlist("stderr_include[]")
     stderr_operator_list = request.form.getlist("stderr_operator[]")
     stderr_value_list = request.form.getlist("stderr_value[]")
 
@@ -427,9 +434,11 @@ def quality_management():
     # All lists should be equally long
     # FIXME: Don't assert, try!
     assert(len(cmd_list) ==
-        len(retval_operator_list) == len(retval_value_list) ==
+        len(retval_include_list) == len(retval_operator_list) ==
+        len(retval_value_list) == len(stdout_include_list) ==
         len(stdout_operator_list) == len(stdout_value_list) ==
-        len(stderr_operator_list) == len(stderr_value_list))
+        len(stderr_include_list) == len(stderr_operator_list) ==
+        len(stderr_value_list))
 
     qa_steps_cnt = len(cmd_list)
 
@@ -440,10 +449,13 @@ def quality_management():
     for i in range(qa_steps_cnt):
       posted_items.append({
           "cmd": cmd_list[i],
+          "retval": retval_include_list[i] == "true",
           "retval_operator": retval_operator_list[i],
           "retval_value": retval_value_list[i],
+          "stdout": stdout_include_list[i] == "true",
           "stdout_operator": stdout_operator_list[i],
           "stdout_value": stdout_value_list[i],
+          "stderr": stderr_include_list[i] == "true",
           "stderr_operator": stderr_operator_list[i],
           "stderr_value": stderr_value_list[i],
         })
