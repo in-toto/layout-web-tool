@@ -602,11 +602,25 @@ def ajax_upload_key():
 
   try:
     # We try to load the public key to check the format
-    securesystemslib.keys.import_rsakey_from_public_pem(
+    key = securesystemslib.keys.import_rsakey_from_public_pem(
         functionary_key.read())
 
-    # Reset the filepointer
-    functionary_key.seek(0)
+    securesystemslib.formats.PUBLIC_KEY_SCHEMA.check_match(key)
+
+    # FIXME: Fix race condition!
+    functionary_data = _get_session_subdocument("functionaries")
+    fn = functionary_key.filename
+    functionary_data[functionary_name] = {
+      "filename": fn,
+      "key": key
+    }
+    _persist_session_subdocument({"functionaries": functionary_data})
+
+    flash = {
+      "msg": ("Successfully uploaded key '{fn}' for functionary "
+      "'{functionary}'!".format(fn=fn, functionary=functionary_name)),
+      "type": "alert-success"
+    }
 
   except Exception as e:
     flash = {
@@ -615,33 +629,16 @@ def ajax_upload_key():
     }
     return jsonify({"flash": flash, "error": True})
 
-  else:
-    fn = functionary_key.filename
-    functionary_key_path = os.path.join(app.config["USER_FILES"], fn)
-    functionary_key.save(functionary_key_path)
-
-  # FIXME: Fix race condition!
-  functionary_data = _get_session_subdocument("functionaries")
-  functionary_data[functionary_name] = fn
-  _persist_session_subdocument({"functionaries": functionary_data})
-
-  flash = {
-    "msg": "Successfully uploaded key '{fn}' for functionary '{functionary}'!".
-      format(fn=fn, functionary=functionary_name),
-    "type": "alert-success"
-  }
   return jsonify({"flash": flash, "error": False})
 
 
 @app.route("/functionaries/remove", methods=["POST"])
 @with_session_id
-def ajax_remove_key():
+def ajax_remove_functionary():
   """ Remove the posted functionary (by name) from the functionary session
   store.
-
-  FIXME: We probably should also remove the key file
   """
-  functionary_name = request.form.get("functionary_name", None)
+  functionary_name = request.form.get("functionary_name")
 
   # FIXME: Fix race condition
   functionary_data = _get_session_subdocument("functionaries")
@@ -665,6 +662,7 @@ def ajax_remove_key():
     error = True
 
   return jsonify({"flash": flash, "error": error})
+
 
 
 
@@ -804,11 +802,11 @@ def wrap_up():
    - Per functionary commands (in-toto-run snippet)
    - Release instructions ??
   """
-  functionaries = _get_session_subdocument("functionaries").keys()
+  functionary_names = _get_session_subdocument("functionaries").keys()
   auths = _get_session_subdocument("authorizing")
   steps = _get_session_subdocument("ssc").get("steps", [])
   return render_template("wrap_up.html", steps=steps, auths=auths,
-      functionaries=functionaries)
+      functionary_names=functionary_names)
 
 
 @app.route("/download-layout")
@@ -850,12 +848,13 @@ def download_layout():
   functionary_keyids = {}
 
   # Add uploaded functionary pubkeys to layout
-  for functionary_name, pubkey_fn in _get_session_subdocument(
+  for functionary_name, functionary in _get_session_subdocument(
       "functionaries").iteritems():
 
-    # Load and check the format of the uploaded public keys
-    pubkey_path = os.path.join(app.config["USER_FILES"], pubkey_fn)
-    key = in_toto.util.import_rsa_key_from_file(pubkey_path)
+    key = functionary.get("key")
+
+    # Check the format of the uploaded public key
+    # TODO: Handle invalid key
     securesystemslib.formats.PUBLIC_KEY_SCHEMA.check_match(key)
 
     # Add keys to layout's key store

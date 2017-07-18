@@ -25,8 +25,8 @@
       <div class="col-10">
         <label><strong>{{step.name}}</strong> (authorized functionaries)</label>
         <select name="functionary_name_{{step.name}}[]" multiple class="form-control select2">
-          {% for functionary, fn in functionaries.iteritems() %}
-           <option {{'selected' if functionary in authorizing.get(step.name, {}).authorized_functionaries}}  value="{{functionary}}"> {{ functionary }}</option>
+          {% for functionary_name in functionaries.keys() %}
+           <option {{'selected' if functionary_name in authorizing.get(step.name, {}).authorized_functionaries}}  value="{{functionary_name}}"> {{ functionary_name }}</option>
           {% endfor %}
         </select>
       </div>

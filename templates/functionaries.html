@@ -2,25 +2,16 @@
 {% extends "base.html" %}
 
 {# BEGIN: Functionary form macro #}
-{% macro item_form(functionary=None, template=False) %}
-<div class="functionary dz-container p-3 m-2 {{'template' if template}}">
+
+{% macro item_form(name=None, template=False) %}
+<div class="functionary dz-container p-3 mt-2 {{'template' if template}}">
   <div class="m-2">
-    <span class="functionary-name">{{functionary.name if functionary}}</span>
+    <span class="functionary-name">{{name}}</span>
     <small>(Drop public key or click in box to upload)</small>
   </div>
   <form class="dropzone m-2 w-100" method="POST", enctype="multipart/form-data"
       action="{{ url_for('ajax_upload_key') }}">
-    <input type="hidden" name="functionary_name" value="{{functionary.name if functionary}}">
-    {% if functionary %}
-    {# FIXME: Should we rather let the dropzone JS plugin add this? #}
-    <div class="dz-preview dz-file-preview dz-processing dz-complete">
-      <div class="dz-details">
-        <div class="dz-filename">
-          <span data-dz-name="">{{functionary.filename}}</span>
-        </div>
-      </div>
-    </div>
-    {% endif %}
+    <input type="hidden" name="functionary_name" value="{{name}}">
   </form>
   <button type="button" class="rm-func-btn btn btn-outline-danger m-2">Remove Functionary</button>
 </div>
@@ -58,11 +49,35 @@ in-toto-keygen &ltFILENAME&gt
   {# BEGIN: Functionary key uploads #}
   <div id="functionary-container">
     {{ item_form(template=True) }}
-    {% for name, fn in functionaries.iteritems() %}
-      {{ item_form(functionary={"name": name, "filename": fn}) }}
+    {% for name in functionaries.keys() %}
+      {{ item_form(name=name) }}
     {% endfor %}
   </div>
   {# END: Functionary key uploads #}
+  <script type="text/javascript">
+    $(function(){
+      // Create JS lists of functionary names and dropzone jQuery elements
+      // They are associated by index here, which should be fine because they
+      // where rendered in the same order above
+
+      // - jQuery returns query elements in document order
+      // https://github.com/jquery/api.jquery.com/issues/659
+      // - Python's iteritems() and values() return items in the same order
+      // https://docs.python.org/2/library/stdtypes.html#dict.items
+      var pubkeys = {{functionaries.values() | tojson}}
+      var dropzones = $(".functionary:not(.template) .dropzone");
+
+      // Iterate over DOM elements, initialize dropzone plugin, and add
+      // existing uploaded files
+      for (var i = 0; i < dropzones.length; i++) {
+        var dropzone = init_functionary_dropzone($(dropzones[i]))
+        var dz_file =  {name: pubkeys[i]["filename"], size: 12345};
+        dropzone.emit("addedfile", dz_file);
+        dropzone.emit("complete", dz_file, true);
+        dropzone.files.push(dz_file);
+      }
+    });
+  </script>
 
   {# BEGIN: Navigation Footer (Previous/Next) #}
   <hr>
