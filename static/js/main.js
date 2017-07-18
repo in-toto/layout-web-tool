@@ -129,18 +129,8 @@ $(function() {
         .slideDown(function(){
           $(this).removeClass("template");
 
-          // Inits the file upload dropzone
-          $func.find(".dropzone").dropzone({
-            paramName: "functionary_key",
-            maxFiles: 1,
-            success: function(file, response) {
-              // Remove the file place holder from dropzone if upload failed
-              if (response.error) {
-                this.removeFile(file);
-              }
-              show_message(response.flash.msg, response.flash.type);
-            }
-          });
+          // Initialize new pubkey fileupload dropzone
+          init_functionary_dropzone($func.find(".dropzone"));
       });
     }
   })
@@ -148,23 +138,16 @@ $(function() {
   /*
    * Click listener to remove a functionary
    * Removes the functionary dropzone and the according key on the server
-   * # TODO: Maybe we should allow to just use remove a key (on the server)
-   * without removing the functionary?
+   * Functionaries only make sense together with a key, hence we don't
+   * allow to remove a public key alone (keys can be replaced though).
    */
   $(document).on("click", "button.rm-func-btn", function(evt) {
     $functionary = $(this).closest(".functionary");
-    name = $functionary.find("input[name='functionary_name']").val();
+    $dropzone = $functionary.find(".dropzone");
+    var name = $functionary.find("input[name='functionary_name']").val();
 
-    //FIXME: This is a hackish way to find out if there's already a file in
-    // that dropzone.
-    // We should use
-    // $(".dropzone").get(0).dropzone.files
-    // but we can't because currently we don't initialize the dropzone
-    // if the functionary page is served with already uploaded pubkeys
-    var preview = $functionary.find(".dz-file-preview");
-
-    // We only try to delete the key on the server if there is one
-    if (preview.length > 0) {
+    // We only post if the dropzone has a file
+    if ($dropzone.get(0).dropzone.files.length > 0) {
       // Post the name of the functionary to remove
       $.post("/functionaries/remove", {"functionary_name": name},
         function(response) {
@@ -183,6 +166,7 @@ $(function() {
       });
     }
   });
+
 
   /*
    * Re-generate/re-draw the the graph when step name inputs loose focus
@@ -264,6 +248,56 @@ var show_message = function(msg, msg_type) {
   setTimeout(function(){
     $alert.alert("close");
   }, 5000);
+}
+
+
+/*
+ * Initializes a functionary public key file upload dropzone on a
+ * passed Jquery element and returns the Dropzone object.
+ */
+function init_functionary_dropzone($elem) {
+
+  var opts = {
+    paramName: "functionary_key",
+    parallelUploads: 1,
+    init: function(file) {
+      var prevFile;
+
+      // Event triggered when a file was uploaded and the server
+      // resplies with 200
+      this.on("success", function(file, response) {
+        show_message(response.flash.msg, response.flash.type);
+
+        // If the new file could not be stored on the server we remove it
+        // from the client dropzone
+        if (response.error) {
+          this.removeFile(file);
+
+
+        } else {
+          // If the new file was successfully stored on the server we
+          // remove any previously existing file...
+          if (typeof prevFile !== "undefined") {
+            this.removeFile(prevFile);
+          }
+          // ... and store the new file as previously existing file
+          // for future replacements
+          prevFile = file;
+        }
+      });
+
+      // We trigger this event (with a second parameter) when adding files
+      // that are already stored on the server to the dropzone
+      // c.f. JS in functionaries.html
+      this.on("complete", function(file, existing) {
+        // This makes existing files also replaceable by new files
+        if (existing) {
+          prevFile = file;
+        }
+      });
+    }
+  };
+  return new Dropzone($elem.get(0), opts);
 }
 
 
