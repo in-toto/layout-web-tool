@@ -230,7 +230,7 @@ $(function() {
  * Append and show message with a certain type
  * The message gets removed after a fixed amount of time
  */
-var show_message = function(msg, msg_type) {
+function show_message(msg, msg_type) {
 
   if ($.inArray(msg_type,
       ["alert-success", "alert-info", "alert-warning", "alert-danger"]) == -1)
@@ -376,7 +376,7 @@ function init_link_dropzone($elem) {
   ]
 }
  */
-var generate_graph_from_ssc_steps = function() {
+function generate_graph_from_ssc_steps() {
   // Make a list of node objects (i.e.: [{name: <step_name>}] from
   // step name input fields Ignore steps without name
   var nodes = $.map($(".ssc-steps .ssc-step"),
@@ -419,7 +419,7 @@ var generate_graph_from_ssc_steps = function() {
 /*
  * Draw in-toto layout graph using D3.js
  */
-var draw_graph = function(graph_data) {
+function draw_graph(graph_data) {
   // The SVG element
   var svg = d3.select("svg.svg-content");
 
