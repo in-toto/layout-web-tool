@@ -21,36 +21,20 @@ in-toto-mock --name {{step.name}} -- {{step.cmd}}
 
   {# BEGIN: Link file upload dropzone #}
   <script type="text/javascript">
-    {# Initialize drag and drop file upload for pubkey uploads #}
-    {# FIXME: Factor out to JavaScript file #}
-    {# FIXME: DRY!!! c.f. authorizing #}
-    Dropzone.autoDiscover = false;
     $(function(){
 
-      $(".dropzone").dropzone({
-          paramName: "step_link",
-
-          init: function () {
-            // Show already uploaded files in dropzone
-            {% for step in steps %}
-              {% if link_dict.get(step.name) %}
-                var dropzone_file = {
-                  name: "{{ link_dict.get(step.name) }}"
-                };
-
-                this.options.addedfile.call(this, dropzone_file);
-                dropzone_file.previewElement.classList.add('dz-complete');
-              {% endif %}
-            {% endfor %}
-          },
-          success: function(file, response) {
-            // Remove the file place holder from the dropzone if the upload failed
-            if (response.error) {
-              this.removeFile(file);
-            }
-            show_message(response.flash.msg, response.flash.type);
-          }
-      });
+      // Initialize link file upload dropzone and add existing uploaded files
+      var dropzone = init_link_dropzone($(".dropzone"));
+      {% for item in chaining.get("items", []) %}
+      {% with filename=item.get("file_name") %}
+        {% if filename %}
+          var dz_file =  {name: "{{filename}}", size: 12345};
+          dropzone.emit("addedfile", dz_file);
+          dropzone.emit("complete", dz_file, true);
+          dropzone.files.push(dz_file);
+        {% endif %}
+      {% endwith %}
+      {% endfor %}
     });
   </script>
   <h2 class="mt-5 mb-2">Upload Links</h2>

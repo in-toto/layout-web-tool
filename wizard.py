@@ -734,8 +734,8 @@ def chaining():
   """Step 8.
   Dry run snippet and link metadata upload. """
   steps = _get_session_subdocument("ssc").get("steps", [])
-  links = _get_session_subdocument("chaining")
-  return render_template("chaining.html", steps=steps, link_dict=links)
+  chaining = _get_session_subdocument("chaining")
+  return render_template("chaining.html", steps=steps, chaining=chaining)
 
 
 @app.route("/chaining/upload", methods=["POST"])
@@ -761,10 +761,27 @@ def ajax_upload_link():
   try:
     # We try to load the public key to check the format
     link_dict = json.loads(link_file.read())
+    # FIXME: in-toto links currently have no format validator
     link = in_toto.models.mock_link.MockLink.read(link_dict)
+    file_name = link_file.filename
 
-    # Reset the filepointer
-    link_file.seek(0)
+    link_db_item = {
+      "step_name": link.name,
+      "file_name": file_name,
+      # NOTE: I wonder if we are prone to exceed the max document size (16 MB)
+      # if we store all the session info in one document. Probably not.
+      # NOTE: We can't store the dict representation of the link, because
+      # MongoDB does not allow dotted keys, e.g.: "materials": {"foo.py": {...
+      # hence we store it as canonical json string dump (c.f. link's __repr__).
+      "link_str": repr(link)
+    }
+
+    # Add link info to the chaining.items array in the session document
+    query_result = mongo.db.session_collection.update_one(
+        {"_id": session["id"]},
+        {"$push": {"chaining.items": link_db_item}},
+        upsert=True)
+    # TODO: Throw rocks at query_result
 
   except Exception as e:
     flash = {
@@ -775,21 +792,48 @@ def ajax_upload_link():
     return jsonify({"flash": flash, "error": True})
 
   else:
-    fn = link_file.filename
-    path = os.path.join(app.config["USER_FILES"], fn)
-    link_file.save(path)
+    flash = {
+      "msg": "Successfully uploaded link '{file_name}' for step '{name}'!".
+        format(file_name=file_name, name=link.name),
+      "type": "alert-success"
+    }
 
-  # FIXME: Fix race condition
-  session_chaining = _get_session_subdocument("chaining")
-  session_chaining[link.name] = fn
-  _persist_session_subdocument({"chaining": session_chaining})
-
-  flash = {
-    "msg": "Successfully uploaded link '{fn}' for step '{name}'!".
-      format(fn=fn, name=link.name),
-    "type": "alert-success"
-  }
   return jsonify({"flash": flash, "error": False})
+
+
+
+@app.route("/chaining/remove", methods=["POST"])
+@with_session_id
+def ajax_remove_link():
+  """ Remove the posted link by step name from the chaining session
+  document.
+  """
+  link_filename = request.form.get("link_filename")
+  try:
+    # Remove the link entry with posted file name in the session
+    # document's chaining.items list
+    res = mongo.db.session_collection.update_one(
+        {"_id": session["id"]},
+        {"$pull": {"chaining.items": {"file_name": link_filename}}})
+    # TODO: Throw rocks at query_result
+
+  except Exception as e:
+    flash = {
+      "msg": "Could not remove link file '{link}', Error: '{e}'".format(
+          link=link_filename, e=e),
+      "type": "alert-danger"
+    }
+    return jsonify({"flash": flash, "error": True})
+
+  else:
+    flash = {
+      "msg": "Successfully removed link file '{link}'!".format(
+                  link=link_filename),
+      "type": "alert-success"
+    }
+
+  return jsonify({"flash": flash, "error": False})
+
 
 @app.route("/wrap-up")
 @with_session_id
@@ -818,28 +862,17 @@ def download_layout():
 
   TODO: Move out layout creation functionality to reverse_layout.py
   """
-  # Iterate over items in ssc dictionary and create an ordered list
-  # of according link objects
+  # Iterate over items in ssc session document and create an ordered list
+  # of according link objects retrieved from the chaining session document
   session_ssc = _get_session_subdocument("ssc")
   session_chaining = _get_session_subdocument("chaining")
-
   links = []
-  inspections = session_ssc.get("inspections", [])
-
-  for item in session_ssc.get("steps", []):
-    link_filename = session_chaining.get(item["name"])
-
-    if not link_filename:
-      continue
-
-    link_path = os.path.join(app.config["USER_FILES"], link_filename)
-
-    if not os.path.exists(link_path):
-      continue
-
-    link = in_toto.models.mock_link.MockLink.read_from_file(link_path)
-    links.append(link)
-
+  for step in session_ssc.get("steps", []):
+    for link_data in session_chaining.get("items", []):
+      if link_data["step_name"] == step["name"]:
+        link = in_toto.models.mock_link.MockLink.read(json.loads(
+            link_data["link_str"] ))
+        links.append(link)
 
   # Create basic layout with steps based on links
   layout = reverse_layout.create_layout_from_ordered_links(links)
@@ -875,7 +908,8 @@ def download_layout():
 
     layout.steps[idx].threshold = auth_data.get("threshold")
 
-  # Add inpsections to layout
+  # Add inspections to layout
+  inspections = session_ssc.get("inspections", [])
   for inspection_data in inspections:
     inspection = in_toto.models.layout.Inspection(
         name=inspection_data["name"],
@@ -887,7 +921,7 @@ def download_layout():
     layout.inspect.append(inspection)
 
   layout.validate()
-  # TODO: Use a dyniamic name?
+  # TODO: Use a dynamic name?
   layout_name = "root.layout"
   layout_path = os.path.join(app.config["USER_FILES"], layout_name)
   layout.dump(layout_path)

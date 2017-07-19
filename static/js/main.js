@@ -302,6 +302,53 @@ function init_functionary_dropzone($elem) {
 
 
 /*
+ * Initializes a link file upload dropzone on a passed Jquery element and
+ * returns the Dropzone object.
+ */
+function init_link_dropzone($elem) {
+  var opts = {
+    paramName: "step_link",
+    addRemoveLinks: true,
+    parallelUploads: 1,
+    dictRemoveFile: "Remove Link",
+    init: function(file) {
+      this.on("success", function(file, response) {
+        if (response.error) {
+          // Remove the file place holder from the dropzone if the upload
+          // failed
+          // NOTE: We store the fact that we did this here in the file to
+          // not try to delete the file in our "removedfile" listener
+          // This feels a little hackish
+          file.removed_on_error = true;
+          this.removeFile(file);
+        }
+        show_message(response.flash.msg, response.flash.type);
+      });
+
+      this.on("removedfile", function(file) {
+        if (file.removed_on_error)
+          return;
+
+        // Post the name of the functionary to remove
+        $.post("/chaining/remove", {"link_filename": file.name},
+          function(response) {
+            show_message(response.flash.msg, response.flash.type);
+
+            // Re-add file (on clientside) if server-side remove
+            // was not successfull
+            if (response.error) {
+              dropzone.emit("addedfile", file);
+              dropzone.emit("complete", file, true);
+              dropzone.files.push(file);
+            }
+          });
+      });
+    }
+  };
+  return new Dropzone($elem.get(0), opts);
+}
+
+/*
  * Traverse `.ssc_steps` (c.f. softare_supply_chain.html)
  * and generate graph data suitable for `draw_graph`.
  *
