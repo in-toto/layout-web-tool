@@ -46,13 +46,18 @@
     {% endfor-%}
   </div>
 <hr class="mt-5">
+{{comment_form(user_data.get("comment", ""))}}
+</form>
+{%- endmacro %}
+
+{% macro comment_form(value) %}
 <h2>Doing things differently?</h2>
 Let us know if the tool does not let you describe what you are doing and we will try to make it better.
 <div class="form-group">
-  <textarea class="form-control" rows="3" name="comment">{{user_data.get("comment", "")}}</textarea>
+  <textarea class="form-control" rows="3" name="comment">{{value}}</textarea>
 </div>
-</form>
 {%- endmacro %}
+
 
 {% macro progress_bar() %}
 <div class="progress">
