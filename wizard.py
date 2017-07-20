@@ -24,6 +24,7 @@ import random
 import hashlib
 import time
 import StringIO
+import tarfile
 
 
 from functools import wraps
@@ -760,63 +761,86 @@ def chaining():
 @with_session_id
 def ajax_upload_link():
   """Ajax upload link metadata. """
-  link_file = request.files.get("step_link", None)
+  uploaded_file = request.files.get("step_link", None)
 
-  if not link_file:
+  if not uploaded_file:
     flash = {
       "msg": "Could not store uploaded file - No file uploaded",
       "type":  "alert-danger"
     }
     return jsonify({"flash": flash, "error": True})
 
-  if link_file.filename == "":
+  if uploaded_file.filename == "":
     flash = {
       "msg": "Could not store uploaded file - No file selected",
       "type":  "alert-danger"
     }
     return jsonify({"flash": flash, "error": True})
 
+
+  link_file_tuples = []
+  # The uploaded file might be a tar archive so let's try to unpack it
   try:
-    # We try to load the public key to check the format
-    link_dict = json.loads(link_file.read())
-    # FIXME: in-toto links currently have no format validator
-    link = in_toto.models.mock_link.MockLink.read(link_dict)
-    file_name = link_file.filename
+    link_archive = tarfile.open(fileobj=uploaded_file)
+    for tar_info in link_archive.getmembers():
+      link_file = link_archive.extractfile(tar_info)
+      link_file_tuples.append((tar_info.name, link_file))
 
-    link_db_item = {
-      "step_name": link.name,
-      "file_name": file_name,
-      # NOTE: I wonder if we are prone to exceed the max document size (16 MB)
-      # if we store all the session info in one document. Probably not.
-      # NOTE: We can't store the dict representation of the link, because
-      # MongoDB does not allow dotted keys, e.g.: "materials": {"foo.py": {...
-      # hence we store it as canonical json string dump (c.f. link's __repr__).
-      "link_str": repr(link)
-    }
+  except tarfile.TarError as e:
+    # If that does not work we assume the uploaded file was link
+    link_file_tuples.append((uploaded_file.filename, uploaded_file))
 
-    # Add link info to the chaining.items array in the session document
-    query_result = mongo.db.session_collection.update_one(
-        {"_id": session["id"]},
-        {"$push": {"chaining.items": link_db_item}},
-        upsert=True)
-    # TODO: Throw rocks at query_result
 
-  except Exception as e:
-    flash = {
-      "msg": "Could not store '{}': Not a valid Link file. {}".format(
-          link_file.filename, e),
-      "type":  "alert-danger"
-    }
-    return jsonify({"flash": flash, "error": True})
+  added_files = []
+  messages = []
+  msg_type = "alert-success"
+  error = False
+  # Now iterate over all files we have, try to load them as link and
+  # store them to database
+  for link_filename, link_file in link_file_tuples:
+    try:
+      link_dict = json.loads(link_file.read())
+      # FIXME: in-toto links have no format validator (yet!)
+      link = in_toto.models.mock_link.MockLink.read(link_dict)
 
-  else:
-    flash = {
-      "msg": "Successfully uploaded link '{file_name}' for step '{name}'!".
-        format(file_name=file_name, name=link.name),
-      "type": "alert-success"
-    }
+      link_db_item = {
+        "step_name": link.name,
+        "file_name": link_filename,
+        # NOTE: We can't store the dict representation of the link, because
+        # MongoDB does not allow dotted keys, e.g.: "materials": {"foo.py": {...
+        # hence we store it as canonical json string dump (c.f. link's __repr__)
+        # NOTE: I wonder if we are prone to exceed the max document size (16 MB)
+        # if we store all the session info in one document. Probably not.
+        "link_str": repr(link)
+      }
 
-  return jsonify({"flash": flash, "error": False})
+      # Push link item to the chaining.items array in the session document
+      query_result = mongo.db.session_collection.update_one(
+          {"_id": session["id"]},
+          {"$push": {"chaining.items": link_db_item}},
+          upsert=True)
+
+      # TODO: Throw more rocks at query_result
+
+    except Exception as e:
+      error = True
+      msg_type = "alert-danger"
+      messages.append("Could not store '{}'. {}".format(link_filename, e))
+
+    else:
+      added_files.append(link_filename)
+      messages.append("Successfully stored link '{file_name}' "
+          "for step '{name}'!".format(file_name=link_filename, name=link.name))
+
+  # FIXME: Joining all the messages and giving them one message type does not
+  # look so good. We should change the JS show_message function to handle
+  # a list of messages instead.
+
+  flash = {
+    "msg": " ".join(messages),
+    "type": msg_type
+  }
+  return jsonify({"flash": flash, "error": error, "files": added_files})
 
 
 
@@ -846,7 +870,7 @@ def ajax_remove_link():
   else:
     flash = {
       "msg": "Successfully removed link file '{link}'!".format(
-                  link=link_filename),
+          link=link_filename),
       "type": "alert-success"
     }
 

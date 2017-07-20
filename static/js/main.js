@@ -313,14 +313,23 @@ function init_link_dropzone($elem) {
     dictRemoveFile: "Remove Link",
     init: function(file) {
       this.on("success", function(file, response) {
-        if (response.error) {
-          // Remove the file place holder from the dropzone if the upload
-          // failed
-          // NOTE: We store the fact that we did this here in the file to
-          // not try to delete the file in our "removedfile" listener
-          // This feels a little hackish
-          file.removed_on_error = true;
-          this.removeFile(file);
+
+        // Remove automatically added file preview...
+        // NOTE: We mention this fact by setting a
+        // custom property in the file object to not go and remove that file
+        // on the server when below call triggers the "removedfile" event.
+        // This feels a little hackish
+        file.removed_on_error = true;
+        this.removeFile(file);
+
+        // ... and add previews only for the file(s) that were actually stored
+        // on the server, e.g.: members of an uploaded tar
+        for (var i = 0; i < response.files.length; i++) {
+          // TODO: DRY add mock file
+          uploaded_file = {name: response.files[i], size: 12345};
+          this.emit("addedfile", uploaded_file);
+          this.emit("complete", uploaded_file, true);
+          this.files.push(uploaded_file);
         }
         show_message(response.flash.msg, response.flash.type);
       });
