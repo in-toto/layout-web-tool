@@ -329,6 +329,7 @@ function init_link_dropzone($elem) {
         if (file.removed_on_error)
           return;
 
+        var thiz = this;
         // Post the name of the functionary to remove
         $.post("/chaining/remove", {"link_filename": file.name},
           function(response) {
@@ -337,9 +338,9 @@ function init_link_dropzone($elem) {
             // Re-add file (on clientside) if server-side remove
             // was not successfull
             if (response.error) {
-              dropzone.emit("addedfile", file);
-              dropzone.emit("complete", file, true);
-              dropzone.files.push(file);
+              thiz.emit("addedfile", file);
+              thiz.emit("complete", file, true);
+              thiz.files.push(file);
             }
           });
       });
