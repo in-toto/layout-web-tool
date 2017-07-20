@@ -46,6 +46,13 @@ in-toto-mock --name {{step.name}} -- {{step.cmd}}
   </div>
   {# END: Link file upload dropzone #}
 
+  {# BEGIN: Comment section #}
+  <form id="chaining-form" method="POST" action="{{ url_for('chaining')}}">
+    <hr class="mt-5">
+    {{macros.comment_form(chaining.get("comment", ""))}}
+  </form>
+  {# END: Comment section #}
+
   {# BEGIN: Navigation Footer (Previous/Next) #}
   <hr>
   <div class="row no-gutters justify-content-between">
@@ -53,7 +60,7 @@ in-toto-mock --name {{step.name}} -- {{step.cmd}}
       <a class="btn btn-primary btn-block" href="{{ url_for('authorizing')}} ">Previous</a>
     </div>
     <div class="col-3">
-      <a class="btn btn-primary btn-block" href="{{ url_for('wrap_up')}} ">Next</a>
+      <input type="submit" form="chaining-form" class="btn btn-primary btn-block" value="Next">
     </div>
   </div>
   {# END: Navigation Footer (Previous/Next) #}

@@ -539,6 +539,8 @@ def software_supply_chain(refresh=False):
     inspection_commands = request.form.getlist("inspection_cmd[]")
     inspection_step_names = request.form.getlist("inspection_step_name[]")
 
+    comment = request.form.get("comment", "")
+
     # Names and Commands of a step or inspection are related by the same index
     # All lists should be equally long
     # FIXME: Don't assert, try!
@@ -549,6 +551,7 @@ def software_supply_chain(refresh=False):
     # Create and persist software supply chain data from posted form
     ssc_data = form_data_to_ssc(step_names, step_commands, step_modifies,
         inspection_names, inspection_commands, inspection_step_names)
+    ssc_data["comment"] = comment
     _persist_session_subdocument_ts({"ssc": ssc_data})
 
     return redirect(url_for("functionaries"))
@@ -574,12 +577,24 @@ def software_supply_chain(refresh=False):
       ssc_data=ssc_data)
 
 
-@app.route("/functionaries")
+@app.route("/functionaries", methods=["GET", "POST"])
 @with_session_id
 def functionaries():
   """Step 6.
-  Functionary keys upload and keys dropzone. """
+  On GET:
+    Serve functionary keys upload and keys dropzone.
+    Pubkeys are uploaded using ajax (c.f. ajax_upload_key)
+  On POST:
+    Store comment and redirect to next page"""
   functionaries = _get_session_subdocument("functionaries")
+  if request.method == "POST":
+    functionaries["comment"] = request.form.get("comment", "")
+    _persist_session_subdocument({"functionaries": functionaries})
+
+    flash("Great! Now tell us who is authorized to do what...",
+        "alert-success")
+    return redirect(url_for("authorizing"))
+
   return render_template("functionaries.html", functionaries=functionaries)
 
 
@@ -712,8 +727,6 @@ def ajax_remove_functionary():
     return jsonify({"flash": flash, "error": False})
 
 
-
-
 @app.route("/authorizing", methods=["GET", "POST"])
 @with_session_id
 def authorizing():
@@ -723,6 +736,7 @@ def authorizing():
   if request.method == "POST":
     step_names = request.form.getlist("step_name[]")
     thresholds = request.form.getlist("threshold[]")
+    comment = request.form.get("comment", "")
 
     # Steps names, commands and thresholds are related by the same index
     # These lists should be equally long
@@ -764,33 +778,49 @@ def authorizing():
 
       query_result = mongo.db.session_collection.update_one(
           { "_id": session["id"]},
-          {"$set": {"authorizing.items": auth_items}})
+          {"$set": {"authorizing.items": auth_items,
+            "authorizing.comment": comment}})
       return redirect(url_for("chaining"))
 
-    # if not valid we'll return below and the user can ammend invalid data
+    # if not valid we'll return below and the user can amend invalid data
 
 
   else: # request not POST
-    auth_items = _get_session_subdocument("authorizing").get("items", [])
+    authorizing = _get_session_subdocument("authorizing")
+    auth_items = authorizing.get("items", [])
+    comment = authorizing.get("comment", "")
 
   # We store auth data items to db as list
-  # but in the templates we map the items to their repsective step names
+  # but in the templates we map the items to their respective step names
   auth_dict = _auth_items_to_dict(auth_items)
 
   session_functionaries = _get_session_subdocument("functionaries")
   session_steps = _get_session_subdocument("ssc").get("steps", [])
   return render_template("authorizing.html",
       functionaries=session_functionaries, steps=session_steps,
-      auth_dict=auth_dict)
+      auth_dict=auth_dict, comment=comment)
 
 
-@app.route("/chaining")
+@app.route("/chaining", methods=["GET", "POST"])
 @with_session_id
 def chaining():
   """Step 8.
-  Dry run snippet and link metadata upload. """
-  steps = _get_session_subdocument("ssc").get("steps", [])
+  On GET:
+    Serve dry run snippet and link metadata upload.
+    Link files are uploaded using ajax (c.f. ajax_upload_link)
+  On POST:
+    Store comment and redirect to next page."""
+
   chaining = _get_session_subdocument("chaining")
+  steps = _get_session_subdocument("ssc").get("steps", [])
+
+  if request.method == "POST":
+    chaining["comment"] = request.form.get("comment", "")
+    _persist_session_subdocument({"chaining": chaining})
+
+    flash("Yeah! That's basically it... :)", "alert-success")
+    return redirect(url_for("wrap_up"))
+
   return render_template("chaining.html", steps=steps, chaining=chaining)
 
 
