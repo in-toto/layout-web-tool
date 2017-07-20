@@ -15,6 +15,7 @@
 {%- for step in steps %}
 in-toto-mock --name {{step.name}} -- {{step.cmd}}
 {%- endfor %}
+tar czf in_toto_link_files.tar.gz {% for step in steps%}{{step.name}}.link-mock {% endfor %}
 </pre>
   </div>
   {# END: Mock run command snippet  #}
