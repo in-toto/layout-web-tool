@@ -26,14 +26,14 @@
         <select name="functionary_name_{{step.name}}[]" multiple class="form-control select2">
           {% for functionary in functionaries.get("items", []) %}
           {% with functionary_name=functionary.get('functionary_name') %}
-            <option {{'selected' if functionary_name in authorizing.get(step.name, {}).authorized_functionaries}}  value="{{functionary_name}}">{{functionary_name}}</option>
+            <option {{'selected' if functionary_name in auth_dict.get(step.name, {}).authorized_functionaries}}  value="{{functionary_name}}">{{functionary_name}}</option>
           {% endwith %}
           {% endfor %}
         </select>
       </div>
       <div class="col-2">
         <label>Threshold</label>
-        <input name="threshold[]" class="form-control" type="number" min="1" value="{{authorizing.get(step.name, {}).get('threshold', 1)}}">
+        <input name="threshold[]" class="form-control" type="number" min="1" value="{{auth_dict.get(step.name, {}).get('threshold', 1)}}">
       </div>
     </div>
   {% endfor %}
