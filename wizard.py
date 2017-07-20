@@ -23,10 +23,12 @@ import os
 import random
 import hashlib
 import time
+import StringIO
+
 
 from functools import wraps
 from flask import (Flask, render_template, session, redirect, url_for, request,
-    flash, send_from_directory, abort, json, jsonify)
+    flash, send_file, abort, json, jsonify)
 from flask_pymongo import PyMongo
 
 import in_toto.util
@@ -46,7 +48,6 @@ app.config.update(dict(
     DEBUG=True,
     SECRET_KEY="do not use the development key in production!!!",
     # FIXME: Isolate files per session like in old version of tool
-    USER_FILES=os.path.join(os.path.dirname(os.path.abspath(__file__)), "files"),
 ))
 
 # Supply a config file at "instance/config.py" that carries
@@ -270,6 +271,7 @@ def _auth_items_to_dict(auth_items):
   for auth_item in auth_items:
     auth_dict[auth_item["step_name"]] = auth_item
   return auth_dict
+
 
 # -----------------------------------------------------------------------------
 # NoSQL Helpers
@@ -913,8 +915,7 @@ def wrap_up():
 @with_session_id
 def download_layout():
   """Create layout based on session data and uploaded links and
-  serve with layout name from session directory as attachment
-  (Content-Disposition: attachment).
+  serve.
 
   TODO: Move out layout creation functionality to reverse_layout.py
   """
@@ -979,14 +980,15 @@ def download_layout():
     layout.inspect.append(inspection)
 
   layout.validate()
-  # TODO: Use a dynamic name?
-  layout_name = "root.layout"
-  layout_path = os.path.join(app.config["USER_FILES"], layout_name)
-  layout.dump(layout_path)
+  layout_name = "untitled-" + str(time.time()).replace(".", "") + ".layout"
 
-  # Serve file
-  return send_from_directory(app.config["USER_FILES"], layout_name,
-      as_attachment=True)
+  # Dump layout to memory file and server to user
+  layout_fp = StringIO.StringIO()
+  layout_fp.write("{}".format(layout))
+  layout_fp.seek(0)
+  return send_file(layout_fp,
+      mimetype="application/json", as_attachment=True,
+      attachment_filename=layout_name)
 
 
 @app.route("/guarantees")
