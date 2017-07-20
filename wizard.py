@@ -262,6 +262,16 @@ def form_data_to_ssc(step_names, step_commands, step_modifies,
   return ssc_data
 
 # -----------------------------------------------------------------------------
+# Helpers
+# -----------------------------------------------------------------------------
+def _auth_items_to_dict(auth_items):
+  """Maps auth_items to their respective step names """
+  auth_dict = {}
+  for auth_item in auth_items:
+    auth_dict[auth_item["step_name"]] = auth_item
+  return auth_dict
+
+# -----------------------------------------------------------------------------
 # NoSQL Helpers
 # -----------------------------------------------------------------------------
 
@@ -708,11 +718,6 @@ def authorizing():
   """Step 7.
   Associate functionaries with steps. """
 
-  # This is needed for POST and GET requests
-  session_functionaries = _get_session_subdocument("functionaries")
-  session_authorizing = _get_session_subdocument("authorizing")
-  session_steps = _get_session_subdocument("ssc").get("steps", [])
-
   if request.method == "POST":
     step_names = request.form.getlist("step_name[]")
     thresholds = request.form.getlist("threshold[]")
@@ -724,43 +729,57 @@ def authorizing():
 
     # The authorized functionaries multi select form element has the
     # respective step name in its name
+    auth_items = []
     for idx, step_name in enumerate(step_names):
       functionaries_for_step = request.form.getlist(
           "functionary_name_" + step_name + "[]")
 
       auth_data = {
+        "step_name": step_name,
         "threshold": int(thresholds[idx]),
         "authorized_functionaries": functionaries_for_step
       }
-
-      session_authorizing[step_name] = auth_data
+      auth_items.append(auth_data)
 
     # Validate, we validate after we have processed everything so we can
     # return all data to the form
     valid = True
-    for step_name, step_data in session_authorizing.iteritems():
-      if not step_data.get("authorized_functionaries", []):
+    for auth_item in auth_items:
+      if not auth_item["authorized_functionaries"]:
         valid = False
         flash("Step '{name}': Authorize at least one functionary!"
-            .format(name=step_name), "alert-danger")
+            .format(name=auth_item["step_name"]), "alert-danger")
 
-      elif step_data["threshold"] > len(step_data.get("authorized_functionaries",
-          [])):
+      elif auth_item["threshold"] > len(auth_item["authorized_functionaries"]):
         valid = False
         flash(("Step '{name}': Threshold can't be higher than the "
-            " number of authorized functionaries!").format(name=step_name),
-                "alert-danger")
+            " number of authorized functionaries!")
+            .format(name=auth_item["step_name"]), "alert-danger")
 
     if valid:
       flash("Success! It's time to do a test run of your software supply "
           "chain.", "alert-success")
-      _persist_session_subdocument({"authorizing": session_authorizing})
+
+      query_result = mongo.db.session_collection.update_one(
+          { "_id": session["id"]},
+          {"$set": {"authorizing.items": auth_items}})
       return redirect(url_for("chaining"))
 
-  # If not valid return to form so that the user can fix the errors
+    # if not valid we'll return below and the user can ammend invalid data
+
+
+  else: # request not POST
+    auth_items = _get_session_subdocument("authorizing").get("items", [])
+
+  # We store auth data items to db as list
+  # but in the templates we map the items to their repsective step names
+  auth_dict = _auth_items_to_dict(auth_items)
+
+  session_functionaries = _get_session_subdocument("functionaries")
+  session_steps = _get_session_subdocument("ssc").get("steps", [])
   return render_template("authorizing.html",
       functionaries=session_functionaries, steps=session_steps,
-      authorizing=session_authorizing)
+      auth_dict=auth_dict)
 
 
 @app.route("/chaining")
@@ -882,9 +901,11 @@ def wrap_up():
    - Release instructions ??
   """
   functionaries = _get_session_subdocument("functionaries")
-  auths = _get_session_subdocument("authorizing")
+  auth_items = _get_session_subdocument("authorizing").get("items", [])
+  auth_dict = _auth_items_to_dict(auth_items)
+
   steps = _get_session_subdocument("ssc").get("steps", [])
-  return render_template("wrap_up.html", steps=steps, auths=auths,
+  return render_template("wrap_up.html", steps=steps, auth_dict=auth_dict,
       functionaries=functionaries)
 
 
@@ -930,10 +951,13 @@ def download_layout():
     # Add keys to functionary name-keyid map needed below
     functionary_keyids[functionary_name] = key["keyid"]
 
+  auth_items = _get_session_subdocument("authorizing").get("items", [])
+  auth_dict = _auth_items_to_dict(auth_items)
+
   # Add authorized functionaries to steps and set signing threshold
   for idx in range(len(layout.steps)):
     step_name = layout.steps[idx].name
-    auth_data = _get_session_subdocument("authorizing").get(step_name, {})
+    auth_data = auth_dict.get(step_name)
 
     for functionary_name in auth_data.get("authorized_functionaries", []):
       keyid = functionary_keyids.get(functionary_name)
@@ -963,6 +987,7 @@ def download_layout():
   # Serve file
   return send_from_directory(app.config["USER_FILES"], layout_name,
       as_attachment=True)
+
 
 @app.route("/guarantees")
 @with_session_id

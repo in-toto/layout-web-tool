@@ -44,7 +44,7 @@ in-toto-sign --key project-owner root.layout
   displayed in pre elems #}
 <pre class="code">
 {% for step in steps %}
-{%- if functionary_name in auths.get(step.name).get("authorized_functionaries", []) -%}
+{%- if functionary_name in auth_dict.get(step.name).get("authorized_functionaries", []) -%}
 in-toto-run --key {{functionary_name}} --materials . --products . --step-name {{step.name}} -- {{step.cmd}}
 {% endif %}
 {%- endfor -%}
