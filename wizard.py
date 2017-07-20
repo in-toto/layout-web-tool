@@ -47,7 +47,6 @@ mongo = PyMongo(app)
 app.config.update(dict(
     DEBUG=True,
     SECRET_KEY="do not use the development key in production!!!",
-    # FIXME: Isolate files per session like in old version of tool
 ))
 
 # Supply a config file at "instance/config.py" that carries
@@ -130,7 +129,7 @@ def session_to_ssc(session_data):
 
   <Returns>
     Software Supply Chain Data, i.e. a dictionary of step and inspection data
-    (these are not not actual in-toto Step and Insepction objects), e.g.:
+    (these are not not actual in-toto Step and Inspection objects), e.g.:
     {
       steps: [
         {
@@ -221,7 +220,7 @@ def form_data_to_ssc(step_names, step_commands, step_modifies,
 
   <Returns>
     Software Supply Chain Data, i.e. a dictionary of step and inspection data
-    (these are not not actual in-toto Step and Insepction objects), e.g.:
+    (these are not not actual in-toto Step and Inspection objects), e.g.:
     {
       steps: [
         {
@@ -279,7 +278,7 @@ def _auth_items_to_dict(auth_items):
 
 # NOTE:
 # Below functions rely on the current session having an id. If there is no id
-# in the session, all fucntions redirect to `404`.
+# in the session, all functions redirect to `404`.
 # This should never happen because all calling views should be decorated with
 # @with_session_id, which ensures that the current session does have an id.
 def _persist_session_subdocument(subdocument):
@@ -524,11 +523,8 @@ def software_supply_chain(refresh=False):
 
   FIXMEs/TODOs:
 
-  - Data sanatizing: e.g. restrict step names (unique) and inspection
+  - Data sanitizing: e.g. restrict step names (unique) and inspection
     step names (must reference an existing step)
-  - On front-end JS: refresh D3 graph on form change
-  - DRY up graph generation functions: session_to_graph, form_data_to_graph,
-    layout_to_graph (commented out)
   """
 
   if request.method == "POST":
@@ -642,7 +638,7 @@ def ajax_upload_key():
     }
 
     # Clumsy update or insert for functionary array embedded subdocument
-    # NOTE: Unfortunately we can't upsert on arrays but must first try to
+    # NOTE: Unfortunately we can't "upsert" on arrays but must first try to
     # update and if that does not work insert.
     # https://docs.mongodb.com/manual/reference/operator/update/positional/#upsert
     # https://stackoverflow.com/questions/23470658/mongodb-upsert-sub-document
