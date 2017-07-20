@@ -49,8 +49,8 @@ in-toto-keygen &ltFILENAME&gt
   {# BEGIN: Functionary key uploads #}
   <div id="functionary-container">
     {{ item_form(template=True) }}
-    {% for name in functionaries.keys() %}
-      {{ item_form(name=name) }}
+    {% for functionary_data in functionaries.get("items", []) %}
+      {{ item_form(name=functionary_data.get("functionary_name")) }}
     {% endfor %}
   </div>
   {# END: Functionary key uploads #}
@@ -64,14 +64,14 @@ in-toto-keygen &ltFILENAME&gt
       // https://github.com/jquery/api.jquery.com/issues/659
       // - Python's iteritems() and values() return items in the same order
       // https://docs.python.org/2/library/stdtypes.html#dict.items
-      var pubkeys = {{functionaries.values() | tojson}}
+      var pubkeys = {{functionaries.get("items", []) | tojson}}
       var dropzones = $(".functionary:not(.template) .dropzone");
-
+      console.log(pubkeys)
       // Iterate over DOM elements, initialize dropzone plugin, and add
       // existing uploaded files
       for (var i = 0; i < dropzones.length; i++) {
         var dropzone = init_functionary_dropzone($(dropzones[i]))
-        var dz_file =  {name: pubkeys[i]["filename"], size: 12345};
+        var dz_file = {name: pubkeys[i]["file_name"], size: 12345};
         dropzone.emit("addedfile", dz_file);
         dropzone.emit("complete", dz_file, true);
         dropzone.files.push(dz_file);

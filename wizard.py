@@ -606,28 +606,61 @@ def ajax_upload_key():
         functionary_key.read())
 
     securesystemslib.formats.PUBLIC_KEY_SCHEMA.check_match(key)
+    file_name = functionary_key.filename
 
-    # FIXME: Fix race condition!
-    functionary_data = _get_session_subdocument("functionaries")
-    fn = functionary_key.filename
-    functionary_data[functionary_name] = {
-      "filename": fn,
-      "key": key
+    functionary_db_item = {
+      "functionary_name": functionary_name,
+      "file_name": file_name,
+      "key_dict": key
     }
-    _persist_session_subdocument({"functionaries": functionary_data})
 
-    flash = {
-      "msg": ("Successfully uploaded key '{fn}' for functionary "
-      "'{functionary}'!".format(fn=fn, functionary=functionary_name)),
-      "type": "alert-success"
-    }
+    # Clumsy update or insert for functionary array embedded subdocument
+    # NOTE: Unfortunately we can't upsert on arrays but must first try to
+    # update and if that does not work insert.
+    # https://docs.mongodb.com/manual/reference/operator/update/positional/#upsert
+    # https://stackoverflow.com/questions/23470658/mongodb-upsert-sub-document
+    query_result = mongo.db.session_collection.update_one(
+        {
+          "_id": session["id"],
+          "functionaries.items.functionary_name": functionary_name
+        },
+        {
+          "$set": {"functionaries.items.$": functionary_db_item}
+        })
+
+    if not query_result.matched_count:
+      query_result = mongo.db.session_collection.update_one(
+          {
+            "_id": session["id"],
+            # This query part should deal with concurrent requests
+            "functionaries.items.functionary_name": {"$ne": functionary_name}
+          },
+          {
+            "$push": {"functionaries.items": functionary_db_item}
+          }, upsert=True)
+
+      msg = ("Successfully added key '{fn}' for functionary "
+        "'{functionary}'.".format(fn=file_name, functionary=functionary_name))
+
+    else:
+      msg =("Successfully updated key '{fn}' for functionary "
+        "'{functionary}'.".format(fn=file_name, functionary=functionary_name))
+
+    # TODO: Throw more rocks at query_result
 
   except Exception as e:
     flash = {
-      "msg": "Could not store uploaded file - Not a valid public key",
+      "msg": ("Could not store uploaded file. Error: {}".format(e)),
       "type":  "alert-danger"
     }
     return jsonify({"flash": flash, "error": True})
+
+  else:
+      flash = {
+        "msg": msg,
+        "type": "alert-success"
+      }
+
 
   return jsonify({"flash": flash, "error": False})
 
@@ -640,28 +673,31 @@ def ajax_remove_functionary():
   """
   functionary_name = request.form.get("functionary_name")
 
-  # FIXME: Fix race condition
-  functionary_data = _get_session_subdocument("functionaries")
-  if functionary_name in functionary_data:
-    del functionary_data[functionary_name]
-    _persist_session_subdocument({"functionaries": functionary_data})
+  try:
+    # Remove the link entry with posted file name in the session
+    # document's functionaries.items list
+    query_result = mongo.db.session_collection.update_one(
+        {"_id": session["id"]},
+        {"$pull": {"functionaries.items":
+          {"functionary_name": functionary_name}}})
+    # TODO: Throw rocks at query_result
 
+  except Exception as e:
     flash = {
-      "msg": "Successfully removed functionary '{functionary}'!".
-        format(functionary=functionary_name),
-      "type": "alert-success"
+      "msg": "Could not remove functionary '{name}'. {e}".
+        format(name=functionary_name, e=e),
+      "type": "alert-danger"
     }
-    error = False
+    return jsonify({"flash": flash, "error": True})
+
 
   else:
     flash = {
-      "msg": "Could not remove non-existing functionary '{functionary}'!".
-        format(functionary=functionary_name),
-      "type": "alert-danger"
+      "msg": "Successfully removed functionary '{name}'.".
+        format(name=functionary_name),
+      "type": "alert-success"
     }
-    error = True
-
-  return jsonify({"flash": flash, "error": error})
+    return jsonify({"flash": flash, "error": False})
 
 
 
@@ -721,8 +757,7 @@ def authorizing():
       _persist_session_subdocument({"authorizing": session_authorizing})
       return redirect(url_for("chaining"))
 
-    #If not valid return to form so that the user can fix the errors
-
+  # If not valid return to form so that the user can fix the errors
   return render_template("authorizing.html",
       functionaries=session_functionaries, steps=session_steps,
       authorizing=session_authorizing)
@@ -846,11 +881,11 @@ def wrap_up():
    - Per functionary commands (in-toto-run snippet)
    - Release instructions ??
   """
-  functionary_names = _get_session_subdocument("functionaries").keys()
+  functionaries = _get_session_subdocument("functionaries")
   auths = _get_session_subdocument("authorizing")
   steps = _get_session_subdocument("ssc").get("steps", [])
   return render_template("wrap_up.html", steps=steps, auths=auths,
-      functionary_names=functionary_names)
+      functionaries=functionaries)
 
 
 @app.route("/download-layout")
@@ -881,10 +916,9 @@ def download_layout():
   functionary_keyids = {}
 
   # Add uploaded functionary pubkeys to layout
-  for functionary_name, functionary in _get_session_subdocument(
-      "functionaries").iteritems():
-
-    key = functionary.get("key")
+  for functionary in _get_session_subdocument("functionaries").get("items", []):
+    key = functionary.get("key_dict")
+    functionary_name = functionary.get("functionary_name")
 
     # Check the format of the uploaded public key
     # TODO: Handle invalid key

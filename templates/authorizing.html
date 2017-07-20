@@ -17,7 +17,6 @@
       $(".select2").select2();
     });
   </script>
-
   <form id="authorizing-form" action="{{ url_for('authorizing') }}" method="POST">
   {% for step in steps %}
     <input type="hidden" name="step_name[]" value="{{step.name}}">
@@ -25,8 +24,10 @@
       <div class="col-10">
         <label><strong>{{step.name}}</strong> (authorized functionaries)</label>
         <select name="functionary_name_{{step.name}}[]" multiple class="form-control select2">
-          {% for functionary_name in functionaries.keys() %}
-           <option {{'selected' if functionary_name in authorizing.get(step.name, {}).authorized_functionaries}}  value="{{functionary_name}}"> {{ functionary_name }}</option>
+          {% for functionary in functionaries.get("items", []) %}
+          {% with functionary_name=functionary.get('functionary_name') %}
+            <option {{'selected' if functionary_name in authorizing.get(step.name, {}).authorized_functionaries}}  value="{{functionary_name}}">{{functionary_name}}</option>
+          {% endwith %}
           {% endfor %}
         </select>
       </div>
