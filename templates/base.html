@@ -21,10 +21,7 @@
       <div id="alert-container">
         <script type="text/javascript">
           $(function(){
-            var messages = {{get_flashed_messages(with_categories=true) | tojson }};
-            messages.forEach(function(msg_data) {
-              show_message(msg_data[1], msg_data[0]);
-            });
+            show_messages({{ get_flashed_messages(with_categories=True) | tojson }});
           })
         </script>
         <div class="alert alert-dismissible fade show template" role="alert">

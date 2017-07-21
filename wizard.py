@@ -28,7 +28,7 @@ import tarfile
 
 from functools import wraps
 from flask import (Flask, render_template, session, redirect, url_for, request,
-    flash, send_file, abort, json, jsonify)
+    flash, send_file, abort, json, jsonify, get_flashed_messages)
 from flask_pymongo import PyMongo
 
 import in_toto.util
@@ -293,6 +293,23 @@ def with_session_id(wrapped_func):
   return decorated_function
 
 
+@app.after_request
+def ajax_flash_messages(response):
+  """ This function intercepts JSON responses to ajax requests and injects
+  a "messages" field containing flashed messages.
+  To display them the JS callback that receives the response can call
+  show_messages(repsonse.messages).
+  """
+
+  if (request.is_xhr and
+      response.headers.get("Content-Type") == "application/json"):
+    response_data = json.loads(response.get_data())
+    response_data["messages"] = get_flashed_messages(with_categories=True)
+    response.set_data(json.dumps(response_data))
+
+  return response
+
+
 # -----------------------------------------------------------------------------
 # Views
 # -----------------------------------------------------------------------------
@@ -321,7 +338,7 @@ def versioning():
     _persist_session_subdocument_ts({"vcs": vcs_data})
 
     # We are done here, let's go to the next page
-    flash("Success! Now let's see how you build your software...",
+    flash("Now let's see how you build your software...",
         "alert-success")
     return redirect(url_for("building"))
 
@@ -346,7 +363,7 @@ def building():
     }
     _persist_session_subdocument_ts({"building": building_data})
 
-    flash("Success! Let's talk about quality management next...",
+    flash("Let's talk about quality management next...",
         "alert-success")
     return redirect(url_for("quality_management"))
 
@@ -414,8 +431,8 @@ def quality_management():
     }
     _persist_session_subdocument_ts({"qa": qa_data})
 
-    flash("Success! Nice quality management, but how to you package"
-        " up your software?", "alert-success")
+    flash("Nice quality management, but how do you package"
+        " your software?", "alert-success")
     return redirect(url_for("packaging"))
 
   user_data = _get_session_subdocument("qa")
@@ -438,7 +455,7 @@ def packaging():
     }
     _persist_session_subdocument_ts({"package": package_data})
 
-    flash("Success! Now let's see if we got your software supply chain right...",
+    flash("Now let's see if we got your software supply chain right...",
         "alert-success")
     return redirect(url_for("software_supply_chain"))
 
@@ -530,7 +547,7 @@ def functionaries():
     functionaries["comment"] = request.form.get("comment", "")
     _persist_session_subdocument({"functionaries": functionaries})
 
-    flash("Great! Now tell us who is authorized to do what...",
+    flash("Now tell us who is authorized to do what...",
         "alert-success")
     return redirect(url_for("authorizing"))
 
@@ -545,26 +562,18 @@ def ajax_upload_key():
   functionary_name = request.form.get("functionary_name", None)
 
   if not functionary_name:
-    flash = {
-      "msg": ("Something went wrong - we don't know which functionary,"
-              " this key belongs to"),
-      "type":  "alert-danger"
-    }
-    return jsonify({"flash": flash, "error": True})
+    flash("Something went wrong: We don't know which functionary,"
+              " this key belongs to", "alert-danger")
+
+    return jsonify({"error": True})
 
   if not functionary_key:
-    flash = {
-      "msg": "Could not store uploaded file - No file uploaded",
-      "type":  "alert-danger"
-    }
-    return jsonify({"flash": flash, "error": True})
+    flash("Something went wrong: No file uploaded", "alert-danger")
+    return jsonify({"error": True})
 
   if functionary_key.filename == "":
-    flash = {
-      "msg": "Could not store uploaded file - No file selected",
-      "type":  "alert-danger"
-    }
-    return jsonify({"flash": flash, "error": True})
+    flash("Something went wrong: No file selected", "alert-danger")
+    return jsonify({"error": True})
 
   try:
     # We try to load the public key to check the format
@@ -605,30 +614,23 @@ def ajax_upload_key():
             "$push": {"functionaries.items": functionary_db_item}
           }, upsert=True)
 
-      msg = ("Successfully added key '{fn}' for functionary "
-        "'{functionary}'.".format(fn=file_name, functionary=functionary_name))
+      flash("Added key '{fn}' for functionary '{functionary}'"
+          .format(fn=file_name, functionary=functionary_name),
+          "alert-success")
 
     else:
-      msg =("Successfully updated key '{fn}' for functionary "
-        "'{functionary}'.".format(fn=file_name, functionary=functionary_name))
+      flash("Updated key '{fn}' for functionary ""'{functionary}'"
+          .format(fn=file_name, functionary=functionary_name),
+          "alert-success")
 
     # TODO: Throw more rocks at query_result
 
   except Exception as e:
-    flash = {
-      "msg": ("Could not store uploaded file. Error: {}".format(e)),
-      "type":  "alert-danger"
-    }
-    return jsonify({"flash": flash, "error": True})
+    flash("Could not store uploaded file. Error: {}".format(e),
+        "alert-danger")
+    return jsonify({"error": True})
 
-  else:
-      flash = {
-        "msg": msg,
-        "type": "alert-success"
-      }
-
-
-  return jsonify({"flash": flash, "error": False})
+  return jsonify({"error": False})
 
 
 @app.route("/functionaries/remove", methods=["POST"])
@@ -649,21 +651,14 @@ def ajax_remove_functionary():
     # TODO: Throw rocks at query_result
 
   except Exception as e:
-    flash = {
-      "msg": "Could not remove functionary '{name}'. {e}".
-        format(name=functionary_name, e=e),
-      "type": "alert-danger"
-    }
-    return jsonify({"flash": flash, "error": True})
-
+    flash("Could not remove functionary '{name}': {e}".format(
+        name=functionary_name, e=e), "alert-danger")
+    return jsonify({"error": True})
 
   else:
-    flash = {
-      "msg": "Successfully removed functionary '{name}'.".
-        format(name=functionary_name),
-      "type": "alert-success"
-    }
-    return jsonify({"flash": flash, "error": False})
+    flash("Removed functionary '{name}'.".format(
+        name=functionary_name), "alert-success")
+    return jsonify({"error": False})
 
 
 @app.route("/authorizing", methods=["GET", "POST"])
@@ -702,18 +697,18 @@ def authorizing():
     for auth_item in auth_items:
       if not auth_item["authorized_functionaries"]:
         valid = False
-        flash("Step '{name}': Authorize at least one functionary!"
-            .format(name=auth_item["step_name"]), "alert-danger")
+        flash("Step '{name}': Authorize at least one functionary".format(
+            name=auth_item["step_name"]), "alert-warning")
 
       elif auth_item["threshold"] > len(auth_item["authorized_functionaries"]):
         valid = False
-        flash(("Step '{name}': Threshold can't be higher than the "
-            " number of authorized functionaries!")
-            .format(name=auth_item["step_name"]), "alert-danger")
+        flash("Step '{name}': Threshold can't be higher than the "
+            " number of authorized functionaries".format(
+            name=auth_item["step_name"]), "alert-warning")
 
     if valid:
-      flash("Success! It's time to do a test run of your software supply "
-          "chain.", "alert-success")
+      flash("It's time to do a test run of your software supply chain",
+          "alert-success")
 
       query_result = mongo.db.session_collection.update_one(
           { "_id": session["id"]},
@@ -757,7 +752,7 @@ def chaining():
     chaining["comment"] = request.form.get("comment", "")
     _persist_session_subdocument({"chaining": chaining})
 
-    flash("Yeah! That's basically it... :)", "alert-success")
+    flash("And that's basically it... :)", "alert-success")
     return redirect(url_for("wrap_up"))
 
   return render_template("chaining.html", steps=steps, chaining=chaining)
@@ -770,18 +765,12 @@ def ajax_upload_link():
   uploaded_file = request.files.get("step_link", None)
 
   if not uploaded_file:
-    flash = {
-      "msg": "Could not store uploaded file - No file uploaded",
-      "type":  "alert-danger"
-    }
-    return jsonify({"flash": flash, "error": True})
+    flash("Something went wrong: No file uploaded", "alert-danger")
+    return jsonify()
 
   if uploaded_file.filename == "":
-    flash = {
-      "msg": "Could not store uploaded file - No file selected",
-      "type":  "alert-danger"
-    }
-    return jsonify({"flash": flash, "error": True})
+    flash("Something went wrong: No file selected", "alert-danger")
+    return jsonify()
 
 
   link_file_tuples = []
@@ -798,9 +787,7 @@ def ajax_upload_link():
 
 
   added_files = []
-  messages = []
   msg_type = "alert-success"
-  error = False
   # Now iterate over all files we have, try to load them as link and
   # store them to database
   for link_filename, link_file in link_file_tuples:
@@ -829,24 +816,16 @@ def ajax_upload_link():
       # TODO: Throw more rocks at query_result
 
     except Exception as e:
-      error = True
       msg_type = "alert-danger"
-      messages.append("Could not store '{}'. {}".format(link_filename, e))
+      flash("Could not store link '{}': {}".format(link_filename, e),
+          "alert-danger")
 
     else:
       added_files.append(link_filename)
-      messages.append("Successfully stored link '{file_name}' "
-          "for step '{name}'!".format(file_name=link_filename, name=link.name))
+      flash("Stored link '{file_name}' for step '{name}'!"
+          .format(file_name=link_filename, name=link.name), "alert-success")
 
-  # FIXME: Joining all the messages and giving them one message type does not
-  # look so good. We should change the JS show_message function to handle
-  # a list of messages instead.
-
-  flash = {
-    "msg": " ".join(messages),
-    "type": msg_type
-  }
-  return jsonify({"flash": flash, "error": error, "files": added_files})
+  return jsonify({"files": added_files})
 
 
 
@@ -866,21 +845,15 @@ def ajax_remove_link():
     # TODO: Throw rocks at query_result
 
   except Exception as e:
-    flash = {
-      "msg": "Could not remove link file '{link}', Error: '{e}'".format(
-          link=link_filename, e=e),
-      "type": "alert-danger"
-    }
-    return jsonify({"flash": flash, "error": True})
+    flash("Could not remove link file '{link}': '{e}'".format(
+          link=link_filename, e=e), "alert-danger")
+    return jsonify({"error": True})
 
   else:
-    flash = {
-      "msg": "Successfully removed link file '{link}'!".format(
-          link=link_filename),
-      "type": "alert-success"
-    }
+    flash("Removed link file '{link}'".format(
+          link=link_filename), "alert-success")
 
-  return jsonify({"flash": flash, "error": False})
+  return jsonify({"error": False})
 
 
 @app.route("/wrap-up")
