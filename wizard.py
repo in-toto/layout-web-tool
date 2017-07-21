@@ -447,9 +447,8 @@ def packaging():
 
 
 @app.route("/software-supply-chain", methods=["GET", "POST"])
-# @app.route("/software-supply-chain/refresh", methods=["GET"])
 @with_session_id
-def software_supply_chain(refresh=False):
+def software_supply_chain():
   """Step 5.
   Serve software supply chain graph based on form data posted on previous
   pages and stored to session (`session_to_graph`).
@@ -489,25 +488,32 @@ def software_supply_chain(refresh=False):
 
     return redirect(url_for("functionaries"))
 
+  # Only re-generate software supply chain from data the user has posted on
+  # previous pages, if there is no ssc data in the db or the user has sent
+  # the `refresh` get parameter, otherwise serve existing ssc data
 
+
+  show_refresh = False
   session_data = _get_session_document()
   ssc_data = session_data.get("ssc", {})
   ssc_last_modified = ssc_data.get("last_modified", 0)
+  if not ssc_data or request.args.get("refresh"):
+    ssc_data = session_to_ssc(session_data)
 
-  # If stored ssc data is older than any of stored
-  # vcs/building/qa/package data, we (re-)generate the software supply chain,
-  # otherwise we serve the stored software supply chain
-  # If an entry does not exist the last_modified property is 0
-  for step_type in ["vcs", "building", "qa", "package"]:
-    data_last_modified = session_data.get(step_type, {}).get("last_modified", 0)
-    if ssc_last_modified < data_last_modified:
-      ssc_data = session_to_ssc(session_data)
-      break
-
-  # TODO: Maybe we shouldn't auto RE-generate but ask user for confirmation
+  else:
+    # If existing ssc data is older than any of stored vcs/building/qa/package
+    # datawe show a "do you want to re-generate
+    # the software supply chain" dialog but serve the stored software supply
+    # chain
+    for subdocument in ["vcs", "building", "qa", "package"]:
+      data_last_modified = session_data.get(subdocument,
+          {}).get("last_modified", 0)
+      if ssc_last_modified < data_last_modified:
+        show_refresh = True
+        break
 
   return render_template("software_supply_chain.html",
-      ssc_data=ssc_data)
+      ssc_data=ssc_data, show_refresh=show_refresh)
 
 
 @app.route("/functionaries", methods=["GET", "POST"])
