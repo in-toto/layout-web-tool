@@ -26,7 +26,6 @@ import time
 import StringIO
 import tarfile
 
-
 from functools import wraps
 from flask import (Flask, render_template, session, redirect, url_for, request,
     flash, send_file, abort, json, jsonify)
@@ -288,6 +287,7 @@ def with_session_id(wrapped_func):
       # Sessions use a MD5 hexdigest of a random value
       # Security is not paramount, we don't store sensitive data, right?
       session["id"] = hashlib.md5(str(random.random())).hexdigest()
+      app.logger.info("New session ID '{}'".format(session["id"]))
 
     return wrapped_func(*args, **kwargs)
   return decorated_function
