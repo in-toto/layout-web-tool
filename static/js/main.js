@@ -151,7 +151,7 @@ $(function() {
       // Post the name of the functionary to remove
       $.post("/functionaries/remove", {"functionary_name": name},
         function(response) {
-          show_message(response.flash.msg, response.flash.type);
+          show_messages(response.messages);
 
           //Only remove on client side if server side removal was successful
           if (!response.error) {
@@ -231,7 +231,6 @@ $(function() {
  * The message gets removed after a fixed amount of time
  */
 function show_message(msg, msg_type) {
-
   if ($.inArray(msg_type,
       ["alert-success", "alert-info", "alert-warning", "alert-danger"]) == -1)
     msg_type = "alert-info";
@@ -252,6 +251,17 @@ function show_message(msg, msg_type) {
 
 
 /*
+ * Call show_message for a list of message tuples, i.e.:
+ * [["<type>", <msg>"}]
+ */
+function show_messages(messages) {
+  messages.forEach(function(message) {
+    show_message(message[1], message[0]);
+  });
+}
+
+
+/*
  * Initializes a functionary public key file upload dropzone on a
  * passed Jquery element and returns the Dropzone object.
  */
@@ -266,7 +276,7 @@ function init_functionary_dropzone($elem) {
       // Event triggered when a file was uploaded and the server
       // resplies with 200
       this.on("success", function(file, response) {
-        show_message(response.flash.msg, response.flash.type);
+        show_messages(response.messages);
 
         // If the new file could not be stored on the server we remove it
         // from the client dropzone
@@ -331,7 +341,7 @@ function init_link_dropzone($elem) {
           this.emit("complete", uploaded_file, true);
           this.files.push(uploaded_file);
         }
-        show_message(response.flash.msg, response.flash.type);
+        show_messages(response.messages);
       });
 
       this.on("removedfile", function(file) {
@@ -342,7 +352,7 @@ function init_link_dropzone($elem) {
         // Post the name of the functionary to remove
         $.post("/chaining/remove", {"link_filename": file.name},
           function(response) {
-            show_message(response.flash.msg, response.flash.type);
+            show_messages(response.messages);
 
             // Re-add file (on clientside) if server-side remove
             // was not successfull
