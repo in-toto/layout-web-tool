@@ -75,11 +75,22 @@
   </script>
 
   {{ macros.progress_bar(value=60) }}
-  <hr>
-  <h1>Is this what your software supply chain looks like?</h1>
 
+
+  <hr>
+  {% if show_refresh %}
+  <div class="alert alert-warning" role="alert">
+    We saw that you went back and changed something on a previous page. Click
+    <a href="{{ url_for('software_supply_chain', refresh=True)}}">here to
+    re-generate the software supply chain</a> on this page! <br> But
+    <strong>be warned</strong>, this will overwrite any changes you have
+    already made on this page.
+  </div>
+  {% endif %}
+
+  <h1>Is this what your software supply chain looks like?</h1>
   {# BEGIN: Container for software supply chain D3 graph #}
-  <div class="svg-container mb-3">
+  <div class="svg-container mt-3 mb-3">
     <svg version="1.1" viewBox="0 0 1 1" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>
   </div>
   {{ lipsum(n=1, html=True, min=200, max=201) }}
