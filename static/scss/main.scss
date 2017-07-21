@@ -88,12 +88,12 @@ body {
 }
 
 #alert-container {
-  margin: 1em;
-
-  .alert-msg {
-    display: inline-block;
-    font-size: 2em;
-    min-height: 2em;
+  margin-top: 3em;
+  .alert {
+    .alert-msg {
+      font-size: 1.5em;
+      min-height: 1.5em;
+    }
   }
 }
 
