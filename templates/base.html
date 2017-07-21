@@ -18,7 +18,7 @@
       Dropzone.autoDiscover = false;
     </script>
     <div class="fixed-top">
-      <div id="alert-container">
+      <div id="alert-container" class="container">
         <script type="text/javascript">
           $(function(){
             show_messages({{ get_flashed_messages(with_categories=True) | tojson }});
