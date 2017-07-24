@@ -47,6 +47,8 @@
   </div>
 <hr class="mt-5">
 {{comment_form(user_data.get("comment", ""))}}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
 </form>
 {%- endmacro %}
 

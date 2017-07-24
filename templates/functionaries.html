@@ -82,6 +82,7 @@ in-toto-keygen &ltFILENAME&gt
   <form id="functionary-form" method="POST" action="{{ url_for('functionaries')}}">
     <hr class="mt-5">
     {{macros.comment_form(functionaries.get("comment", ""))}}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   </form>
   {# END: Comment section #}
 
