@@ -7,10 +7,10 @@
 for every input #}
 {% with data = data if data else {} %}
   <div class="form-group">
-    <label>This is how I do quality management</label>
+    <label>I use this command to assure my software's quality</label>
     <input type="text" class="form-control" value="{{ data.get('cmd', "") }}" name="cmd[]">
   </div>
-  <h3 class="mt-4 mb-3">How do you know everything's fine?</h3>
+  <h3 class="mt-4 mb-3">How do you verify your command executed okay?</h3>
   <div class="form-group row inspect-type-container">
     <div class="col-md-3 col-form-label"><input class="inspect-include" type="hidden" name="retval_include[]" value="{{'true' if data.get('retval') else 'false'}}"><input class="inspect-type-checkbox mr-3" type="checkbox" {{'checked' if data.get('retval')}}>Return value</div>
     <div class="input-group col-md-9 inspect-type-input {{'invisible' if not data.get('retval')}}">
@@ -84,13 +84,11 @@ for every input #}
   </script>
   {{ macros.progress_bar(value=40) }}
   <hr>
-  <h1>How do you assure your software's quality?
-  </h1>
-  {{ lipsum(n=1, html=True, min=50, max=51) }}
+  <h1>How do you assure your software's quality?</h1>
+  <p>Do you run any static or dynamic tests? Below we provide some popular tools. Please pick the one(s) you are using, specify the executed command and tell us how you verify that the tests ran through properly.</p>
 
 
   {# BEGIN: Option Grid #}
-  <h2 class="mt-5">Which tools do you use for quality assurance?</h2>
   {% call(data) macros.option_grid(options=options) %}
     {{ form_content(data={ "cmd": data.get("cmd") }, show_add_btn=True, show_rm_btn=False) }}
   {% endcall %}
@@ -106,10 +104,10 @@ for every input #}
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
-      <a class="btn btn-primary btn-block" href="{{ url_for('building')}} ">Previous</a>
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('building')}} ">Previous</a>
     </div>
     <div class="col-3">
-      <input type="submit" form="qa-form" class="btn btn-primary btn-block" value="Next">
+      <input type="submit" form="qa-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
   {# END: Navigation Footer (Previous/Next) #}
