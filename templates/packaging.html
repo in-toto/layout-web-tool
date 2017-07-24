@@ -11,7 +11,6 @@
   <div class="form-group">
     <button type="button" class="copy-btn btn btn-outline-warning {{'d-none' if not show_add_btn}}">Add and continue on this page</button>
     <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}" data-submit="package-form">Add and continue on next page</button>
-
     <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
   </div>
 {% endmacro %}
@@ -22,10 +21,9 @@
   {{ macros.progress_bar(value=50) }}
   <hr>
   <h1>How do you package your software?</h1>
-  {{ lipsum(n=1, html=True, min=50, max=51) }}
+  <p>You showed us how you fetch your code and how you build and test it, so your software is probably ready to be shipped out to the user. Do you use any of the following commands to create a software package?</p>
 
   {# BEGIN: Option Grid #}
-  <h2 class="mt-5 mb-3">Tell us how you package you software</h2>
   {% call(data) macros.option_grid(options=options) %}
     {{ form_content(data={"cmd": data.get('cmd')}, show_add_btn=True, show_rm_btn=False) }} {# data passed back from macro #}
   {% endcall %}
@@ -41,10 +39,10 @@
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
-      <a class="btn btn-primary btn-block" href="{{ url_for('quality_management')}} ">Previous</a>
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('quality_management')}} ">Previous</a>
     </div>
     <div class="col-3">
-      <input type="submit" form="package-form" class="btn btn-primary btn-block" value="Next">
+      <input type="submit" form="package-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
   {# END: Navigation Footer (Previous/Next) #}
