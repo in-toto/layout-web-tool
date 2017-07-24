@@ -19,10 +19,9 @@
   {{ macros.progress_bar(value=30) }}
   <hr>
   <h1>How do you build your software?</h1>
-  {{ lipsum(n=1, html=True, min=50, max=51) }}
+  <p>If you don't build you software just click <i>next</i>. In the same manner, if you use more than one commands to build your software, you can pick multiple of the provided options or add custom commands.</p>
 
   {# BEGIN: Option Grid #}
-  <h2 class="mt-5 mb-3">Tell us how you build your software</h2>
   {% call(data) macros.option_grid(options=options) %}
     {{ form_content(data={"cmd": data.get("cmd")}, show_add_btn=True, show_rm_btn=False) }} {# data passed back from macro #}
   {% endcall %}
@@ -38,10 +37,10 @@
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
-      <a class="btn btn-primary btn-block" href="{{ url_for('versioning')}} ">Previous</a>
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('versioning')}} ">Previous</a>
     </div>
     <div class="col-3">
-      <input type="submit" form="building-form" class="btn btn-primary btn-block" value="Next">
+      <input type="submit" form="building-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
   {# END: Navigation Footer (Previous/Next) #}
