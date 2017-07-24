@@ -6,10 +6,13 @@
   {{ macros.progress_bar(value=75) }}
   <hr>
   <h1>Who is authorized to do what in your Project?</h1>
-  {{ lipsum(n=1, html=True, min=40, max=41) }}
+  <p>Below you can authorize one or more of your functionaries to carry out
+  any of your software supply chain steps. Moreover, for each step you can
+  specify a <i>threshold</i> of how many functionaries you require to carry out
+  a specific step. You should specify a threshold greater than one for steps
+  that are especially sensitive.</p>
 
   {# BEGIN: Functionary to step mapping #}
-  <h2 class="mt-5 mb-3">Assign Public Keys and configure Threshold</h2>
   <script type="text/javascript">
     {# Initialize select2 for pubkey-to-step association #}
     {# FIXME: Factor out to JavaScript file #}
@@ -22,7 +25,7 @@
     <input type="hidden" name="step_name[]" value="{{step.name}}">
     <div class="form-group row">
       <div class="col-10">
-        <label><strong>{{step.name}}</strong> (authorized functionaries)</label>
+        <label><strong>{{step.name}}</strong> <small>authorize functionaries for this step in select box below</small></label>
         <select name="functionary_name_{{step.name}}[]" multiple class="form-control select2">
           {% for functionary in functionaries.get("items", []) %}
           {% with functionary_name=functionary.get('functionary_name') %}
@@ -47,10 +50,10 @@
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
-      <a class="btn btn-primary btn-block" href="{{ url_for('functionaries')}} ">Previous</a>
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('functionaries')}} ">Previous</a>
     </div>
     <div class="col-3">
-      <input type="submit" form="authorizing-form" class="btn btn-primary btn-block" value="Next">
+      <input type="submit" form="authorizing-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
   {# END: Navigation Footer (Previous/Next) #}
