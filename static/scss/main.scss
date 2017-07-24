@@ -90,6 +90,7 @@ body {
 #alert-container {
   margin-top: 3em;
   .alert {
+    @extend .inset;
     .alert-msg {
       font-size: 1.5em;
       min-height: 1.5em;
