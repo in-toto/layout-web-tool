@@ -5,12 +5,24 @@
 {% block content %}
   {{ macros.progress_bar(value=80) }}
   <hr>
-  <h1>Security Restriction Assessment (linking the chain)</h1>
-  {{ lipsum(n=1, html=True, min=80, max=81) }}
+  <h1>Chaining your Supply Chain</h1>
+  <p>On the previous pages we defined who is authorized to do what. Now
+  we will create the necessary rules to guarantee that only authorized
+  functionaries can modify your software product.</p>
+
+  <p>To do this, you have to perform an in-toto test run of your software
+  supply chain and upload the generated <i>*.link</i> metadata files. This
+  metadata contains information about the files your steps modify and create.
+  We use this information to generate rules which chain the
+  individual steps together. To learn more about this take a look at the
+  <a href="https://github.com/in-toto/in-toto#artifact-rules">
+  <i>in-toto artifact rule</i> section on our GitHub page</a>.</p>
 
   {# BEGIN: Mock run command snippet  #}
-  <h2 class="mt-5 mb-2">Copy/Paste Commands</h2>
   <div>
+    <small>The following command line snippet wraps your software supply chain
+    commands with the in-toto metadata generating command and creates a tarball
+    of the resulting *.link metadata files.</small>
 <pre class="code">
 {%- for step in steps %}
 in-toto-mock --name {{step.name}} -- {{step.cmd}}
@@ -38,12 +50,13 @@ tar czf in_toto_link_files.tar.gz {% for step in steps%}{{step.name}}.link-mock 
       {% endfor %}
     });
   </script>
-  <h2 class="mt-5 mb-2">Upload Links</h2>
-  <small>Drop Links here or click to upload!</small>
+  <div class="mt-5">
+  <small>Drop links or link tarball or click in box to upload</small>
   <div class="dz-container d-flex align-items-stretch p-3">
     <form class="dropzone d-flex flex-wrap" method="POST", enctype="multipart/form-data"
         action="{{ url_for('ajax_upload_link') }}">
     </form>
+  </div>
   </div>
   {# END: Link file upload dropzone #}
 
@@ -59,10 +72,10 @@ tar czf in_toto_link_files.tar.gz {% for step in steps%}{{step.name}}.link-mock 
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
-      <a class="btn btn-primary btn-block" href="{{ url_for('authorizing')}} ">Previous</a>
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('authorizing')}} ">Previous</a>
     </div>
     <div class="col-3">
-      <input type="submit" form="chaining-form" class="btn btn-primary btn-block" value="Next">
+      <input type="submit" form="chaining-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
   {# END: Navigation Footer (Previous/Next) #}
