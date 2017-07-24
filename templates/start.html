@@ -5,17 +5,20 @@ Secure your software with in-toto
 {% endblock %}
 
 {% block content %}
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-  tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-  consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-  cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-  proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+<h1>Create in-toto layout
+<small class="text-muted">and protect your software supply chain's integrity</small></h1>
+<p>An in-toto layout defines the steps of your software supply chain that you carry out in order to write, test, package and distribute your software.</p><p>This website helps you to create a basic layout for your software project, specifying who does what and how everything fits together, so that your clients can be sure that your software was produced exactly how you wanted it to be. Learn more about in-toto on our <a href="https://in-toto.github.io">project website</a> and <a href="https://github.com/in-toto/in-toto">on GitHub</a>.</p>
+
+<p>You will be asked to run a couple of in-toto commands while walking through this website, so make sure to have in-toto installed:</p>
+
+<pre class="code">
+pip install git+git://github.com/in-toto/in-toto.git
+</pre>
 
 <hr>
 <div class="row no-gutters justify-content-center">
   <div class="col-3">
-    <a class="btn btn-primary btn-block" href="{{ url_for('versioning')}} ">Start</a>
+    <a class="btn btn-outline-primary btn-block" href="{{ url_for('versioning')}} ">Start</a>
   </div>
 </div>
 
