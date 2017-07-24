@@ -120,6 +120,7 @@
 
       <hr class="mt-5">
       {{macros.comment_form(ssc_data.get("comment", ""))}}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     </form>
   </div>
   {# END: Postable Form Content #}

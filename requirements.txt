@@ -1,3 +1,4 @@
 Flask
 Flask-PyMongo
+Flask-WTF
 -e git://github.com/in-toto/in-toto.git@layout-wizard#egg=in-toto

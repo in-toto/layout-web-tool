@@ -30,6 +30,7 @@ from functools import wraps
 from flask import (Flask, render_template, session, redirect, url_for, request,
     flash, send_file, abort, json, jsonify, get_flashed_messages)
 from flask_pymongo import PyMongo
+from flask_wtf.csrf import CSRFProtect
 
 import in_toto.util
 import in_toto.models.link
@@ -43,6 +44,7 @@ import reverse_layout
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
 mongo = PyMongo(app)
+csrf = CSRFProtect(app)
 
 app.config.update(dict(
     DEBUG=True,

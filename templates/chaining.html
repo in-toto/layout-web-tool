@@ -51,6 +51,7 @@ tar czf in_toto_link_files.tar.gz {% for step in steps%}{{step.name}}.link-mock 
   <form id="chaining-form" method="POST" action="{{ url_for('chaining')}}">
     <hr class="mt-5">
     {{macros.comment_form(chaining.get("comment", ""))}}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   </form>
   {# END: Comment section #}
 

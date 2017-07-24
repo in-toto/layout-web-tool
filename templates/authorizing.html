@@ -39,6 +39,7 @@
   {% endfor %}
     <hr class="mt-5">
     {{macros.comment_form(comment)}}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   </form>
   {# END: Functionary to step mapping #}
 

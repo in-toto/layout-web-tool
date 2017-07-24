@@ -1,5 +1,10 @@
 $(function() {
   /*
+   * Configure all Ajax requests to send the csrf_token (global variable set
+   in base.html)
+   */
+
+  /*
    * Click listener to toggle option form in the option grid and toggle active
    * class.
    */
@@ -149,8 +154,12 @@ $(function() {
     // We only post if the dropzone has a file
     if ($dropzone.get(0).dropzone.files.length > 0) {
       // Post the name of the functionary to remove
-      $.post("/functionaries/remove", {"functionary_name": name},
-        function(response) {
+      $.ajax({
+        method: "POST",
+        url: "/functionaries/remove",
+        data: {"functionary_name": name},
+        headers: _get_csrf_token_header(),
+        success: function(response) {
           show_messages(response.messages);
 
           //Only remove on client side if server side removal was successful
@@ -159,7 +168,8 @@ $(function() {
               $(this).remove();
             });
           }
-        });
+        }
+      });
     } else {
       $functionary.slideUp(function(){
         $(this).remove();
@@ -225,6 +235,12 @@ $(function() {
   });
 });
 
+function _get_csrf_token_header() {
+  return {
+    'X-CSRFToken': $('meta[name="csrftoken"]').attr('content')
+  };
+}
+
 
 /*
  * Append and show message with a certain type
@@ -270,6 +286,7 @@ function init_functionary_dropzone($elem) {
   var opts = {
     paramName: "functionary_key",
     parallelUploads: 1,
+    headers: _get_csrf_token_header(),
     init: function(file) {
       var prevFile;
 
@@ -321,6 +338,7 @@ function init_link_dropzone($elem) {
     addRemoveLinks: true,
     parallelUploads: 1,
     dictRemoveFile: "Remove Link",
+    headers: _get_csrf_token_header(),
     init: function(file) {
       this.on("success", function(file, response) {
 
@@ -350,8 +368,12 @@ function init_link_dropzone($elem) {
 
         var thiz = this;
         // Post the name of the functionary to remove
-        $.post("/chaining/remove", {"link_filename": file.name},
-          function(response) {
+        $.post({
+          method: "POST",
+          url: "/chaining/remove",
+          data: {"link_filename": file.name},
+          headers: _get_csrf_token_header(),
+          success: function(response) {
             show_messages(response.messages);
 
             // Re-add file (on clientside) if server-side remove
@@ -361,7 +383,8 @@ function init_link_dropzone($elem) {
               thiz.emit("complete", file, true);
               thiz.files.push(file);
             }
-          });
+          }
+        });
       });
     }
   };
