@@ -333,24 +333,27 @@ ul.check {
     .opt-content {
       position: relative;
       border: 1px solid lightgrey;
+      height: 60px;
 
       input.form-check-input {
         display: none;
       }
 
-      // Place for a tool/command's logo
-      // With SVG placeholder if no logo is specified
       .opt-logo {
+        height: 40px;
         img {
-          height: 30px;
+          max-height: 100%;
           max-width: 100%;
-          &:before {
-              content: ' ';
-              position: absolute;
-              width: inherit;
-              height: inherit;
-              background: url("data:image/svg+xml;utf8,<svg width='30' height='30' xmlns='http://www.w3.org/2000/svg'> <g> <rect height='30' width='30' y='0' x='0' stroke-width='1' stroke='#BBB' fill='#DDD'/> <line y2='30' x2='30' y1='0' x1='0' stroke-width='0.5' stroke='#BBB'/> <line y2='30' x2='0' y1='0' x1='30' stroke-width='0.5' stroke='#BBB'/> </g></svg>") no-repeat;
-          }
+        }
+      }
+      .opt-text {
+        height: 20px;
+        font-size: 0.8em;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        &:only-child {
+          height:100%;
         }
       }
 
@@ -384,7 +387,11 @@ ul.check {
       @include make-opt-cells(('xs': 1, 'sm': 1, 'md': 1, 'lg': 1, 'xl': 1));
       margin-bottom: 2px;
       .opt-content {
-        font-weight: bold;
+        height: 30px;
+        .opt-text {
+          font-weight: bold;
+          font-size: 0.9em;
+        }
       }
     }
   }
