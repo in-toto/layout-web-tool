@@ -103,7 +103,7 @@
     {{ item_form("step", template=true) }}
     {{ item_form("inspection", template=true) }}
     <form id="ssc-form" method="POST" action="{{ url_for('software_supply_chain')}}">
-      <h3 class="mt-4 mb-2">These are the commands you run as part of your software supply chain</h3>
+      <h2 class="mt-4 mb-2">These are the commands you run as part of your software supply chain</h2>
         <p>We distinguish between <i>modifying</i> and <i>non-modifying </i> steps.
           Modifying steps change your software product (e.g. building steps),
           whereas non-modifying steps don't (e.g. testing steps).
@@ -115,7 +115,7 @@
       </div>
       <button type="button" data-templatesource=".ssc-step" data-templatedest=".ssc-steps" class="add-btn btn-outline-primary btn">Add Step</button>
 
-      <h3 class="mt-4 mb-2">These are the commands we will run upon in-toto verification</h3>
+      <h2 class="mt-4 mb-2">These are the commands we will run upon in-toto verification</h2>
         <p>We call these commands <i>in-toto inspections</i>. Learn more about
           inspections on the <a href="https://github.com/in-toto/in-toto-inspections">
           in-toto inspections GitHub page</a>.</p>
