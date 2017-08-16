@@ -65,13 +65,27 @@ body {
 
 .head {
   background: $wizard-blue;
-  height: 100px;
-  font-size: 3em;
   color: #f5f5f5;
-  font-weight: bold;
+  height: 100px;
   .container,
   .container .row {
     height: inherit;
+  }
+  .head-text {
+    font-size: 3em;
+    font-weight: bold;
+  }
+  .head-beta {
+    color: $orange;
+    font-size: 2em;
+    font-weight: 100;
+    margin-left: 0.5em;
+  }
+  .head-sub {
+    margin-top: -1em;
+  }
+  a {
+    color: inherit;
   }
 }
 
