@@ -55,6 +55,9 @@ app.config.update(dict(
 # e.g. your deployment secret key
 app.config.from_pyfile("config.py")
 
+# Reload if a template has changed (only for development, i.e. in DEBUG mode)
+app.jinja_env.auto_reload = app.config["DEBUG"]
+
 # -----------------------------------------------------------------------------
 # Utils
 # -----------------------------------------------------------------------------
