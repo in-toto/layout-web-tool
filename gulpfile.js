@@ -1,3 +1,37 @@
+/*****************************************************************
+<File Name>
+  gulpfile.js
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  May 05, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Front-end build tool used to copy third-party JS scripts to
+  static/vendor from where the app serves them.
+
+  TODO:
+  Add gulp task for scss (styles) compilation (on change)
+  Currently this is done with a separate command, i.e.
+  ```
+  sass --watch static/scss/main.scss:static/css/main.scss.css
+  ```
+  but it would be nice to have all in one place.
+
+<Usage>
+  ```
+  # Install front-end dependencies (in same directory)
+  npm install
+  # Run default gulp task
+  gulp
+  ```
+
+*****************************************************************/
 var gulp = require("gulp");
 
 gulp.task("default", function() {
