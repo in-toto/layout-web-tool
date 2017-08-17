@@ -1,3 +1,36 @@
+/*****************************************************************
+<File Name>
+  main.scss
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  April 21, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Central file for layout and styles written using the CSS pre-processor
+  language SASS/SCSS.
+
+  Use the following command to compile css file (plus source maps):
+  ```
+  sass static/scss/main.scss:static/css/main.scss.css
+  ```
+
+  We make heavy use of bootstrap-4 for grid layout and basic look and feel.
+  https://v4-alpha.getbootstrap.com
+
+
+  TODO/FIXME:
+  - Re-structure, clean up, add comments
+  - Remove Bootstrap classes from HTML elements and extend/include them here
+    instead
+
+*****************************************************************/
+
 $font-size-h1: 1.75rem !default;
 $font-size-h2: 1.25rem !default;
 $font-size-h3: 1rem !default;
@@ -57,6 +90,10 @@ $enable-rounded: true;
 @import '../../node_modules/bootstrap/scss/utilities';
 
 @import '../../node_modules/select2/src/scss/core.scss';
+
+// NOTE: From the sass docs:
+// "... not possible to dynamically import a Sass file based on a variable"
+// NOTE: If we compile scss with gulp we could define include paths
 
 body {
   height:100vh;
