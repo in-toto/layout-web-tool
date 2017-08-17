@@ -18,28 +18,28 @@
   Creates a basic in-toto layout by reading an ordered list of step link files.
 
   ** Infer layout fields: **
-
     expires:
-        default value (e.g. two months)
+            default value
     keys:
-        empty (add manually)
+            FIXME: Keys are currently ignored in this module
     steps:
-        add each step from list of ordered step link files
+            add steps in the order of passed link files
             name:
-                `link.name`
+                    link.name
             expected_command:
-                `link.command`
+                    link.command
             threshold:
-                default (e.g. 1)
-            material_matchrules and product_matchrules:
-                see below
-    inspections:
-        ??
-    signatures:
-        []
+                    default value
+            material_matchrules/product_matchrules:
+                    currently uses simple approach (see below)
+                    FIXME: Should use more complex approach (see ideas below)
+            inspections:
+                    FIXME Inspections are currently ignored in this module
+            signatures:
+                    empty (use `in-toto-sign` command line utility)
+
 
   ** Infer step artifact rules (simple approach) **
-
     ** material_matchrules **
 
       IF no materials were recorded
@@ -62,11 +62,13 @@
 
 
   ** Ideas for more complexity: **
-    - explicitly, ALLOW or MATCH files by name instead of "*"
-      e.g.:material_matchrules = [["ALLOW", material] for material in links[index].materials.keys()]
+    - explicitly, ALLOW or MATCH files by name instead of "*", e.g.:
+      material_matchrules = \
+          [["ALLOW", material] for material in links[index].materials.keys()]
+
     - for MATCH rules
       match only those that already were in the previous step
-      allow the rest, by name
+      allow the rest by name
 
 """
 import os
@@ -117,6 +119,9 @@ def create_product_matchrules(links, index):
 
 
 def create_layout_from_ordered_links(links):
+  """Creates basic in-toto layout from an ordered list of in-toto link objects,
+  inferring material and product rules from the materials and products of the
+  passed links. """
   # Create an empty layout
   layout = in_toto.models.layout.Layout()
   layout.keys = {}
@@ -135,8 +140,12 @@ def create_layout_from_ordered_links(links):
 
 def main():
 
-  # Demo reverse layout creation
-  # Read files from and dump generated "root.layout" to DEMO_METADATA_DIR
+  # DEMO USAGE
+  # Read files from DEMO_METADATA_DIR and dump generated root.layout to
+  # DEMO_METADATA_DIR
+  # Note: These files are taken from the in-toto demo
+  # https://github.com/in-toto/in-toto/tree/develop/demo
+
   DEMO_METADATA_DIR = "demo_metadata"
   test_link_filenames = [
       "clone.0c6c50a1.link",
