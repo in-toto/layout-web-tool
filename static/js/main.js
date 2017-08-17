@@ -1,8 +1,38 @@
+/*****************************************************************
+<File Name>
+  main.js
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  May 05, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Contains all non-third-party JavaScript for this app, except for some
+  small specific scripts that are directly embedded in the html.
+
+  Registers UI event listeners for onload, i.e. inside the curly braces of
+  `$(function(){})`
+
+  Also defines functions to:
+   - create CSRF token header
+   - show user feedback
+   - handle file uploads and removals (dropzone)
+   - transform data for D3 graph
+   - draw D3 graph
+
+  FIXME:
+    Move out functionality to different scripts and only load on pages where
+    needed, e.g. not every listener needs to be registered on every page.
+
+*****************************************************************/
+
+
 $(function() {
-  /*
-   * Configure all Ajax requests to send the csrf_token (global variable set
-   in base.html)
-   */
 
   /*
    * Click listener to toggle option form in the option grid and toggle active
@@ -235,6 +265,10 @@ $(function() {
   });
 });
 
+/*
+ * Configure all Ajax requests to send the csrf_token (global variable set
+ * in base.html)
+ */
 function _get_csrf_token_header() {
   return {
     'X-CSRFToken': $('meta[name="csrftoken"]').attr('content')
