@@ -22,8 +22,8 @@
    - create CSRF token header
    - show user feedback
    - handle file uploads and removals (dropzone)
-   - transform data for D3 graph
-   - draw D3 graph
+   - create graph data from DOM
+   - draw graph using D3
 
   FIXME:
     Move out functionality to different scripts and only load on pages where
@@ -32,33 +32,47 @@
 *****************************************************************/
 
 
-$(function() {
 
+/*****************************************************************
+ * Below function gets executed when the DOM is fully loaded
+ ****************************************************************/
+$(function() {
   /*
-   * Click listener to toggle option form in the option grid and toggle active
-   * class.
+   * Register click listener to toggle the display of forms attached to
+   * options of the option grid.
    */
   $(".opt-content").on("click", function(evt) {
+    // Find the form that belongs to the clicked option
     var $opt_form_cont = $(this).parent(".opt-cell").find(".opt-form-cont");
 
-    // Hide all others
+    // We don't care if the clicked option's form is active or not
+    // in any case we can hide all other option forms
     $(".opt-form-cont").not($opt_form_cont).slideUp();
     $(".opt-content").not(this).removeClass("active");
 
+    // Toggle (show or hide) the clicked option's form.
     $opt_form_cont.slideToggle();
     $(this).toggleClass("active");
   });
 
   /*
-   * Click listener to clone an html template found by the selector stored in
-   * the clicked element's `data-templatesource` attribute and append it to
-   * an `data-templatedest`
-   * Important: the selectors should each match only one element
+   * Register click listener to clone an html element (template source) and
+   * append it to another html element (template dest).
+   *
+   * Clicked element must store unique selectors in `data-templatesource`
+   * and `data-templatedest`, e.g.:
+   *
+   * <button type="button"
+   *         data-templatesource=".ssc-step"
+   *         data-templatedest=".ssc-steps">Add Step</button>
    */
   $(".add-btn").on("click", function(evt){
+    // Get the source and dest selectors
     var template_src_selector = $(this).data("templatesource");
     var template_dest_selector = $(this).data("templatedest");
 
+    // Clone template (hidden on the page),
+    // append, show (animate) element and remove template class
     $(".template" + template_src_selector)
         .clone()
         .appendTo(template_dest_selector)
@@ -66,21 +80,31 @@ $(function() {
           $(this).removeClass("template");
         })
 
-    // If the added item was sortable, re-initialize the sort container
-    // TODO: We should trigger a custom "add" event on the container
-     // and listen on it. if is also sort-container and then re-initialize
+    // If the added item was sortable, re-init the enclosing sort container
+    // TODO: Maybe we should trigger a custom "add" event on the container
+    // and register a separate listener to re-init the sort-container in case
     if ($(template_src_selector).parents(".sort-container").length) {
       sortable(".sort-container")
     }
   });
 
   /*
-   * Click listener to hide and remove closest (up the DOM) element matched by
-   * the clicked element's `data-toremove` attribute.
+   * Register click listener to hide (animate) and remove first element
+   * matched by given selector when going up the DOM.
+   *
+   * Clicked element must store selector in `data-toremove`, e.g.:
+   *
+   * <button type="button"
+   *         data-toremove=".opt-form">Remove</button>
    */
   $(document).on("click", "button.rm-btn", function(evt) {
+    // Get the selector
     var element_to_remove_selector = $(this).data("toremove");
 
+    // Hide (animate) and remove first element matched by selector when
+    // going up the DOM from clicked element
+    // Also trigger custom event ("custom.removed") listened for by other event
+    // listener below
     $(this).closest(element_to_remove_selector).slideUp(function(){
       $(this).remove();
       $(document).trigger("custom.removed", element_to_remove_selector);
@@ -88,34 +112,48 @@ $(function() {
   });
 
   /*
-   * Click listener to copy the enclosing opt-form and add it to an element
-   * with id #opt-from-container.
-   * If the clicked copy button has a value on the "data-submit" attribute
-   * that value will be used to query the actual postable form and submit it
-   * to the server.
-   * If not the user stays the opt-form will be added and if the target
-   * opt-form-container is also a sort container the sortable plugin will be
-   * re-initialized.
+   * Register click listener to copy enclosing `.opt-form` and add it to
+   * `#opt-form-container`
+   *
+   * Only `.opt-form`s inside `#opt-form-container` will be posted to the
+   * server. Like this the user can review and modify all the options selected
+   * and extracted (copied) from the option grid before posting them.
+   *
+   * Alternatively, a user can immediately post a selected option `.opt-form`.
+   * This happens if the clicked button `.copy-btn` has a value on the
+   * `data-submit` attribute.
+   * That value will be used to query the actual `form` element and submit it
+   * to the server right away.
+   *
+   * If `#opt-form-container` is a sort container, the sortable plugin is
+   * re-inited.
    */
   $(document).on("click", "button.copy-btn", function(evt) {
-
-    // Hide opts
+    // Slide up all option forms
     $(".opt-form-cont").slideUp();
     $(".opt-content").removeClass("active");
 
+    // Clone opt form to be copied and hide it so that it can be displayed
+    // with animation below
     var $opt_form = $(this).parents(".opt-form").clone().hide();
 
-    // TODO: Replace hack that hides "add" buttons and shows "remove" button
-    // instead
+    // `.opt-form`s in the option grid can be copied but not removed
+    // `.opt-form`s in the `#opt-form-container` can be removed but not copied
+    // Here we toggle the display of the respective remove and copy buttons
+    // in the `.opt-form` that gets copied from the option grid to the option
+    // form container
+    // TODO: This is a very hackish DRY effort, we can do better
     $opt_form.find(".rm-btn").removeClass("d-none");
     $opt_form.find(".copy-btn").addClass("d-none");
 
-    // Every opt_form in the opt-grid has two copy buttons
+    // If the user clicked the shortcut button the form gets posted right away
     var form_id = $(this).data("submit");
     if (form_id) {
       $opt_form.appendTo("#opt-form-container");
       $("#" + form_id).submit();
 
+    // ...otherwise we add the form and tell the user that the form can still
+    // be modified before it is posted
     } else {
       $opt_form.appendTo("#opt-form-container").slideDown();
       show_message("The command has been added to your workflow!" +
@@ -124,64 +162,79 @@ $(function() {
 
       $(".opt-form-container-info").removeClass("d-none");
 
-      // If the added item was sortable, re-initialize the sort container
-      // TODO: We should trigger a custom "add" event on the container
-      // and listen on it. if is also sort-container and then re-initialize
+      // If the added item was sortable, re-init the enclosing sort container
+      // TODO: Maybe we should trigger a custom "add" event on the container
+      // and register a separate listener to re-init the sort-container in case
       if ($opt_form.parents(".sort-container").length) {
         sortable(".sort-container")
       }
     }
   });
 
-
   /*
-   * Click listener to add a new functionary name with a file upload dropzone
-   * to upload a public key
+   * Register click listener to add a new functionary. That is, copy the
+   * functionary name from the input field, clone the functionary
+   * html template, give it the copied name and append it to the functionary
+   * container.
+   *
+   * The functionary template shows the given name and a dropzone to upload
+   * a functionary public key. The dropzone is initialized when the template is
+   * added.
    */
   $(document).on("click", "button.add-func-btn", function(evt){
-    var $input = $(".add-func-input");
-    var val = $input.val();
+    // Get the functionary name from the input field
+    var functionary_name = $(".add-func-input").val();
 
-    // Two cheap frontend name validations (must be unique and not "")
-    if (val == "") {
+    // Do some cheap front-end validation (name must be unique and not empty)
+    if (functionary_name == "") {
       show_message("Your functionary needs a name!", "alert-warning");
 
-    } else if ($("#functionary-container input[value='"+ val + "']").length > 0) {
-      show_message("You already have a functionary '"+ val + "'!",
+    } else if ($("#functionary-container input[value='" +
+        functionary_name + "']").length > 0) {
+      show_message("You already have a functionary '"+ functionary_name + "'!",
           "alert-warning");
 
     } else {
-      // Clone functionary template
+      // If the name seems to be valid...
+      // ... clone functionary template (hidden on the page) ...
       var $func = $(".template.functionary").clone();
 
-      // Copy input functionary name
-      // one displayed and one hidden input sent to server on file upload
-      $func.find("span.functionary-name").text(val);
-      $func.find("input[name='functionary_name']").val(val);
+      // ... add the name to a span that gets displayed and to a hidden input
+      // element that gets posted to the server to associate functionary keys
+      // with functionary names ...
+      $func.find("span.functionary-name").text(functionary_name);
+      $func.find("input[name='functionary_name']").val(functionary_name);
 
-      // Append the functionary dropzone to the appropriate place
+      // ... and append and show the template to the functionary container
+      // and remove the template class
       $func.appendTo("#functionary-container")
         .slideDown(function(){
           $(this).removeClass("template");
 
-          // Initialize new pubkey fileupload dropzone
+          // Finally, initialize the contained file dropzone so that the user
+          // can upload a public key for the added functionary
           init_functionary_dropzone($func.find(".dropzone"));
       });
     }
   })
 
   /*
-   * Click listener to remove a functionary
-   * Removes the functionary dropzone and the according key on the server
+   * Register click listener to remove a functionary. That is,
+   * remove the functionary dropzone from the DOM and send a request to the
+   * server to also remove the stored functionary and key.
+   *
    * Functionaries only make sense together with a key, hence we don't
-   * allow to remove a public key alone (keys can be replaced though).
+   * provide a way to just remove the key. Keys can be replaced though.
    */
   $(document).on("click", "button.rm-func-btn", function(evt) {
+    // Find the relevant DOM elements relative to the clicked remove button
     $functionary = $(this).closest(".functionary");
     $dropzone = $functionary.find(".dropzone");
     var name = $functionary.find("input[name='functionary_name']").val();
 
-    // We only post if the dropzone has a file
+    // We only bother to ask the server to remove the functionary if that
+    // functionary already has a pubkey associated, because functionaries
+    // without pubkeys are not stored on the server
     if ($dropzone.get(0).dropzone.files.length > 0) {
       // Post the name of the functionary to remove
       $.ajax({
@@ -190,9 +243,11 @@ $(function() {
         data: {"functionary_name": name},
         headers: _get_csrf_token_header(),
         success: function(response) {
+          // Show any messages returned by the server
           show_messages(response.messages);
 
-          //Only remove on client side if server side removal was successful
+          // Only remove the functionary on client side if server side removal
+          // was successful
           if (!response.error) {
             $functionary.slideUp(function(){
               $(this).remove();
@@ -200,57 +255,72 @@ $(function() {
           }
         }
       });
+
     } else {
+      // If there was no key to begin with we remove the functionary on
+      // client side right away
       $functionary.slideUp(function(){
         $(this).remove();
       });
     }
   });
 
-
   /*
-   * Re-generate/re-draw the the graph when step name inputs loose focus
-   * Re-generate/re-draw the graph when and ssc step is removed
-   * Re-generate/re-draw the graph when ssc steps get sorted
+   * Register blur listener to re-generate/re-draw D3 graph when a
+   * step name input field looses focus
    */
   $(document).on("blur", ".ssc-steps .ssc-step input[name='step_name[]']",
     function(evt){
       draw_graph(generate_graph_from_ssc_steps());
   });
+
+  /*
+   * Register custom removed event listener to re-generate/re-draw D3 graph
+   * when a step form element got removed
+   */
   $(document).on("custom.removed",
     function(evt, removed_elem_class){
       if (removed_elem_class == ".ssc-step")
         draw_graph(generate_graph_from_ssc_steps());
   });
+
+  /*
+   * Register sortable sortupdate event listener to re-generate/re-draw D3
+   * graph when the step form elements got re-ordered
+   */
   $(".sort-container.ssc-steps").on("sortupdate",
     function(evt) {
       draw_graph(generate_graph_from_ssc_steps());
   });
 
   /*
-   * Initialize drag and drop sorting
-   * Note: Needs to be re-initialized when elements are added
+   * Initialize sortable plugin on `.sort-container`s to enable
+   * drag and drop sorting.
+   * Note:
+   * Needs to be re-initialized when elements are added to the DOM
    */
    sortable(".sort-container", {
       forcePlaceholderSize: true,
       placeholderClass: "sort-placeholder",
    });
 
-
-  /* Turn pre element (code) into textarea on click and select code.
-   * Nice for copy paste snippets
+  /*
+   * Register click listener that turns a pre html element into a textarea
+   * and immediately selects the contents
+   * This is a neat little feature for copy-paste snippets
    */
   $("pre.code").click(function(){
-    // Cache old elements attributes (e.g. class)
+    // Extract (copy) all attributes of the clicked pre element
     var attrs = {};
     $.each(this.attributes, function(idx, attr) {
         attrs[attr.nodeName] = attr.nodeValue;
     });
 
-    // Add disable spellcheck attribute
+    // We don't need red squiggly underlines for code snippets
     attrs["spellcheck"] = "false";
 
-    // Create new element
+    // Create new empty element with above copied attributes, set it to
+    // readonly and insert the text content from the clicked pre element
     $textarea = $("<textarea />", attrs)
       .height($(this).outerHeight())
       .prop("readonly", true)
@@ -261,13 +331,17 @@ $(function() {
 
     // Select the contents
     $textarea.select();
-
   });
 });
 
+/*****************************************************************
+ * Miscellaneous functions globally available
+ ****************************************************************/
+
 /*
- * Configure all Ajax requests to send the csrf_token (global variable set
- * in base.html)
+ * Retrieve the CSRF token written by the server to a meta element in the page
+ * header and format it so that it can be used as additional header for form
+ * posting ajax calls
  */
 function _get_csrf_token_header() {
   return {
@@ -275,34 +349,43 @@ function _get_csrf_token_header() {
   };
 }
 
-
 /*
- * Append and show message with a certain type
- * The message gets removed after a fixed amount of time
+ * Append passed message to DOM (using message template), and show for
+ * a fixed amount of type (5 seconds) the second parameter is used as style
+ * class.
+ *
+ * See https://v4-alpha.getbootstrap.com/components/alerts/ for available
+ * types and styles.
+ *
+ * TODO:
+ * Sometimes 5 seconds are to much and sometimes not enough
  */
 function show_message(msg, msg_type) {
+  // If the type is none of below, use "alert-info" as default
   if ($.inArray(msg_type,
       ["alert-success", "alert-info", "alert-warning", "alert-danger"]) == -1)
     msg_type = "alert-info";
 
+  // Find and clone the message template (hidden in the page)
   var $container = $("#alert-container");
   var $alert = $container.find(".alert.template").clone();
   $alert.find("span.alert-msg").text(msg);
 
+  // Set the message style class, add it to the appropriate place and remove
+  // the template class
   $alert.addClass(msg_type)
       .appendTo($container)
       .removeClass("template");
 
-  // Remove message after a fixed amount of time
+  // Remove message after 5 seconds
   setTimeout(function(){
     $alert.alert("close");
   }, 5000);
 }
 
-
 /*
- * Call show_message for a list of message tuples, i.e.:
- * [["<type>", <msg>"}]
+ * Loop over a list of message tuples and call show_messages for each
+ * Expected format is: [["<message type>", <message>"], ...]
  */
 function show_messages(messages) {
   messages.forEach(function(message) {
@@ -312,8 +395,8 @@ function show_messages(messages) {
 
 
 /*
- * Initializes a functionary public key file upload dropzone on a
- * passed Jquery element and returns the Dropzone object.
+ * Initialize a functionary public key file upload dropzone on a
+ * passed JQuery element and return the Dropzone object
  */
 function init_functionary_dropzone($elem) {
 
@@ -325,7 +408,7 @@ function init_functionary_dropzone($elem) {
       var prevFile;
 
       // Event triggered when a file was uploaded and the server
-      // resplies with 200
+      // replied with 200
       this.on("success", function(file, response) {
         show_messages(response.messages);
 
@@ -334,22 +417,28 @@ function init_functionary_dropzone($elem) {
         if (response.error) {
           this.removeFile(file);
 
-
         } else {
           // If the new file was successfully stored on the server we
-          // remove any previously existing file...
+          // remove any previously existing file (replace)...
           if (typeof prevFile !== "undefined") {
             this.removeFile(prevFile);
           }
-          // ... and store the new file as previously existing file
-          // for future replacements
+          // ...and keep a reference to the new file for future replacements
           prevFile = file;
         }
       });
 
-      // We trigger this event (with a second parameter) when adding files
-      // that are already stored on the server to the dropzone
-      // c.f. JS in functionaries.html
+      // This event gets triggered when the user drops or clicks to add a new
+      // file, but also when we render files in a dropzone that were already
+      // stored on the server.
+      // In the latter case we want to safe a reference to the file (like
+      // above after a successful upload) so that we can replace it.
+      // To differentiate between those two cases we trigger the event with
+      // an extra parameter `existing` and only if the event has that parameter
+      // store the reference (see JS in functionaries.html).
+      // Remember, for user added files we don't want to do this right away,
+      // but only if the file was actually successfully stored on the server.
+      // TODO: This feels a little hackish, maybe we can do better
       this.on("complete", function(file, existing) {
         // This makes existing files also replaceable by new files
         if (existing) {
@@ -363,8 +452,8 @@ function init_functionary_dropzone($elem) {
 
 
 /*
- * Initializes a link file upload dropzone on a passed Jquery element and
- * returns the Dropzone object.
+ * Initialize a link file upload dropzone on a passed JQuery element and
+ * return the Dropzone object.
  */
 function init_link_dropzone($elem) {
   var opts = {
@@ -374,19 +463,26 @@ function init_link_dropzone($elem) {
     dictRemoveFile: "Remove Link",
     headers: _get_csrf_token_header(),
     init: function(file) {
+      // Event triggered when a file was uploaded and the server
+      // replied with 200
       this.on("success", function(file, response) {
+        // We set this made-up property on the file object to communicate to
+        // the "removedfile" event listener, which listens for the event
+        // triggered by the call below , that it should not go and actually
+        // remove the file from the server.
+        // TODO: This feels a little hackish, maybe we can do better
+        file.removed_on_fontend_only = true;
 
-        // Remove automatically added file preview...
-        // NOTE: We mention this fact by setting a
-        // custom property in the file object to not go and remove that file
-        // on the server when below call triggers the "removedfile" event.
-        // This feels a little hackish
-        file.removed_on_error = true;
+        // When the server returns from a file upload, we remove all
+        // automatically added file previews...
         this.removeFile(file);
 
-        // ... and add previews only for the file(s) that were actually stored
-        // on the server, e.g.: members of an uploaded tar
+        // ... and re-add previews only for the files that were actually
+        // stored on the server (according to the server's response).
+        // E.g. if we uploaded `links.tar.gz`, we only store and therefor only
+        // want to display the contained `foo.link` and `bar.link`
         for (var i = 0; i < response.files.length; i++) {
+          // Add (mock) previews for all the files that were actually stored
           // TODO: DRY add mock file
           uploaded_file = {name: response.files[i], size: 12345};
           this.emit("addedfile", uploaded_file);
@@ -397,9 +493,13 @@ function init_link_dropzone($elem) {
       });
 
       this.on("removedfile", function(file) {
-        if (file.removed_on_error)
+        // If this property is set we don't actually want to remove the file
+        // on the server, but just on the frontend
+        if (file.removed_on_fontend_only)
           return;
 
+        // Cache this (dropzone) to access it in inner scope which has its
+        // own this
         var thiz = this;
         // Post the name of the functionary to remove
         $.post({
@@ -410,8 +510,8 @@ function init_link_dropzone($elem) {
           success: function(response) {
             show_messages(response.messages);
 
-            // Re-add file (on clientside) if server-side remove
-            // was not successfull
+            // Re-add file (on client side) if server-side remove
+            // was not successful
             if (response.error) {
               thiz.emit("addedfile", file);
               thiz.emit("complete", file, true);
@@ -426,36 +526,33 @@ function init_link_dropzone($elem) {
 }
 
 /*
- * Traverse `.ssc_steps` (c.f. softare_supply_chain.html)
+ * Traverse `.ssc_steps` (c.f. software_supply_chain.html)
  * and generate graph data suitable for `draw_graph`.
  *
  * Directed edges are created sequentially: E {node_i, node_i+1}
- * Only modifying nodes have outdegree
- * A modifying node remains edge source for all subsequent nodes,
- * until the next modifying node in the list.
+ * Only "modifying" nodes have outdegree. A modifying node remains the edge
+ * source for all subsequent nodes until the next modifying node in the list.
  *
- * TODO:
- *  - Display inspections
- *
+ * TODO: Find a way to display inspections
  *
  * Returns
-{
-  nodes: [
-    {
-      name: <step name>
-    }
-  ]
-  edges: [
-    {
-      source: <step name> ,
-      dest: <step name>
-    }, ...
-  ]
-}
+ * {
+ *   nodes: [
+ *     {
+ *       name: <step name>
+ *     }
+ *   ]
+ *   edges: [
+ *     {
+ *       source: <step name> ,
+ *       dest: <step name>
+ *     }, ...
+ *   ]
+ * }
  */
 function generate_graph_from_ssc_steps() {
   // Make a list of node objects (i.e.: [{name: <step_name>}] from
-  // step name input fields Ignore steps without name
+  // step name input fields, ignore steps without name
   var nodes = $.map($(".ssc-steps .ssc-step"),
     function(elem) {
       var step_name = $(elem).find("input[name='step_name[]']").val();
@@ -473,8 +570,9 @@ function generate_graph_from_ssc_steps() {
   var edges = [];
   var src_i = null;
   for (var i = 0; i < nodes.length - 1; i++) {
-    // Only modifying steps, i.e. steps have products, have an outdegree
     // Skip non-modifying steps for edge sources
+    // Only modifying steps, i.e. steps where materials and products are not
+    // equal, have an outdegree
     if (nodes[i].modifies) {
        src_i = i;
     }
@@ -494,13 +592,14 @@ function generate_graph_from_ssc_steps() {
 }
 
 /*
- * Draw in-toto layout graph using D3.js
+ * Draw in-toto layout graph using dagre-d3 and D3.js
+ * https://github.com/cpettitt/dagre-d3/wiki
  */
 function draw_graph(graph_data) {
-  // The SVG element
+  // Query the SVG element
   var svg = d3.select("svg.svg-content");
 
-  // Remove existing content (could be re-draw)
+  // Remove existing content so that we can re-draw the graph
   svg.selectAll("*").remove();
 
   // Abort drawing if no nodes were passed
@@ -510,7 +609,8 @@ function draw_graph(graph_data) {
   // Create a new directed acyclic graph (dag)
   var dag = new dagreD3.graphlib.Graph({multigraph: true})
 
-  // Create a left to right layout
+  // Create a left to right layout,
+  // this controls the way the graph is displayed
   dag.setGraph({
     nodesep: 5,
     ranksep: 40,
@@ -518,7 +618,7 @@ function draw_graph(graph_data) {
     rankdir: "LR",
   });
 
-  // Create nodes (steps and inspections) based on passed nodes data.
+  // Create nodes (steps and inspections) based on passed nodes data
   graph_data.nodes.forEach(function(node) {
     // Create regular node (step or inspection)
     dag.setNode(node.name, {label: node.name});
@@ -533,7 +633,7 @@ function draw_graph(graph_data) {
       });
   });
 
-  // An SVG group element that wraps the graph
+  // Query the inner SVG group element that wraps the graph
   var inner = svg.append("g");
 
   // Set up drag/drop/zoom support
@@ -546,24 +646,23 @@ function draw_graph(graph_data) {
   // Create the renderer ...
   var render = new dagreD3.render();
 
-  // ... and run it to draw the graph.
+  // ... and run it to draw the graph
   render(inner, dag);
 
-  /* Scale and Center  graph */
+  // Scale and Center graph...
 
-  // Cache the SVG's container to access its width and height
-  // this is where the svg is visible
+  // Get the SVG's container to access its width and height, i.e.
+  // where the svg is visible
   var $outer = $(".svg-container");
 
   // Get width and height of the graph
-  // Note: D3 elements are lists of objects having the DOM element at idx 1
+  // Note: D3 elements are lists of objects having the DOM element at idx 0
   var inner_rect = inner[0][0].getBoundingClientRect();
 
-  // Padding in pixels
+  // Define a fixed padding between graph and viewport (px)
   var padding = 50;
 
-  // Calculate how much we have to scale the graph up or down to fit the
-  // container
+  // Calculate how much we must scale the graph up or down to fit the container
   var scale = Math.min(($outer.width() - padding) / inner_rect.width,
       ($outer.height() - padding) / inner_rect.height);
 
@@ -575,16 +674,14 @@ function draw_graph(graph_data) {
   // Do the actual translate and scale
   zoom.translate([left, top]).scale(scale).event(svg);
 
+  // Extend D3 selection's prototype to make an element first child
   d3.selection.prototype.toFront = function() {
-     /*
-      * D3 selection extension to re-locate an element
-      * to be the last child.
-      */
     return this.each(function(){
       this.parentNode.appendChild(this);
     });
   };
-
-  // Re-order SVG items - no z-index in SVG :(
+  // Bring the edges to the front so that the nodes don't overlap the arrows
+  // Note: There is no z-index for SVG, instead we have to mess with the order
+  // of elements
   d3.select(".edgePaths").toFront();
 }
