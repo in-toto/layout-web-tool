@@ -1,8 +1,25 @@
+{#-#################################################################
+<File Name>
+  functionaries.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Jun 30, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Used to add new functionaries (by name) and upload functionary public key
+  using a file upload dropzone for each newly added functionary.
+
+#################################################################-#}
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
 {#- BEGIN: Functionary form macro -#}
-
 {% macro item_form(name=None, template=False) %}
 <div class="functionary dz-container p-3 mt-2 {{'template' if template}}">
   <div class="m-2">

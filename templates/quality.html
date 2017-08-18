@@ -1,3 +1,21 @@
+{#-#################################################################
+<File Name>
+  quality.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Apr 06, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Template for qa page. Uses option grid and option form container macros
+  and passes a local qa form (defined in local form_content macro).
+
+#################################################################-#}
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
@@ -60,7 +78,6 @@ for every input -#}
 {%- endmacro %}
 {#- END: Quality Managment form macro -#}
 
-
 {#- BEGIN: Rendered content -#}
 {% block content %}
   <script type="text/javascript">
@@ -86,7 +103,6 @@ for every input -#}
   <hr>
   <h1>How do you assure your software's quality?</h1>
   <p>Do you run any static or dynamic tests? Below we provide some popular tools. Please pick the one(s) you are using, specify the executed command and tell us how you verify that the tests ran through properly.</p>
-
 
   {#- BEGIN: Option Grid -#}
   {% call(data) macros.option_grid(options=options) %}

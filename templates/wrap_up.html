@@ -1,3 +1,23 @@
+{#-#################################################################
+<File Name>
+  wrap_up.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Apr 06, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Template for wrap up page.
+  Provides a link to download the generated software supply chain layout
+  and instructions for further steps.
+
+#################################################################-#}
+
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
@@ -59,7 +79,6 @@ in-toto-run --key {{functionary_name}} --materials . --products . --step-name {{
     <i> Learn more about future
     <a href="https://github.com/in-toto/in-toto/issues/79">plans to cleanly
     integrate metadata into distributed software on our GitHub page.</a></i></p>
-
   {#- END: Begin next step instructions -#}
 
   {#- BEGIN: Navigation Footer (Previous/Next) -#}

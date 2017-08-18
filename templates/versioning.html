@@ -1,3 +1,27 @@
+{#-#################################################################
+<File Name>
+  versioning.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Apr 06, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Template for versioning page. Uses option grid and option form container macros
+  and passes a local versioning form (defined in local form_content macro).
+
+  Also defines an overlay user dialog that asks the user if the code should
+  be downloaded and used to populate a preliminary supply chain
+  (currently disabled).
+
+  FIXME: Enable clone repo dialog
+
+#################################################################-#}
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
@@ -17,8 +41,6 @@
   </div>
 {% endmacro %}
 {#- END: Versioning form macro -#}
-
-
 
 {#- BEGIN: Rendered content -#}
 {% block content %}
@@ -51,7 +73,6 @@
     </div>
   </div>
   {#- END: Navigation Footer (Previous/Next) -#}
-
 
   {#- BEGIN: Code clone consent form displayed on click as overlay (modal) -#}
 {#-   <div id="clone-consent-modal" class="modal fade" tabindex="-1" role="dialog">
