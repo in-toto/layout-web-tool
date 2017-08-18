@@ -1,7 +1,7 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{# BEGIN: Rendered content #}
+{#- BEGIN: Rendered content -#}
 {% block content %}
   {{ macros.progress_bar(value=75) }}
   <hr>
@@ -12,10 +12,10 @@
   a specific step. You should specify a threshold greater than one for steps
   that are especially sensitive.</p>
 
-  {# BEGIN: Functionary to step mapping #}
+  {#- BEGIN: Functionary to step mapping -#}
   <script type="text/javascript">
-    {# Initialize select2 for pubkey-to-step association #}
-    {# FIXME: Factor out to JavaScript file #}
+    {#- Initialize select2 for pubkey-to-step association -#}
+    {#- FIXME: Factor out to JavaScript file -#}
     $(function(){
       $(".select2").select2();
     });
@@ -44,9 +44,9 @@
     {{macros.comment_form(comment)}}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   </form>
-  {# END: Functionary to step mapping #}
+  {#- END: Functionary to step mapping -#}
 
-  {# BEGIN: Navigation Footer (Previous/Next) #}
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
@@ -56,7 +56,7 @@
       <input type="submit" form="authorizing-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
-  {# END: Navigation Footer (Previous/Next) #}
+  {#- END: Navigation Footer (Previous/Next) -#}
 
 {% endblock %}
-{# END: Rendered content #}
+{#- END: Rendered content -#}

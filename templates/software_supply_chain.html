@@ -1,7 +1,7 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{# BEGIN: Software Supply Chain item (step and inspection) form macro #}
+{#- BEGIN: Software Supply Chain item (step and inspection) form macro -#}
 {% macro item_form(type, item=None, template=False) %}
 <div class="ssc-item ssc-{{type}} mb-2 {{'template' if template}}" draggable="true">
   <div class="form-group row no-gutters">
@@ -13,7 +13,7 @@
       <input type="text" class="form-control form-control-sm" name="{{type}}_name[]" value="{{ item.name if item }}">
     </div>
     {% if type == "inspection" %}
-    {# TODO: A selectize input box that updates when step names are changed/ steps are added would be nice here #}
+    {#- TODO: A selectize input box that updates when step names are changed/ steps are added would be nice here -#}
     <div class="col-md-2 pr-md-2">
       <label class="small">Based on Step (optional)</label>
       <input type="text" class="form-control form-control-sm" name="{{type}}_step_name[]" value="{{ item.based_on if item }}">
@@ -39,9 +39,9 @@
 
 </div>
 {% endmacro %}
-{# END: Software Supply Chain item (step and inspection) form macro #}
+{#- END: Software Supply Chain item (step and inspection) form macro -#}
 
-{# BEGIN: Rendered content #}
+{#- BEGIN: Rendered content -#}
 {% block content %}
   <script type="text/javascript">
     $(function(){
@@ -91,15 +91,15 @@
   <p>Based on what you told us on the previous pages we have generated a
     preliminary software supply chain. Please add, remove, modify and re-order
     the steps below so that they align with your workflow.</p>
-  {# BEGIN: Container for software supply chain D3 graph #}
+  {#- BEGIN: Container for software supply chain D3 graph -#}
   <div class="svg-container mt-3 mb-3">
     <svg version="1.1" viewBox="0 0 1 1" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>
   </div>
-  {# END: Container for software supply chain D3 graph #}
+  {#- END: Container for software supply chain D3 graph -#}
 
-  {# BEGIN: Postable Form Content #}
+  {#- BEGIN: Postable Form Content -#}
   <div class="ssc-items mt-5">
-    {# Hidden form add templates (not posted)#}
+    {#- Hidden form add templates (not posted) -#}
     {{ item_form("step", template=true) }}
     {{ item_form("inspection", template=true) }}
     <form id="ssc-form" method="POST" action="{{ url_for('software_supply_chain')}}">
@@ -132,9 +132,9 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     </form>
   </div>
-  {# END: Postable Form Content #}
+  {#- END: Postable Form Content -#}
 
-  {# BEGIN: Navigation Footer (Previous/Next) #}
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
@@ -144,7 +144,7 @@
       <input type="submit" form="ssc-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
-  {# END: Navigation Footer (Previous/Next) #}
+  {#- END: Navigation Footer (Previous/Next) -#}
 {% endblock %}
-{# END: Rendered content #}
+{#- END: Rendered content -#}
 

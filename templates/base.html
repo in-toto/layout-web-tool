@@ -5,18 +5,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrftoken" content="{{ csrf_token() }}">
-
-    <title>in-toto layout</title>
-
-    {# We use JQuery right away that's why we load it here #}
+    <title>in-toto layout tool</title>
+    {#- We need these right away that's why we load them here and not below -#}
     <script src="{{ url_for('static', filename='vendor/jquery.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/dropzone.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/select2.js') }}"></script>
-
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.scss.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',
+        filename='css/main.scss.css') }}">
   </head>
   <body>
     <script type="text/javascript">
+      {#- We will initialize file upload dropzones explicitely -#}
       Dropzone.autoDiscover = false;
     </script>
     <div class="fixed-top">
@@ -53,8 +52,6 @@
     <div class="container content">
       {% block content %}{% endblock %}
     </div>
-    {# REPLACE THIS WITH LOCAL stuff#}
-    <!-- jQuery first, then Tether, then Bootstrap JS. -->
     <script src="{{ url_for('static', filename='vendor/tether.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/bootstrap.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/html.sortable.js') }}"></script>

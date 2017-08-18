@@ -1,7 +1,7 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{# BEGIN: Functionary form macro #}
+{#- BEGIN: Functionary form macro -#}
 
 {% macro item_form(name=None, template=False) %}
 <div class="functionary dz-container p-3 mt-2 {{'template' if template}}">
@@ -16,10 +16,10 @@
   <button type="button" class="rm-func-btn btn btn-outline-danger m-2">Remove Functionary</button>
 </div>
 {% endmacro %}
-{# END: Functionary form macro #}
+{#- END: Functionary form macro -#}
 
 
-{# BEGIN: Rendered content #}
+{#- BEGIN: Rendered content -#}
 {% block content %}
   {{ macros.progress_bar(value=65) }}
   <hr>
@@ -30,7 +30,7 @@
   <i>functionaries</i> and are identified by their respective public key.
   Below you can define your functionaries and upload their public key.</p>
 
-  {# BEGIN: Add functionary (name) #}
+  {#- BEGIN: Add functionary (name) -#}
   <div class="row no-gutters">
     <div class="col-md-10 pr-md-2">
       <label>Add functionaries here and upload public keys below</label>
@@ -40,9 +40,9 @@
       <button type="button" class="btn btn-outline-primary add-func-btn w-100">Add Functionary</button>
     </div>
   </div>
-  {# END: Add functionary (name) #}
+  {#- END: Add functionary (name) -#}
 
-  {# BEGIN: Key creation snippet #}
+  {#- BEGIN: Key creation snippet -#}
   <div class="mt-4">
   <small>You can use this <i>in-toto command line utility</i> to create RSA key pairs</small>
   <div>
@@ -51,7 +51,7 @@ in-toto-keygen &ltFILENAME&gt
 </pre>
   </div>
   </div>
-  {# BEGIN: Functionary key uploads #}
+  {#- BEGIN: Functionary key uploads -#}
   <div id="functionary-container">
     {{ item_form(template=True) }}
     {% for functionary_data in functionaries.get("items", []) %}
@@ -81,18 +81,18 @@ in-toto-keygen &ltFILENAME&gt
       }
     });
   </script>
-  {# END: Functionary key uploads #}
+  {#- END: Functionary key uploads -#}
 
-  {# BEGIN: Comment section #}
+  {#- BEGIN: Comment section -#}
   <form id="functionary-form" method="POST" action="{{ url_for('functionaries')}}">
     <hr class="mt-5">
     {{macros.comment_form(functionaries.get("comment", ""))}}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   </form>
-  {# END: Comment section #}
+  {#- END: Comment section -#}
 
 
-  {# BEGIN: Navigation Footer (Previous/Next) #}
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
@@ -103,7 +103,7 @@ in-toto-keygen &ltFILENAME&gt
       <input type="submit" form="functionary-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
-  {# END: Navigation Footer (Previous/Next) #}
+  {#- END: Navigation Footer (Previous/Next) -#}
 
 {% endblock %}
-{# END: Rendered content #}
+{#- END: Rendered content -#}

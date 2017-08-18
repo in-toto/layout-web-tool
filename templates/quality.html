@@ -1,10 +1,10 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{# BEGIN: Quality Managment form macro #}
+{#- BEGIN: Quality Managment form macro -#}
 {% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
-{# Define default dict/list here (never in signature) so we don't have to check
-for every input #}
+{#- Define default dict/list here (never in signature) so we don't have to check
+for every input -#}
 {% with data = data if data else {} %}
   <div class="form-group">
     <label>I use this command to assure my software's quality</label>
@@ -58,10 +58,10 @@ for every input #}
   </div>
 {% endwith %}
 {%- endmacro %}
-{# END: Quality Managment form macro #}
+{#- END: Quality Managment form macro -#}
 
 
-{# BEGIN: Rendered content #}
+{#- BEGIN: Rendered content -#}
 {% block content %}
   <script type="text/javascript">
     $(function(){
@@ -88,19 +88,19 @@ for every input #}
   <p>Do you run any static or dynamic tests? Below we provide some popular tools. Please pick the one(s) you are using, specify the executed command and tell us how you verify that the tests ran through properly.</p>
 
 
-  {# BEGIN: Option Grid #}
+  {#- BEGIN: Option Grid -#}
   {% call(data) macros.option_grid(options=options) %}
     {{ form_content(data={ "cmd": data.get("cmd") }, show_add_btn=True, show_rm_btn=False) }}
   {% endcall %}
-  {# END: Option Grid #}
+  {#- END: Option Grid -#}
 
-  {# BEGIN: Postable Form Content #}
+  {#- BEGIN: Postable Form Content -#}
   {% call(data=None) macros.form_container(form_id="qa-form", form_action=url_for('quality_management'), user_data=user_data) %}
-    {{ form_content(data=data) }} {# data passed back from macro #}
+    {{ form_content(data=data) }} {#- data passed back from macro -#}
   {% endcall %}
-  {# END: Postable Form Content #}
+  {#- END: Postable Form Content -#}
 
-  {# BEGIN: Navigation Footer (Previous/Next) #}
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
@@ -110,7 +110,7 @@ for every input #}
       <input type="submit" form="qa-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
-  {# END: Navigation Footer (Previous/Next) #}
+  {#- END: Navigation Footer (Previous/Next) -#}
 
 {% endblock %}
-{# END: Rendered content #}
+{#- END: Rendered content -#}

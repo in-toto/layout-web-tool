@@ -1,7 +1,7 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{# BEGIN: Rendered content #}
+{#- BEGIN: Rendered content -#}
 {% block content %}
   {{ macros.progress_bar(value=80) }}
   <hr>
@@ -18,7 +18,7 @@
   <a href="https://github.com/in-toto/in-toto#artifact-rules">
   <i>in-toto artifact rule</i> section on our GitHub page</a>.</p>
 
-  {# BEGIN: Mock run command snippet  #}
+  {#- BEGIN: Mock run command snippet  -#}
   <div>
     <small>The following command line snippet wraps your software supply chain
     commands with the in-toto metadata generating command and creates a tarball
@@ -30,9 +30,9 @@ in-toto-mock --name {{step.name}} -- {{step.cmd}}
 tar czf in_toto_link_files.tar.gz {% for step in steps%}{{step.name}}.link-mock {% endfor %}
 </pre>
   </div>
-  {# END: Mock run command snippet  #}
+  {#- END: Mock run command snippet  -#}
 
-  {# BEGIN: Link file upload dropzone #}
+  {#- BEGIN: Link file upload dropzone -#}
   <script type="text/javascript">
     $(function(){
 
@@ -58,17 +58,17 @@ tar czf in_toto_link_files.tar.gz {% for step in steps%}{{step.name}}.link-mock 
     </form>
   </div>
   </div>
-  {# END: Link file upload dropzone #}
+  {#- END: Link file upload dropzone -#}
 
-  {# BEGIN: Comment section #}
+  {#- BEGIN: Comment section -#}
   <form id="chaining-form" method="POST" action="{{ url_for('chaining')}}">
     <hr class="mt-5">
     {{macros.comment_form(chaining.get("comment", ""))}}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   </form>
-  {# END: Comment section #}
+  {#- END: Comment section -#}
 
-  {# BEGIN: Navigation Footer (Previous/Next) #}
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
@@ -78,6 +78,6 @@ tar czf in_toto_link_files.tar.gz {% for step in steps%}{{step.name}}.link-mock 
       <input type="submit" form="chaining-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
-  {# END: Navigation Footer (Previous/Next) #}
+  {#- END: Navigation Footer (Previous/Next) -#}
 {% endblock %}
-{# END: Rendered content #}
+{#- END: Rendered content -#}

@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{# BEGIN: Packaging form macro #}
+{#- BEGIN: Packaging form macro -#}
 {% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
   <div class="form-group">
     <label>I use this command to package my software</label>
@@ -14,28 +14,28 @@
     <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
   </div>
 {% endmacro %}
-{# END: Packaging form macro #}
+{#- END: Packaging form macro -#}
 
-{# BEGIN: Rendered content #}
+{#- BEGIN: Rendered content -#}
 {% block content %}
   {{ macros.progress_bar(value=50) }}
   <hr>
   <h1>How do you package your software?</h1>
   <p>You showed us how you fetch your code and how you build and test it, so your software is probably ready to be shipped out to the user. Do you use any of the following commands to create a software package?</p>
 
-  {# BEGIN: Option Grid #}
+  {#- BEGIN: Option Grid -#}
   {% call(data) macros.option_grid(options=options) %}
-    {{ form_content(data={"cmd": data.get('cmd')}, show_add_btn=True, show_rm_btn=False) }} {# data passed back from macro #}
+    {{ form_content(data={"cmd": data.get('cmd')}, show_add_btn=True, show_rm_btn=False) }} {#- data passed back from macro -#}
   {% endcall %}
-  {# END: Option Grid #}
+  {#- END: Option Grid -#}
 
-  {# BEGIN: Postable Form Content #}
+  {#- BEGIN: Postable Form Content -#}
   {% call(data=None) macros.form_container(form_id="package-form", form_action=url_for('packaging'), user_data=user_data) %}
-    {{ form_content(data=data) }} {# data passed back from macro #}
+    {{ form_content(data=data) }} {#- data passed back from macro -#}
   {% endcall %}
-  {# END: Postable Form Content #}
+  {#- END: Postable Form Content -#}
 
-  {# BEGIN: Navigation Footer (Previous/Next) #}
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>
   <div class="row no-gutters justify-content-between">
     <div class="col-3">
@@ -45,7 +45,7 @@
       <input type="submit" form="package-form" class="btn btn-outline-primary btn-block" value="Next">
     </div>
   </div>
-  {# END: Navigation Footer (Previous/Next) #}
+  {#- END: Navigation Footer (Previous/Next) -#}
 
 {% endblock %}
-{# END: Rendered content #}
+{#- END: Rendered content -#}
