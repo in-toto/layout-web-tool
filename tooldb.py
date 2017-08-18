@@ -1,3 +1,33 @@
+"""
+<Program Name>
+  tooldb.py
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  June 12, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  A basic collection of software supply chain tools in four categories
+   - vcs (version control systems)
+   - building
+   - qa (quality assurance)
+   - package (packaging)
+
+  The tools are presented to the user on the different pages of the web wizard
+  as options to choose from to define a custom supply chain
+
+  TODO:
+  - Update! Some of the tools might be not used at all while other popular
+    tools are missing
+  - Clean up! Common commands, logo, ...
+
+"""
+
 collection = {
   "vcs": [{
     "type": "",
