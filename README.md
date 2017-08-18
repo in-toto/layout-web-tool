@@ -24,14 +24,9 @@ sudo service mongod start
 # Install backend (c.f. requirements.txt)
 pip install -r requirements.txt
 
-# Install frontend dependencies (c.f. package.json)
+# Install and vendorize frontend dependencies and compile scss
+# c.f. dependencies and scripts in package.json
 npm install
-
-# Compile scss to css + source maps
-sass static/scss/main.scss:static/css/main.scss.css
-
-# Copy needed node_modules *.js to `static/vendor/` dir (c.f. gulpfile)
-gulp
 ```
 
 ### Deployment

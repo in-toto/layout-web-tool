@@ -1,23 +1,22 @@
 {
-  "name": "layout-tool",
-  "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "name": "in-toto-layout-tool",
+  "version": "1.0.0-beta.0",
+  "description": "A Flask-based web app that helps to create a custom in-toto software supply chain layout",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/in-toto/layout-web-tool.git"
   },
-  "author": "",
+  "author": "Lukas Puehringer <lukas.puehringer@nyu.edu>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/in-toto/layout-web-tool/issues"
   },
   "homepage": "https://github.com/in-toto/layout-web-tool#readme",
+  "scripts": {
+    "postinstall": "gulp && sass static/scss/main.scss:static/css/main.scss.css"
+  },
   "dependencies": {
-    "bootstrap": ">=4.0.0-alpha.6",
+    "bootstrap": "4.0.0-alpha.6",
     "d3": "^3.5.17",
     "dagre-d3": "^0.4.17",
     "dropzone": "^4.3.0",
