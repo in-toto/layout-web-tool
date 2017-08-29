@@ -133,9 +133,20 @@ $(function() {
     $(".opt-form-cont").slideUp();
     $(".opt-content").removeClass("active");
 
-    // Clone opt form to be copied and hide it so that it can be displayed
+    // Clone opt form to be copied and hide the clone so that it can be displayed
     // with animation below
-    var $opt_form = $(this).parents(".opt-form").clone().hide();
+    var $opt_form_orig = $(this).parents(".opt-form");
+    var $opt_form = $opt_form_orig.clone().hide();
+
+    // JQuery's clone does not clone user selections made to `select` elements
+    // https://bugs.jquery.com/ticket/1294
+    // https://api.jquery.com/clone/
+    // Iterate over select element in the clone base (if any)...
+    $opt_form_orig.find("select").each(function(idx){
+      // ...and assign each selected value to the respective
+      // cloned select element (matched by index)
+      $opt_form.find("select").eq(idx).val($(this).val());
+    });
 
     // `.opt-form`s in the option grid can be copied but not removed
     // `.opt-form`s in the `#opt-form-container` can be removed but not copied
