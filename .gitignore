@@ -19,3 +19,6 @@ files/*
 .sass-cache
 static/css/*
 !static/css/.keep
+
+# Exclude flask config file as it contains secret keys
+instance/config.py
