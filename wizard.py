@@ -46,8 +46,7 @@
 
 """
 import os
-import random
-import hashlib
+import uuid
 import time
 import StringIO
 import tarfile
@@ -333,9 +332,8 @@ def with_session_id(wrapped_func):
   @wraps(wrapped_func)
   def decorated_function(*args, **kwargs):
     if not session.get("id"):
-      # Sessions use a MD5 hexdigest of a random value
       # Security is not paramount, we don't store sensitive data, right?
-      session["id"] = hashlib.md5(str(random.random())).hexdigest()
+      session["id"] = uuid.uuid4()
       app.logger.info("New session ID '{}'".format(session["id"]))
 
     return wrapped_func(*args, **kwargs)
