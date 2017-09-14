@@ -219,7 +219,20 @@ def form_data_to_ssc(step_names, step_commands, step_modifies,
       ]
     }
 
+  <Exceptions>
+    ValueError if step or inspection arguments have unequal lengths
+
   """
+
+  if not (len(step_names) == len(step_commands) == len(step_modifies)):
+    raise ValueError("The arguments 'step_names', 'step_commands' and"
+      " 'step_modifies' must have equal lengths.")
+
+  if not (len(inspection_names) == len(inspection_commands) ==
+      len(inspection_step_names)):
+    raise ValueError("The arguments 'inspection_names', 'inspection_commands'"
+        " and 'inspection_step_names' must have equal lengths.")
+
   steps = []
   for i in range(len(step_names)):
     steps.append({
