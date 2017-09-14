@@ -3,7 +3,7 @@
 
 """
 <Program Name>
-  reverse_layout.py
+  create_layout.py
 
 <Author>
   Lukas Puehringer <lukas.puehringer@nyu.edu>
@@ -69,6 +69,22 @@
     - for MATCH rules
       match only those that already were in the previous step
       allow the rest by name
+
+
+  <Usage>
+
+    ```
+    # Create a layout given an ordered list of link file paths
+
+    links = []
+    for LINK_PATH in LINK_PATHS:
+      link = in_toto.models.link.Link.read_from_file(LINK_PATH)
+      links.append(link)
+
+    layout = create_layout_from_ordered_links(links)
+    layout.dump()
+
+    ```
 
 """
 import os
@@ -136,31 +152,3 @@ def create_layout_from_ordered_links(links):
     layout.steps.append(step)
 
   return layout
-
-
-def main():
-
-  # DEMO USAGE
-  # Read files from DEMO_METADATA_DIR and dump generated root.layout to
-  # DEMO_METADATA_DIR
-  # Note: These files are taken from the in-toto demo
-  # https://github.com/in-toto/in-toto/tree/develop/demo
-
-  DEMO_METADATA_DIR = "demo_metadata"
-  test_link_filenames = [
-      "clone.0c6c50a1.link",
-      "update-version.0c6c50a1.link",
-      "package.c1ae1e51.link"
-  ]
-
-  links = []
-  for filename in test_link_filenames:
-    path = os.path.join(DEMO_METADATA_DIR, filename)
-    links.append(in_toto.models.link.Link.read_from_file(path))
-
-  layout = create_layout_from_ordered_links(links)
-  path = os.path.join(DEMO_METADATA_DIR, "root.layout")
-  layout.dump(path)
-
-if __name__ == "__main__":
-  main()

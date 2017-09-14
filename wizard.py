@@ -375,7 +375,7 @@ def start():
 def versioning():
   """Step 1.
   Enter information about version control system. """
-  options = tooldb.collection["vcs"]
+  options = tooldb.COLLECTION["vcs"]
 
   if request.method == "POST":
     # Grab the form posted vcs commands and persist
@@ -400,7 +400,7 @@ def versioning():
 def building():
   """Step 2.
   Enter information about building. """
-  options = tooldb.collection["building"]
+  options = tooldb.COLLECTION["building"]
 
   if request.method == "POST":
     # Grab the form posted building commands and persist
@@ -424,7 +424,7 @@ def building():
 def quality_management():
   """Step 3.
   Enter information about quality management. """
-  options = tooldb.collection["qa"]
+  options = tooldb.COLLECTION["qa"]
 
   if request.method == "POST":
     # Grab the form posted quality management data and persist
@@ -495,7 +495,7 @@ def quality_management():
 def packaging():
   """Step 4.
   Enter information about packaging. """
-  options = tooldb.collection["package"]
+  options = tooldb.COLLECTION["package"]
 
   if request.method == "POST":
     # Grab the form posted building commands and persist
@@ -744,7 +744,8 @@ def authorizing():
 
     # The authorized functionaries multi select form element has the
     # respective step name in its name, e.g. for building step:
-    # <select name="functionary_name_building[]" ...> (c.f authorizing.html)
+    # <select name="functionary_name_building[]" ...>
+    # (c.f authorizing_functionaries.html)
     auth_items = []
     for idx, step_name in enumerate(step_names):
       functionaries_for_step = request.form.getlist(
@@ -794,7 +795,7 @@ def authorizing():
 
   session_functionaries = _get_session_subdocument("functionaries")
   session_steps = _get_session_subdocument("ssc").get("steps", [])
-  return render_template("authorizing.html",
+  return render_template("authorizing_functionaries.html",
       functionaries=session_functionaries, steps=session_steps,
       auth_dict=auth_dict, comment=comment)
 

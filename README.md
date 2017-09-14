@@ -1,7 +1,7 @@
 # in-toto Layout Creation Wizard
 
 A Flask based web app to guide project owners through creating an
-[in-toto layout](github.com/in-toto/in-toto).
+[in-toto layout](https://in-toto.io).
 
 Mockups can be found at [`editor-and-wizard-wip/mockups`](https://github.com/in-toto/layout-web-tool/blob/editor-and-wizard-wip/mockups/layout-wizard.pdf).
 
@@ -18,7 +18,7 @@ user session data (for usage analysis)
 
 ```shell
 # Start `mongod` (if not already running)
-# This command should work on many Linux systems
+# Note: `service` won't be available in the future
 sudo service mongod start
 
 # Install backend (c.f. requirements.txt)

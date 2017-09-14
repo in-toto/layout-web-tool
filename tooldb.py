@@ -28,7 +28,7 @@
 
 """
 
-collection = {
+COLLECTION = {
   "vcs": [{
     "type": "",
     "prog_lang": "",

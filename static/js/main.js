@@ -362,14 +362,16 @@ function _get_csrf_token_header() {
 
 /*
  * Append passed message to DOM (using message template), and show for
- * a fixed amount of type (5 seconds) the second parameter is used as style
+ * a fixed amount of time (5 seconds) the second parameter is used as style
  * class.
  *
  * See https://v4-alpha.getbootstrap.com/components/alerts/ for available
  * types and styles.
  *
- * TODO:
- * Sometimes 5 seconds are to much and sometimes not enough
+ * TODO: Some messages are too long to read them in 5 seconds and for
+ * shorter messages 5 seconds seems too much.
+ * We could calculate the time based on the length of the message
+ *
  */
 function show_message(msg, msg_type) {
   // If the type is none of below, use "alert-info" as default
