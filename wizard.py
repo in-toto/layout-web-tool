@@ -34,8 +34,8 @@
   Views:
       Each view is an entry point for an HTTP request (c.f. paths in @app.route
       decorator). Most views correspond to a page the user surfs to and
-      therefor render and return the according template on a GET request.
-      If a page has form postable content, the according view also accepts
+      therefore render and return the corresponding template on a GET request.
+      If a page has form postable content, the corresponding view also accepts
       a POST request which is usually sent when the user clicks NEXT as s/he
       walks through the pages. The view then handles and persists the posted
       data and in case everything went well redirects to the text view (page).
@@ -151,7 +151,7 @@ def session_to_ssc(session_data):
           # c.f. https://github.com/in-toto/in-toto-inspections
           if enabled:
             # Inspection commands require a link file (to inspect)
-            # We use the auto name of the according QA step to
+            # We use the auto name of the corresponding QA step to
             # generate the filename passed to the inspection command
             # FIXME: What about the functionary keyid in the link file name?!
             link = in_toto.models.link.FILENAME_FORMAT_SHORT.format(

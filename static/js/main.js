@@ -492,7 +492,7 @@ function init_link_dropzone($elem) {
 
         // ... and re-add previews only for the files that were actually
         // stored on the server (according to the server's response).
-        // E.g. if we uploaded `links.tar.gz`, we only store and therefor only
+        // E.g. if we uploaded `links.tar.gz`, we only store and therefore only
         // want to display the contained `foo.link` and `bar.link`
         for (var i = 0; i < response.files.length; i++) {
           // Add (mock) previews for all the files that were actually stored
