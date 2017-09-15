@@ -1,6 +1,6 @@
 {#-#################################################################
 <File Name>
-  versioning.html
+  vcs.html
 
 <Author>
   Lukas Puehringer <lukas.puehringer@nyu.edu>
@@ -12,8 +12,8 @@
   See LICENSE for licensing information.
 
 <Purpose>
-  Template for versioning page. Uses option grid and option form container macros
-  and passes a local versioning form (defined in local form_content macro).
+  Template for vcs page. Uses option grid and option form container macros
+  and passes a local vcs form (defined in local form_content macro).
 
   Also defines an overlay user dialog that asks the user if the code should
   be downloaded and used to populate a preliminary supply chain
@@ -25,7 +25,7 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{#- BEGIN: Versioning form macro -#}
+{#- BEGIN: vcs form macro -#}
 {% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
   <div class="form-group">
     <label>I fetch my repo using this command</label>
@@ -40,7 +40,7 @@
     <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
   </div>
 {% endmacro %}
-{#- END: Versioning form macro -#}
+{#- END: vcs form macro -#}
 
 {#- BEGIN: Rendered content -#}
 {% block content %}
@@ -56,7 +56,7 @@
   {#- END: Option Grid -#}
 
   {#- BEGIN: Postable Form Content -#}
-  {% call(data=None) macros.form_container(form_id="vcs-form", form_action=url_for('versioning'), user_data=user_data) %}
+  {% call(data=None) macros.form_container(form_id="vcs-form", form_action=url_for('vcs'), user_data=user_data) %}
     {{ form_content(data=data) }} {#- data passed back from macro -#}
   {% endcall %}
   {#- END: Postable Form Content -#}

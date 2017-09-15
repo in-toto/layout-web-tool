@@ -381,9 +381,9 @@ def start():
   return render_template("start.html")
 
 
-@app.route("/versioning", methods=["GET", "POST"])
+@app.route("/vcs", methods=["GET", "POST"])
 @with_session_id
-def versioning():
+def vcs():
   """Step 1.
   Enter information about version control system. """
   options = tooldb.COLLECTION["vcs"]
@@ -402,7 +402,7 @@ def versioning():
     return redirect(url_for("building"))
 
   user_data = _get_session_subdocument("vcs")
-  return render_template("versioning.html", options=options,
+  return render_template("vcs.html", options=options,
       user_data=user_data)
 
 
