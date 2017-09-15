@@ -5,6 +5,7 @@ __pycache__/
 
 in-toto
 node_modules
+instance/
 
 # Exclude vendor JS file, copy them freshly using:
 # `gulp`
