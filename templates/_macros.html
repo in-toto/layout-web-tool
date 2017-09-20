@@ -43,18 +43,7 @@
 #################################################################-#}
 
 {% macro option_grid(options) %}
-<div class="opt-row row no-gutters">
-  <div class="opt-cell col opt-cell-top">
-    <div class="opt-content">
-      <div class="opt-text text-center">Custom Command</div>
-    </div>
-    <div class="opt-form-cont collapse">
-      <div class="opt-form">
-        {{ caller(data={"cmd":""}) }}
-      </div>
-    </div>
-  </div>
-</div>
+
 <div class="opt-row row no-gutters">
 {% for option in options %}
   <div class="opt-cell col-3">
@@ -66,32 +55,18 @@
       {% endif %}
       <div class="opt-text text-center">{{option["name"]}}</div>
     </div>
-    <div class="opt-form-cont collapse">
-      <div class="opt-form">
-        {{ caller(data=option) }}
-      </div>
-    </div>
   </div>
 {% endfor %}
+  <div class="opt-cell col opt-cell">
+    <div class="opt-content">
+      <div class="opt-text text-center">Custom Command</div>
+    </div>
+  </div>
 </div>
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 {%- endmacro %}
 
-{% macro form_container(form_id, form_action, user_data) %}
-<form class="mt-5" id="{{ form_id }}" action="{{ form_action }}" method="POST">
-  <h2 class="opt-form-container-info {{'d-none' if not user_data.get('items')}}">Workflow</h2>
-  <p class="opt-form-container-info {{'d-none' if not user_data.get('items')}}">You can change and re-order your commands here before you go to the next page</p>
-  <div id="opt-form-container" class="mb-3 sort-container">
-    {%-for user_item in user_data.get("items", []) %}
-      <div class="opt-form">
-        {{ caller(data=user_item) }}
-      </div>
-    {% endfor-%}
-  </div>
-<hr class="mt-5">
-{{comment_form(user_data.get("comment", ""))}}
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-</form>
-{%- endmacro %}
+
 
 {% macro comment_form(value) %}
 <h2>Doing things differently?</h2>

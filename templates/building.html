@@ -19,19 +19,6 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{#- BEGIN: Building form macro -#}
-{% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
-  <div class="form-group">
-    <label>I build my software using this command</label>
-    <input type="text" class="form-control" value="{{ data.get('cmd') if data }}" name="build_cmd[]">
-  </div>
-  <div class="form-group">
-    <button type="button" class="copy-btn btn btn-outline-warning {{'d-none' if not show_add_btn}}">Add and continue on this page</button>
-    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}" data-submit="building-form">Add and continue on next page</button>    <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
-  </div>
-{% endmacro %}
-{#- BEGIN: Building form macro -#}
-
 {#- BEGIN: Rendered content -#}
 {% block content %}
   {{ macros.progress_bar(value=30) }}
@@ -40,16 +27,11 @@
   <p>If you don't build you software just click <i>next</i>. In the same manner, if you use more than one command to build your software, you can pick multiple of the provided options or add custom commands.</p>
 
   {#- BEGIN: Option Grid -#}
-  {% call(data) macros.option_grid(options=options) %}
-    {{ form_content(data={"cmd": data.get("cmd")}, show_add_btn=True, show_rm_btn=False) }} {#- data passed back from macro -#}
-  {% endcall %}
+  <form id="building-form" action="{{ url_for('building') }}" method="POST">
+  {{ macros.option_grid(options=options) }}
+  </form>
   {#- END: Option Grid -#}
 
-  {#- BEGIN: Postable Form Content -#}
-  {% call(data=None) macros.form_container(form_id="building-form", form_action=url_for('building'), user_data=user_data) %}
-    {{ form_content(data=data) }} {#- data passed back from macro -#}
-  {% endcall %}
-  {#- END: Postable Form Content -#}
 
   {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>

@@ -25,22 +25,6 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{#- BEGIN: vcs form macro -#}
-{% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
-  <div class="form-group">
-    <label>I fetch my repo using this command</label>
-    <input type="text" class="form-control" value="{{ data.get('cmd') if data }}" name="vcs_cmd[]">
-  </div>
-  <div class="form-group">
-    {#- TODO: Having all buttons here and toggle visibility depending on where
-    (in the opt grid or in the postable form section)
-    they are is kind of hackish, but it does the trick for now -#}
-    <button type="button" class="copy-btn btn btn-outline-warning {{'d-none' if not show_add_btn}}">Add and continue on this page</button>
-    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}" data-submit="vcs-form">Add and continue on next page</button>
-    <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
-  </div>
-{% endmacro %}
-{#- END: vcs form macro -#}
 
 {#- BEGIN: Rendered content -#}
 {% block content %}
@@ -50,16 +34,10 @@
   <p>We assume that you organize your source code in a version control system. What command do you use to fetch your sources?</p>
 
   {#- BEGIN: Option Grid -#}
-  {% call(data) macros.option_grid(options=options) %}
-    {{ form_content(data={"cmd": data.get('cmd')}, show_add_btn=True, show_rm_btn=False) }} {#- data passed back from macro -#}
-  {% endcall %}
+  <form id="vcs-form" action="{{ url_for('vcs') }}" method="POST">
+  {{ macros.option_grid(options=options) }}
+  </form>
   {#- END: Option Grid -#}
-
-  {#- BEGIN: Postable Form Content -#}
-  {% call(data=None) macros.form_container(form_id="vcs-form", form_action=url_for('vcs'), user_data=user_data) %}
-    {{ form_content(data=data) }} {#- data passed back from macro -#}
-  {% endcall %}
-  {#- END: Postable Form Content -#}
 
   {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>
@@ -74,20 +52,7 @@
   </div>
   {#- END: Navigation Footer (Previous/Next) -#}
 
-  {#- BEGIN: Code clone consent form displayed on click as overlay (modal) -#}
-{#-   <div id="clone-consent-modal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-sm mt-5">
-      <div class="modal-content">
-        <div class="modal-header"></div>
-        <div class="modal-body text-center">
-          <h3 class="mb-4">Should we clone your repo to guess what your software supply chain looks like?</h3>
-          <a class="btn btn-outline-primary" href="{{ url_for('building')}}">No, thanks.</a>
-          <a class="btn btn-outline-primary " href="{{ url_for('building')}} ">Yes, please!</a>
-        </div>
-      </div>
-    </div>
-  </div> -#}
-  {#- END: Code clone consent form displayed on click as overlay (modal) -#}
+
 
 {% endblock %}
 {#- END: Rendered content -#}

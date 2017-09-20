@@ -19,20 +19,6 @@
 {% import '_macros.html' as macros %}
 {% extends "base.html" %}
 
-{#- BEGIN: Packaging form macro -#}
-{% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
-  <div class="form-group">
-    <label>I use this command to package my software</label>
-    <input type="text" class="form-control" value="{{ data.get('cmd') if data }}" name="cmd[]">
-  </div>
-  <div class="form-group">
-    <button type="button" class="copy-btn btn btn-outline-warning {{'d-none' if not show_add_btn}}">Add and continue on this page</button>
-    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}" data-submit="package-form">Add and continue on next page</button>
-    <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
-  </div>
-{% endmacro %}
-{#- END: Packaging form macro -#}
-
 {#- BEGIN: Rendered content -#}
 {% block content %}
   {{ macros.progress_bar(value=50) }}
@@ -41,16 +27,10 @@
   <p>You showed us how you fetch your code and how you build and test it, so your software is probably ready to be shipped out to the user. Do you use any of the following commands to create a software package?</p>
 
   {#- BEGIN: Option Grid -#}
-  {% call(data) macros.option_grid(options=options) %}
-    {{ form_content(data={"cmd": data.get('cmd')}, show_add_btn=True, show_rm_btn=False) }} {#- data passed back from macro -#}
-  {% endcall %}
+  <form id="package-form" action="{{ url_for('packaging') }}" method="POST">
+  {{ macros.option_grid(options=options) }}
+  </form>
   {#- END: Option Grid -#}
-
-  {#- BEGIN: Postable Form Content -#}
-  {% call(data=None) macros.form_container(form_id="package-form", form_action=url_for('packaging'), user_data=user_data) %}
-    {{ form_content(data=data) }} {#- data passed back from macro -#}
-  {% endcall %}
-  {#- END: Postable Form Content -#}
 
   {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>
