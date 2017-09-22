@@ -431,11 +431,10 @@ ul.check {
     // This might seem like an overkill
     &.opt-cell-top {
       @include make-opt-cells(('xs': 1, 'sm': 1, 'md': 1, 'lg': 1, 'xl': 1));
-      margin-bottom: 2px;
+      margin-top: 20px;
       .opt-content {
         height: 30px;
         .opt-text {
-          font-weight: bold;
           font-size: 0.9em;
         }
       }

@@ -58,13 +58,16 @@
     </div>
   </div>
 {% endfor %}
-  <div class="opt-cell col opt-cell">
+</div>
+<div class="opt-row row no-gutters">
+  <div class="opt-cell col opt-cell-top">
     <input type="checkbox" name="opt" value="custom command">
     <div class="opt-content">
-      <div class="opt-text text-center">Custom Command</div>
+      <div class="opt-text text-center">Click here if your tool is not listed</div>
     </div>
   </div>
 </div>
+
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 {%- endmacro %}
 
