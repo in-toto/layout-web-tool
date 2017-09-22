@@ -37,22 +37,16 @@
  * Below function gets executed when the DOM is fully loaded
  ****************************************************************/
 $(function() {
+
   /*
-   * Register click listener to toggle the display of forms attached to
-   * options of the option grid.
+   * Register click listener to toggle an option cell's checkbox input element
+   * and a "checked" class used for styling.
    */
-  $(".opt-content").on("click", function(evt) {
-    // Find the form that belongs to the clicked option
-    var $opt_form_cont = $(this).parent(".opt-cell").find(".opt-form-cont");
+  $(".opt-cell").on("click", function(evt) {
+    $(this).toggleClass("checked");
+    $checkbox = $(this).find("input[type='checkbox']")
+    $checkbox.prop("checked", !$checkbox.prop("checked"));
 
-    // We don't care if the clicked option's form is active or not
-    // in any case we can hide all other option forms
-    $(".opt-form-cont").not($opt_form_cont).slideUp();
-    $(".opt-content").not(this).removeClass("active");
-
-    // Toggle (show or hide) the clicked option's form.
-    $opt_form_cont.slideToggle();
-    $(this).toggleClass("active");
   });
 
   /*

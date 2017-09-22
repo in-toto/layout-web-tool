@@ -380,6 +380,9 @@ ul.check {
     // Hack to prevent double horizontal borders
     margin-bottom: -1px;
 
+      input[type="checkbox"] {
+        display: none;
+      }
     // The cell content showing logo, command and options
     // The form is a sibling of this element
     .opt-content {
@@ -387,9 +390,7 @@ ul.check {
       border: 1px solid lightgrey;
       height: 60px;
 
-      input.form-check-input {
-        display: none;
-      }
+
 
       .opt-logo {
         height: 40px;
@@ -408,24 +409,17 @@ ul.check {
           height:100%;
         }
       }
-
-      // Change background on hover or expanded form
-      &.active, &:hover {
-        background-color: #f5f5f5;
-      }
-      // ... and also show bottom-centered SVG arrow
-      &.active:after {
-        top: 100%;
-        left: 50%;
-        margin: 0 -8px;
-        content: ' ';
-        position: absolute;
-        width: 16px;
-        height: 16px;
-        z-index: 2;
-        background: url("data:image/svg+xml;utf8,<svg width='16' height='16' xmlns='http://www.w3.org/2000/svg'><path d='M0 0  L8 8 L16 0' stroke='lightgrey' stroke-width='1' fill='#f5f5f5'/></svg>") no-repeat;
-      }
     }
+
+    // Change background on hover or expanded form
+    &:hover {
+      background-color: #f5f5f5;
+    }
+    &.checked {
+      background-color: $green;
+
+    }
+
 
     // Breakpoints for cells for different screen widths
     // Note: We must define all available breakpoints in order

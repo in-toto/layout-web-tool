@@ -47,6 +47,7 @@
 <div class="opt-row row no-gutters">
 {% for option in options %}
   <div class="opt-cell col-3">
+    <input type="checkbox" name="opt" value="{{option["name"]}}">
     <div class="opt-content">
       {% if option['logo'] %}
       <div class="opt-logo text-center p-2">
@@ -58,6 +59,7 @@
   </div>
 {% endfor %}
   <div class="opt-cell col opt-cell">
+    <input type="checkbox" name="opt" value="custom command">
     <div class="opt-content">
       <div class="opt-text text-center">Custom Command</div>
     </div>
