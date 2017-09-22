@@ -30,9 +30,7 @@
 {% block content %}
   {{ macros.progress_bar(value=20) }}
   <hr>
-  <h1>Where does your code live?</h1>
-  <p>We assume that you organize your source code in a version control system. What command do you use to fetch your sources?</p>
-
+  <h1>Which version control system do you use?</h1>
   {#- BEGIN: Option Grid -#}
   <form id="vcs-form" action="{{ url_for('vcs') }}" method="POST">
   {{ macros.option_grid(options=options) }}

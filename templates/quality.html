@@ -44,8 +44,6 @@
   {{ macros.progress_bar(value=40) }}
   <hr>
   <h1>How do you assure your software's quality?</h1>
-  <p>Do you run any static or dynamic tests? Below we provide some popular tools. Please pick the one(s) you are using, specify the executed command and tell us how you verify that the tests ran through properly.</p>
-
   {#- BEGIN: Option Grid -#}
   <form id="qa-form" action="{{ url_for('quality_management') }}" method="POST">
   {{ macros.option_grid(options=options) }}
