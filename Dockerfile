@@ -18,6 +18,8 @@ RUN apt-get update -y --fix-missing && \
   pip install wheel
 COPY --from=builder /app /app
 WORKDIR /app
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt && \
+  mkdir -p /data/db && \
+  mkdir instance
 EXPOSE 5000
 CMD ["./docker-start.sh"]
