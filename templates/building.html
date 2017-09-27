@@ -1,0 +1,67 @@
+{#-#################################################################
+<File Name>
+  building.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Apr 06, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Template for building page. Uses option grid and option form container macros
+  and passes a local building form (defined in local form_content macro).
+
+#################################################################-#}
+{% import '_macros.html' as macros %}
+{% extends "base.html" %}
+
+{#- BEGIN: Building form macro -#}
+{% macro form_content(data=None, show_add_btn=False, show_rm_btn=True) %}
+  <div class="form-group">
+    <label>I build my software using this command</label>
+    <input type="text" class="form-control" value="{{ data.get('cmd') if data }}" name="build_cmd[]">
+  </div>
+  <div class="form-group">
+    <button type="button" class="copy-btn btn btn-outline-warning {{'d-none' if not show_add_btn}}">Add and continue on this page</button>
+    <button type="button" class="copy-btn btn btn-outline-primary {{'d-none' if not show_add_btn}}" data-submit="building-form">Add and continue on next page</button>    <button type="button" data-toremove=".opt-form" class="rm-btn btn btn-outline-danger {{'d-none' if not show_rm_btn}}">Remove</button>
+  </div>
+{% endmacro %}
+{#- BEGIN: Building form macro -#}
+
+{#- BEGIN: Rendered content -#}
+{% block content %}
+  {{ macros.progress_bar(value=30) }}
+  <hr>
+  <h1>How do you build your software?</h1>
+  <p>If you don't build you software just click <i>next</i>. In the same manner, if you use more than one command to build your software, you can pick multiple of the provided options or add custom commands.</p>
+
+  {#- BEGIN: Option Grid -#}
+  {% call(data) macros.option_grid(options=options) %}
+    {{ form_content(data={"cmd": data.get("cmd")}, show_add_btn=True, show_rm_btn=False) }} {#- data passed back from macro -#}
+  {% endcall %}
+  {#- END: Option Grid -#}
+
+  {#- BEGIN: Postable Form Content -#}
+  {% call(data=None) macros.form_container(form_id="building-form", form_action=url_for('building'), user_data=user_data) %}
+    {{ form_content(data=data) }} {#- data passed back from macro -#}
+  {% endcall %}
+  {#- END: Postable Form Content -#}
+
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('vcs')}} ">Previous</a>
+    </div>
+    <div class="col-3">
+      <input type="submit" form="building-form" class="btn btn-outline-primary btn-block" value="Next">
+    </div>
+  </div>
+  {#- END: Navigation Footer (Previous/Next) -#}
+
+{% endblock %}
+{#- END: Rendered content -#}

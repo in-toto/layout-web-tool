@@ -1,0 +1,126 @@
+{#-#################################################################
+<File Name>
+  functionaries.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Jun 30, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Used to add new functionaries (by name) and upload functionary public key
+  using a file upload dropzone for each newly added functionary.
+
+#################################################################-#}
+{% import '_macros.html' as macros %}
+{% extends "base.html" %}
+
+{#- BEGIN: Functionary form macro -#}
+{% macro item_form(name=None, template=False) %}
+<div class="functionary dz-container p-3 mt-2 {{'template' if template}}">
+  <div class="m-2">
+    <span class="functionary-name">{{name}}</span><br>
+    <small>(Drop public key or click in box to upload)</small>
+  </div>
+  <form class="dropzone m-2 w-100" method="POST", enctype="multipart/form-data"
+      action="{{ url_for('ajax_upload_key') }}">
+    <input type="hidden" name="functionary_name" value="{{name}}">
+  </form>
+  <button type="button" class="rm-func-btn btn btn-outline-danger m-2">Remove Functionary</button>
+</div>
+{% endmacro %}
+{#- END: Functionary form macro -#}
+
+
+{#- BEGIN: Rendered content -#}
+{% block content %}
+  {{ macros.progress_bar(value=65) }}
+  <hr>
+  <h1>The who-is-who of your software supply chain</h1>
+  <p>An essential part of <i>in-toto</i> is that you can verifiably specify who
+  is allowed to do what in your project. The actors that are allowed to perform
+  a step or multiple steps in your software supply chain are called
+  <i>functionaries</i> and are identified by their respective public key.
+  Below you can define your functionaries and upload their public key.</p>
+
+  {#- BEGIN: Add functionary (name) -#}
+  <div class="row no-gutters">
+    <div class="col-md-10 pr-md-2">
+      <label>Add functionaries here and upload public keys below</label>
+      <input class="form-control add-func-input" type="text" placeholder="Functionary Name" value="">
+    </div>
+    <div class="col-md-2 align-self-end">
+      <button type="button" class="btn btn-outline-primary add-func-btn w-100">Add Functionary</button>
+    </div>
+  </div>
+  {#- END: Add functionary (name) -#}
+
+  {#- BEGIN: Key creation snippet -#}
+  <div class="mt-4">
+  <small>You can use this <i>in-toto command line utility</i> to create RSA key pairs</small>
+  <div>
+<pre class="code">
+in-toto-keygen &ltFILENAME&gt
+</pre>
+  </div>
+  </div>
+  {#- BEGIN: Functionary key uploads -#}
+  <div id="functionary-container">
+    {{ item_form(template=True) }}
+    {% for functionary_data in functionaries.get("items", []) %}
+      {{ item_form(name=functionary_data.get("functionary_name")) }}
+    {% endfor %}
+  </div>
+  <script type="text/javascript">
+    $(function(){
+      // Create JS lists of functionary names and dropzone jQuery elements
+      // They are associated by index here, which should be fine because they
+      // where rendered in the same order above
+
+      // - jQuery returns query elements in document order
+      // https://github.com/jquery/api.jquery.com/issues/659
+      // - Python's iteritems() and values() return items in the same order
+      // https://docs.python.org/2/library/stdtypes.html#dict.items
+      var pubkeys = {{functionaries.get("items", []) | tojson}}
+      var dropzones = $(".functionary:not(.template) .dropzone");
+      // Iterate over DOM elements, initialize dropzone plugin, and add
+      // existing uploaded files
+      for (var i = 0; i < dropzones.length; i++) {
+        var dropzone = init_functionary_dropzone($(dropzones[i]))
+        var dz_file = {name: pubkeys[i]["file_name"], size: 12345};
+        dropzone.emit("addedfile", dz_file);
+        dropzone.emit("complete", dz_file, true);
+        dropzone.files.push(dz_file);
+      }
+    });
+  </script>
+  {#- END: Functionary key uploads -#}
+
+  {#- BEGIN: Comment section -#}
+  <form id="functionary-form" method="POST" action="{{ url_for('functionaries')}}">
+    <hr class="mt-5">
+    {{macros.comment_form(functionaries.get("comment", ""))}}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  </form>
+  {#- END: Comment section -#}
+
+
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('software_supply_chain')}} ">Previous</a>
+    </div>
+
+    <div class="col-3">
+      <input type="submit" form="functionary-form" class="btn btn-outline-primary btn-block" value="Next">
+    </div>
+  </div>
+  {#- END: Navigation Footer (Previous/Next) -#}
+
+{% endblock %}
+{#- END: Rendered content -#}

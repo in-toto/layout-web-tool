@@ -1,0 +1,96 @@
+{#-#################################################################
+<File Name>
+  wrap_up.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Apr 06, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Template for wrap up page.
+  Provides a link to download the generated software supply chain layout
+  and instructions for further steps.
+
+#################################################################-#}
+
+{% import '_macros.html' as macros %}
+{% extends "base.html" %}
+
+{#- BEGIN: Rendered content -#}
+{% block content %}
+  {{ macros.progress_bar(value=99) }}
+  <hr>
+  <h1>This is your Software Supply Chain Layout</h1>
+  <p>Below you can download your custom <i>in-toto layout</i> tailored to fit your software supply chain. It is a JSON formatted text file so you can easily take a look at it and also tweak it to your heart's content using any text editor.</p>
+
+  {#- BEGIN: Download layout -#}
+  <a href="{{url_for('download_layout')}}" target="_blank" class="btn btn-outline-warning w-100 mb-3">Download your custom in-toto Layout</a>
+  {#- END: Download layout -#}
+
+  {#- BEGIN: Key/Sign layout snippet -#}
+  <p> Now, if you don't already have one, create a project owner key and sign
+    your new layout. You can use in-toto's command line tools as shown in the
+    snippet below.</p>
+  <div>
+<pre class="code">
+in-toto-keygen &ltPROJECT-OWNER&gt
+in-toto-sign sign --keys=&ltPROJECT-OWNER&gt &ltYOUR LAYOUT&gt.layout
+</pre>
+  </div>
+  {#- END: Key/Sign layout snippet -#}
+
+  {#- BEGIN: Per functionary in-toto-run snippets -#}
+  <h2 class="mt-5 mb-2">Instruct your Functionaries to use in-toto Commands</h2>
+  <p>The subsequent snippets show the commands each functionary might run according to how
+  you have assigned and authorized them to perform certain steps of your supply
+  chain.</p>
+  {% for functionary in functionaries.get("items", []) %}
+  {% with functionary_name=functionary.get('functionary_name') %}
+    <h3 class="mt-3 mb-2">{{functionary_name}}</h3>
+      <div>{#- "-" strips newlines before/after blocks, which would be
+  displayed in pre elems -#}
+<pre class="code">
+{% for step in steps %}
+{%- if functionary_name in auth_dict.get(step.name).get("authorized_functionaries", []) -%}
+in-toto-run --key {{functionary_name}} --materials . --products . --step-name {{step.name}} -- {{step.cmd}}
+{% endif %}
+{%- endfor -%}
+</pre>
+      </div>
+  {% endwith %}
+  {% endfor %}
+  {#- END: Per functionary in-toto-run snippets -#}
+
+  {#- BEGIN: Begin next step instructions -#}
+  <h2 class="mt-5 mb-2">Release in-toto verifiable Software</h2>
+
+  <p>For every step that your functionaries perform an in-toto link metadata
+    file will be created, similar to the link files you created earlier when
+    doing the test run, but this time the link files are signed by your
+    functionaries.</p>
+  <p>In order to verify your final software product, you need to ship it out
+    together with the signed layout, your project owner public key,
+    and your functionaries' signed link metadata files.
+    <i> Learn more about future
+    <a href="https://github.com/in-toto/in-toto/issues/79">plans to cleanly
+    integrate metadata into distributed software on our GitHub page.</a></i></p>
+  {#- END: Begin next step instructions -#}
+
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('chaining')}} ">Previous</a>
+    </div>
+    <div class="col-3">
+      <a disabled class="btn btn-outline-success btn-block disabled" href="{{ url_for('guarantees')}} ">Guarantees (todo)</a>
+    </div>
+  </div>
+  {#- END: Navigation Footer (Previous/Next) -#}
+{% endblock %}
+{#- END: Rendered content -#}

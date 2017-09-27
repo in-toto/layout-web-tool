@@ -1,0 +1,108 @@
+{#-#################################################################
+<File Name>
+  _macros.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  May 05, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Generic template macros used in other templates,
+  see http://jinja.pocoo.org/docs/2.9/templates/#macros for more information
+  on how to use macros.
+
+  In some cases macros are passed to to macros using the special caller
+  variable, see http://jinja.pocoo.org/docs/2.9/templates/#call
+
+<Overview of macros>
+  option_grid()
+    Used to display software supply chain tools (name and logo) in a grid.
+    If an option (tool) is selected (clicked) a form group is expanded below,
+    usually showing the common command for that tool and additional information
+    which can be modified by the user. Used in vcs, building, quality
+    and packaging templates.
+
+  form_container()
+    Used to list all the form groups that get actually posted to the client.
+    Form groups can be copied from the option grid and individually added,
+    removed and re-ordered. Used in vcs, building, quality and
+    packaging templates.
+
+  comment_form()
+    Displays a textarea form field used for user comments. Used in
+    form_container macro and all templates that require user interaction.
+
+  progress_bar()
+    Used on all pages to give user an idea of how much work is left to do.
+
+#################################################################-#}
+
+{% macro option_grid(options) %}
+<div class="opt-row row no-gutters">
+  <div class="opt-cell col opt-cell-top">
+    <div class="opt-content">
+      <div class="opt-text text-center">Custom Command</div>
+    </div>
+    <div class="opt-form-cont collapse">
+      <div class="opt-form">
+        {{ caller(data={"cmd":""}) }}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="opt-row row no-gutters">
+{% for option in options %}
+  <div class="opt-cell col-3">
+    <div class="opt-content">
+      {% if option['logo'] %}
+      <div class="opt-logo text-center p-2">
+        <img src="{{option['logo']}}">
+      </div>
+      {% endif %}
+      <div class="opt-text text-center">{{option["name"]}}</div>
+    </div>
+    <div class="opt-form-cont collapse">
+      <div class="opt-form">
+        {{ caller(data=option) }}
+      </div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro form_container(form_id, form_action, user_data) %}
+<form class="mt-5" id="{{ form_id }}" action="{{ form_action }}" method="POST">
+  <h2 class="opt-form-container-info {{'d-none' if not user_data.get('items')}}">Workflow</h2>
+  <p class="opt-form-container-info {{'d-none' if not user_data.get('items')}}">You can change and re-order your commands here before you go to the next page</p>
+  <div id="opt-form-container" class="mb-3 sort-container">
+    {%-for user_item in user_data.get("items", []) %}
+      <div class="opt-form">
+        {{ caller(data=user_item) }}
+      </div>
+    {% endfor-%}
+  </div>
+<hr class="mt-5">
+{{comment_form(user_data.get("comment", ""))}}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+</form>
+{%- endmacro %}
+
+{% macro comment_form(value) %}
+<h2>Doing things differently?</h2>
+<p>Please leave us a comment and we will try to make this tool better</p>
+<div class="form-group">
+  <textarea class="form-control" rows="3" name="comment">{{value}}</textarea>
+</div>
+{%- endmacro %}
+
+{% macro progress_bar() %}
+<div class="progress">
+  <div class="progress-bar" role="progressbar" style="width: {{kwargs.value}}%" aria-valuenow="{{kwargs.value}}" aria-valuemin="0" aria-valuemax="100">{{kwargs.value}}%</div>
+</div>
+{%- endmacro %}

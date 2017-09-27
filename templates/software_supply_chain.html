@@ -1,0 +1,168 @@
+{#-#################################################################
+<File Name>
+  software_supply_chain.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Apr 06, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Shows generated software supply chain graph (steps and inspection) as visual
+  D3 graph and as modifiable and sortable form elements.
+
+#################################################################-#}
+{% import '_macros.html' as macros %}
+{% extends "base.html" %}
+
+{#- BEGIN: Software Supply Chain item (step and inspection) form macro -#}
+{% macro item_form(type, item=None, template=False) %}
+<div class="ssc-item ssc-{{type}} mb-2 {{'template' if template}}" draggable="true">
+  <div class="form-group row no-gutters">
+    <div class="col-md-1 pr-md-2 align-self-center text-center">
+      <span class="drag-handle" title="Drag the handle to re-order steps and inspections of your software supply chain">|||</span>
+    </div>
+    <div class="col-md-2 pr-md-2">
+      <label class="small">Name</label>
+      <input type="text" class="form-control form-control-sm" name="{{type}}_name[]" value="{{ item.name if item }}">
+    </div>
+    {% if type == "inspection" %}
+    {#- TODO: A selectize input box that updates when step names are changed/ steps are added would be nice here -#}
+    <div class="col-md-2 pr-md-2">
+      <label class="small">Based on Step (optional)</label>
+      <input type="text" class="form-control form-control-sm" name="{{type}}_step_name[]" value="{{ item.based_on if item }}">
+    </div>
+    {% endif %}
+    <div class="col-md-6 pr-md-2">
+      <label class="small">{{'Expected' if type == 'step' else 'Executed'}} Command </label>
+      <input type="text" class="form-control form-control-sm" name="{{type}}_cmd[]" value="{{ item.cmd if item }}">
+    </div>
+    <div class="col-md-1 mt-2 align-self-end">
+      <button type="button" data-toremove=".ssc-{{type}}" class="rm-btn btn btn-outline-danger btn-sm">Remove</button>
+    </div>
+    {% if type == "step" %}
+    <div class="form-check col-md-11 offset-md-1 mt-2">
+      <label class="form-check-label">
+        <input type="hidden" name="step_modifies[]" value="{{'true' if not item or item.modifies else 'false'}}">
+        <input class="form-check-input step-modifies-checkbox" type="checkbox" {{"checked" if not item or item.modifies}}>
+        This step changes files (modifying step)
+      </label>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endmacro %}
+{#- END: Software Supply Chain item (step and inspection) form macro -#}
+
+{#- BEGIN: Rendered content -#}
+{% block content %}
+  <script type="text/javascript">
+    $(function(){
+      /*
+       * Initialize SVG viewBox width and height to the current container width
+       * and height viewBox (and its contents) get scaled on windowResize
+       * preserving aspectRatio.
+       * FIXME: The height of the SVG container should scale together with the
+       * width of the viewBox as does the height of the viewBox
+       */
+      var svg_width = $(".svg-container").width();
+      var svg_height = $(".svg-container").height();
+      $("svg").attr("viewBox", [0, 0, svg_width, svg_height].join(" "));
+
+      var graph_data = generate_graph_from_ssc_steps();
+      draw_graph(graph_data);
+
+      /*
+       * Re-generate/re-draw the graph when ssc step type changes
+       */
+      $(document).on("change", ".step-modifies-checkbox", function(){
+        // Workaround: Checkboxes are only posted if checked, but we need a
+        // value per step to be able to aggregate step values by index.
+        var checked = $(this).is(':checked');
+        $(this).prev("input[name='step_modifies[]']").val(checked);
+
+        // Re-generate/re-draw graph
+        draw_graph(generate_graph_from_ssc_steps());
+      });
+    });
+  </script>
+
+  {{ macros.progress_bar(value=60) }}
+
+  <hr>
+  {% if show_refresh %}
+  <div class="alert alert-warning mb-5" role="alert">
+    We saw that you revisited a previous page. Click
+    <a href="{{ url_for('software_supply_chain', refresh=True)}}">here to
+    re-generate the software supply chain</a> on this page! <br> But
+    <strong>be warned</strong>, this will overwrite any changes you have
+    already made on this page.
+  </div>
+  {% endif %}
+
+  <h1>Is this what your software supply chain looks like?</h1>
+  <p>Based on what you told us on the previous pages we have generated a
+    preliminary software supply chain. Please add, remove, modify and re-order
+    the steps below so that they align with your workflow.</p>
+  {#- BEGIN: Container for software supply chain D3 graph -#}
+  <div class="svg-container mt-3 mb-3">
+    <svg version="1.1" viewBox="0 0 1 1" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>
+  </div>
+  {#- END: Container for software supply chain D3 graph -#}
+
+  {#- BEGIN: Postable Form Content -#}
+  <div class="ssc-items mt-5">
+    {#- Hidden form add templates (not posted) -#}
+    {{ item_form("step", template=true) }}
+    {{ item_form("inspection", template=true) }}
+    <form id="ssc-form" method="POST" action="{{ url_for('software_supply_chain')}}">
+      <h2 class="mt-4 mb-2">These are the commands you run as part of your software supply chain</h2>
+        <p>We distinguish between <i>modifying</i> and <i>non-modifying </i> steps.
+          Modifying steps change your software product (e.g. building steps),
+          whereas non-modifying steps don't (e.g. testing steps).
+
+      <div class="ssc-steps sort-container mb-2">
+        {% for step in ssc_data.steps %}
+          {{ item_form("step", item=step) }}
+        {% endfor %}
+      </div>
+      <button type="button" data-templatesource=".ssc-step" data-templatedest=".ssc-steps" class="add-btn btn-outline-primary btn">Add Step</button>
+
+      <h2 class="mt-4 mb-2">These are the commands we will run upon in-toto verification</h2>
+        <p>We call these commands <i>in-toto inspections</i>. Learn more about
+          inspections on the <a href="https://github.com/in-toto/in-toto-inspections">
+          in-toto inspections GitHub page</a>.</p>
+
+      <div class="ssc-inspections sort-container mb-2">
+        {% for inspection in ssc_data.inspections %}
+          {{ item_form("inspection", item=inspection) }}
+        {% endfor %}
+      </div>
+      <button type="button" data-templatesource=".ssc-inspection" data-templatedest=".ssc-inspections" class="add-btn btn-outline-primary btn">Add Inspection</button>
+
+      <hr class="mt-5">
+      {{macros.comment_form(ssc_data.get("comment", ""))}}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
+  </div>
+  {#- END: Postable Form Content -#}
+
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('packaging')}}">Previous</a>
+    </div>
+    <div class="col-3">
+      <input type="submit" form="ssc-form" class="btn btn-outline-primary btn-block" value="Next">
+    </div>
+  </div>
+  {#- END: Navigation Footer (Previous/Next) -#}
+{% endblock %}
+{#- END: Rendered content -#}
+

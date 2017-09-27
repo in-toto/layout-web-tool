@@ -1,0 +1,4 @@
+Flask
+Flask-PyMongo
+Flask-WTF
+-e git://github.com/in-toto/in-toto.git@c39b04cec329bead34232a39742ebda5947633fd#egg=in-toto

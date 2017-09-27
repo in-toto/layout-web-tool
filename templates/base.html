@@ -1,0 +1,83 @@
+{#-#################################################################
+<File Name>
+  base.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Apr 06, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Base template extended by all other templates.
+  http://jinja.pocoo.org/docs/2.9/templates/#extends
+
+  JavaScript that is not needed before onload is included at the end (makes
+  page render faster).
+
+#################################################################-#}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrftoken" content="{{ csrf_token() }}">
+    <title>in-toto layout tool</title>
+    {#- We need these right away that's why we load them here and not below -#}
+    <script src="{{ url_for('static', filename='vendor/jquery.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/dropzone.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/select2.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',
+        filename='css/main.scss.css') }}">
+  </head>
+  <body>
+    <script type="text/javascript">
+      {#- We will initialize file upload dropzones explicitely -#}
+      Dropzone.autoDiscover = false;
+    </script>
+    <div class="fixed-top">
+      <div id="alert-container" class="container">
+        <script type="text/javascript">
+          $(function(){
+            show_messages({{ get_flashed_messages(with_categories=True) | tojson }});
+          })
+        </script>
+        <div class="alert alert-dismissible fade show template" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          <div class="container">
+            <span class="alert-msg"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="head">
+      <div class="container">
+        <div class="row">
+          <div class="col align-self-center">
+            <div>
+              <span class="head-text">in-toto layout</span>
+              <span class="head-beta"><a href="https://github.com/in-toto/layout-web-tool/issues">beta</a></span>
+            </div>
+            <div class="head-sub"><a href="https://in-toto.io">https://in-toto.io</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container content">
+      {% block content %}{% endblock %}
+    </div>
+    <script src="{{ url_for('static', filename='vendor/tether.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/html.sortable.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/dagre-d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>

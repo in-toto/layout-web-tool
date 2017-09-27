@@ -1,0 +1,40 @@
+{#-#################################################################
+<File Name>
+  guranatees.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Apr 06, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Should show a tailor made page about the security guarantees a user
+  has with the newly created in-toto software supply chain layout.
+
+  TODO: Replace static text with actual dynamic content (guarantees)
+
+#################################################################-#}
+{% import '_macros.html' as macros %}
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>And here are your security guarantees ...</h1>
+<ul class="check mt-3">
+  <li>You are now safe against blaaaa</li>
+  <li>You secured your bliiip</li>
+  <li>Which guarantees that bluuuump</li>
+  <li>And prevents from blooor!</li>
+</ul>
+
+<hr>
+<div class="row no-gutters justify-content-center">
+  <div class="col-3">
+    <a class="btn btn-primary btn-block" href="{{ url_for('wrap_up')}} ">Previous</a>
+  </div>
+</div>
+{% endblock %}

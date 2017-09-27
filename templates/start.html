@@ -1,0 +1,44 @@
+{#-#################################################################
+<File Name>
+  start.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Apr 06, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Template for landing page. Shows brief in-toto introduction text.
+
+#################################################################-#}
+{% extends "base.html" %}
+
+{% block head %}
+Secure your software with in-toto
+{% endblock %}
+
+{% block content %}
+<h1>Create in-toto layout
+<small class="text-muted">and protect your software supply chain's integrity</small></h1>
+<p>An in-toto layout defines the steps of your software supply chain that you carry out in order to write, test, package and distribute your software.</p><p>This website helps you to create a basic layout for your software project, specifying who does what and how everything fits together, so that your clients can be sure that your software was produced exactly how you wanted it to be. Learn more about in-toto on our <a href="https://in-toto.github.io">project website</a> and <a href="https://github.com/in-toto/in-toto">on GitHub</a>.</p>
+
+<p>You will be asked to run a couple of in-toto commands while walking through this website, so make sure to have in-toto installed:</p>
+
+<pre class="code">
+pip install git+git://github.com/in-toto/in-toto.git
+</pre>
+
+<hr>
+<div class="row no-gutters justify-content-center">
+  <div class="col-3">
+    <a class="btn btn-outline-primary btn-block" href="{{ url_for('vcs')}} ">Start</a>
+  </div>
+</div>
+
+{% endblock %}
+
+

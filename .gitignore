@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+in-toto
+node_modules
+instance/
+
+# Exclude vendor JS file, copy them freshly using:
+# `gulp`
+static/vendor/*
+!static/vendor/.keep
+
+files/*
+!files/.keep
+
+# Exclude *.css files, compile them freshly using:
+# `sass static/scss/main.scss:static/css/main.scss.css`
+.sass-cache
+static/css/*
+!static/css/.keep
