@@ -117,70 +117,44 @@ def session_to_ssc(session_data):
     }
   """
   ssc_steps = []
+
+  # TODO: Think of a new way to generate inspections
+  # c.f. in-toto/layout-web-tool#24
   ssc_inspections = []
 
   for step_type in ["vcs", "building", "qa", "package"]:
-    for idx, step in enumerate(session_data.get(step_type, {}).get(
-        "items", [])):
-      # FIXME: Come up with better auto names
-      step_name = "{}-{}".format(step_type, idx + 1)
-      ssc_step = {
-        "name": step_name,
-        "cmd" : step["cmd"],
-        "modifies": True
-      }
+    for item in session_data.get(step_type, {}).get("items", []):
 
-      # We create an inspection for each retval, stdout and stderr for
-      # each specified QA step
-      # Special treatment for QA steps:
-      # If the user has specified how s/he knows if a QA step went well, e.g.
-      # by looking at return value, stdout and/or stderr, we use that
-      # information to suggest in-toto inspections (one per posted retval,
-      # stdout, stderr per posted, QA step)
-      if step_type == "qa":
-        # Override modifies property set above
-        # We suppose QA steps don't modify artifacts but just look at them
-        ssc_step["modifies"] = False
+      if item == "CUSTOMCMD":
+        step_name = "{}-custom-step".format(step_type)
 
-        for inspect_type in ["retval", "stdout", "stderr"]:
-          enabled = step.get(inspect_type)
-          val = step.get(inspect_type + "_value")
-          operator = step.get(inspect_type + "_operator")
+        ssc_step = {
+          "name": step_name,
+          "cmd" : "",
+          "modifies": not step_type == "qa"
+        }
+        ssc_steps.append(ssc_step)
 
-          # Construct return value or byproducts inspection command
-          # c.f. https://github.com/in-toto/in-toto-inspections
-          if enabled:
-            # Inspection commands require a link file (to inspect)
-            # We use the auto name of the corresponding QA step to
-            # generate the filename passed to the inspection command
-            # FIXME: What about the functionary keyid in the link file name?!
-            link = in_toto.models.link.FILENAME_FORMAT_SHORT.format(
-                step_name=step_name)
-            value = step.get(inspect_type + "_value")
+        continue # with next item
 
-            if inspect_type == "retval":
-              run = ("inspect-return-value --link={link} --{operator} {value}"
-                  .format(link=link, operator=operator, value=value))
+      # TODO: Change list to dict with unique ids per tool
+      for tool in tooldb.COLLECTION[step_type]:
+        if item == tool["name"]:
+          # FIXME: If we only construct steps from tools in the tooldb
+          # we could actually provide crafted names instead of goofy auto names
+          # Fix with in-toto/layout-web-tool#2
+          tool_name = item.lower()
+          tool_name = tool_name.replace(" ", "-")
+          step_name = "{}-{}-step".format(step_type, tool_name)
 
-            elif inspect_type in ["stdout", "stderr"]:
-              if operator == "empty":
-                operator = "is"
-                value = ""
+          ssc_step = {
+            "name": step_name,
+            "cmd" : tool["cmd"],
+            "modifies": not step_type == "qa"
+          }
+          ssc_steps.append(ssc_step)
 
-              run = ("inspect-byproducts"
-                  " --link={link} --{inspect_type} --{operator} \"{value}\""
-                  .format(link=link, inspect_type=inspect_type,
-                  operator=operator, value=value))
-
-            # FIXME: Come up with better auto names
-            inspect_name = "inspection-" + str(len(ssc_inspections) + 1)
-            ssc_inspections.append({
-              "name": inspect_name,
-              "cmd": run,
-              "based_on": step_name
-            })
-
-      ssc_steps.append(ssc_step)
+          break # to continue with next item
 
   ssc_data = {
     "steps": ssc_steps,
