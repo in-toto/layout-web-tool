@@ -100,15 +100,6 @@ in-toto-keygen &ltFILENAME&gt
   </script>
   {#- END: Functionary key uploads -#}
 
-  {#- BEGIN: Comment section -#}
-  <form id="functionary-form" method="POST" action="{{ url_for('functionaries')}}">
-    <hr class="mt-5">
-    {{macros.comment_form(functionaries.get("comment", ""))}}
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-  </form>
-  {#- END: Comment section -#}
-
-
   {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>
   <div class="row no-gutters justify-content-between">
@@ -117,7 +108,7 @@ in-toto-keygen &ltFILENAME&gt
     </div>
 
     <div class="col-3">
-      <input type="submit" form="functionary-form" class="btn btn-outline-primary btn-block" value="Next">
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('authorizing')}} ">Next</a>
     </div>
   </div>
   {#- END: Navigation Footer (Previous/Next) -#}

@@ -606,26 +606,17 @@ def software_supply_chain():
       ssc_data=ssc_data, show_refresh=show_refresh_dialog)
 
 
-@app.route("/functionaries", methods=["GET", "POST"])
+@app.route("/functionaries", methods=["GET"])
 @with_session_id
 def functionaries():
   """Step 6.
   On get serve functionary keys upload and keys dropzone.
-  On post store comment and redirect to next page.
 
   The actual functionary public key upload uses a different view queried
   with ajax (ajax_upload_key).
 
   """
   functionaries = _get_session_subdocument("functionaries")
-  if request.method == "POST":
-    functionaries["comment"] = request.form.get("comment", "")
-    _persist_session_subdocument({"functionaries": functionaries})
-
-    flash("Now tell us who is authorized to do what...",
-        "alert-success")
-    return redirect(url_for("authorizing"))
-
   return render_template("functionaries.html", functionaries=functionaries)
 
 
@@ -811,12 +802,11 @@ def authorizing():
       auth_dict=auth_dict, comment=comment)
 
 
-@app.route("/chaining", methods=["GET", "POST"])
+@app.route("/chaining", methods=["GET"])
 @with_session_id
 def chaining():
   """Step 8.
   On get serve dry run snippet and link metadata upload.
-  On post store comment and redirect to next page.
 
   The link file upload uses a different view queried
   with ajax (ajax_upload_link).
@@ -824,13 +814,6 @@ def chaining():
 
   chaining = _get_session_subdocument("chaining")
   steps = _get_session_subdocument("ssc").get("steps", [])
-
-  if request.method == "POST":
-    chaining["comment"] = request.form.get("comment", "")
-    _persist_session_subdocument({"chaining": chaining})
-
-    flash("And that's basically it... :)", "alert-success")
-    return redirect(url_for("wrap_up"))
 
   return render_template("chaining.html", steps=steps, chaining=chaining)
 

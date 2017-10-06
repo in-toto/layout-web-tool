@@ -144,9 +144,6 @@
         {% endfor %}
       </div>
       <button type="button" data-templatesource=".ssc-inspection" data-templatedest=".ssc-inspections" class="add-btn btn-outline-primary btn">Add Inspection</button>
-
-      <hr class="mt-5">
-      {{macros.comment_form(ssc_data.get("comment", ""))}}
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     </form>
   </div>

@@ -80,14 +80,6 @@ tar czf in_toto_link_files.tar.gz {% for step in steps%}{{step.name}}.link {% en
   </div>
   {#- END: Link file upload dropzone -#}
 
-  {#- BEGIN: Comment section -#}
-  <form id="chaining-form" method="POST" action="{{ url_for('chaining')}}">
-    <hr class="mt-5">
-    {{macros.comment_form(chaining.get("comment", ""))}}
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-  </form>
-  {#- END: Comment section -#}
-
   {#- BEGIN: Navigation Footer (Previous/Next) -#}
   <hr>
   <div class="row no-gutters justify-content-between">
@@ -95,7 +87,8 @@ tar czf in_toto_link_files.tar.gz {% for step in steps%}{{step.name}}.link {% en
       <a class="btn btn-outline-primary btn-block" href="{{ url_for('authorizing')}} ">Previous</a>
     </div>
     <div class="col-3">
-      <input type="submit" form="chaining-form" class="btn btn-outline-primary btn-block" value="Next">
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('wrap_up')}} ">Next</a>
+
     </div>
   </div>
   {#- END: Navigation Footer (Previous/Next) -#}
