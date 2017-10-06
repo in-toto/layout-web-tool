@@ -389,11 +389,11 @@ def vcs():
   options = tooldb.COLLECTION["vcs"]
 
   if request.method == "POST":
+
     # Grab the form posted vcs commands and persist
     # FIXME: Needs sanitizing
     vcs_data = {
-      "items": [{"cmd": cmd} for cmd in request.form.getlist("vcs_cmd[]")],
-      "comment": request.form.get("comment", "")
+      "items": request.form.getlist("opt[]"),
     }
     _persist_session_subdocument_ts({"vcs": vcs_data})
 
@@ -409,16 +409,14 @@ def vcs():
 @app.route("/building", methods=["GET", "POST"])
 @with_session_id
 def building():
-  """Step 2.
-  Enter information about building. """
+  """Step 2.  Enter information about building. """
   options = tooldb.COLLECTION["building"]
 
   if request.method == "POST":
     # Grab the form posted building commands and persist
     # FIXME: Needs sanitizing
     building_data = {
-      "items": [{"cmd": cmd} for cmd in request.form.getlist("build_cmd[]")],
-      "comment": request.form.get("comment", "")
+      "items": request.form.getlist("opt[]"),
     }
     _persist_session_subdocument_ts({"building": building_data})
 
@@ -440,56 +438,9 @@ def quality_management():
   if request.method == "POST":
     # Grab the form posted quality management data and persist
     # FIXME: Needs sanitizing
-    cmd_list = request.form.getlist("cmd[]")
 
-    retval_include_list = request.form.getlist("retval_include[]")
-    retval_operator_list = request.form.getlist("retval_operator[]")
-    retval_value_list = request.form.getlist("retval_value[]")
-
-    stdout_include_list = request.form.getlist("stdout_include[]")
-    stdout_operator_list = request.form.getlist("stdout_operator[]")
-    stdout_value_list = request.form.getlist("stdout_value[]")
-
-    stderr_include_list = request.form.getlist("stderr_include[]")
-    stderr_operator_list = request.form.getlist("stderr_operator[]")
-    stderr_value_list = request.form.getlist("stderr_value[]")
-
-    # Values of a step are related by the same index
-    # All lists must be equally long
-    # FIXME: Don't assert, try!
-    assert(len(cmd_list) ==
-        len(retval_include_list) == len(retval_operator_list) ==
-        len(retval_value_list) == len(stdout_include_list) ==
-        len(stdout_operator_list) == len(stdout_value_list) ==
-        len(stderr_include_list) == len(stderr_operator_list) ==
-        len(stderr_value_list))
-
-    # Pick any one (they all must have the same length any way)
-    qa_steps_cnt = len(cmd_list)
-
-    # There can only be one comment
-    posted_coment = request.form.get("comment", "")
-
-    posted_items = []
-    for i in range(qa_steps_cnt):
-      posted_items.append({
-          "cmd": cmd_list[i],
-          "retval": retval_include_list[i] == "true",
-          "retval_operator": retval_operator_list[i],
-          "retval_value": retval_value_list[i],
-          "stdout": stdout_include_list[i] == "true",
-          "stdout_operator": stdout_operator_list[i],
-          "stdout_value": stdout_value_list[i],
-          "stderr": stderr_include_list[i] == "true",
-          "stderr_operator": stderr_operator_list[i],
-          "stderr_value": stderr_value_list[i],
-        })
-
-    # Note: We store the data as posted. Only in the software supply chain
-    # view do we transform this data, e.g. create inspection commands, etc.
     qa_data = {
-      "items": posted_items,
-      "comment": posted_coment
+      "items": request.form.getlist("opt[]"),
     }
     _persist_session_subdocument_ts({"qa": qa_data})
 
@@ -512,8 +463,7 @@ def packaging():
     # Grab the form posted building commands and persist
     # FIXME: Needs sanitizing
     package_data = {
-      "items": [{"cmd": cmd} for cmd in request.form.getlist("cmd[]")],
-      "comment": request.form.get("comment", "")
+      "items": request.form.getlist("opt[]"),
     }
     _persist_session_subdocument_ts({"package": package_data})
 

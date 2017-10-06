@@ -46,7 +46,7 @@
   <h1>How do you assure your software's quality?</h1>
   {#- BEGIN: Option Grid -#}
   <form id="qa-form" action="{{ url_for('quality_management') }}" method="POST">
-  {{ macros.option_grid(options=options) }}
+  {{ macros.option_grid(options, user_data.get("items", [])) }}
   </form>
   {#- END: Option Grid -#}
 

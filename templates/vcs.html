@@ -32,8 +32,9 @@
   <hr>
   <h1>Which version control system do you use?</h1>
   {#- BEGIN: Option Grid -#}
+  {{user_data.get("items", [])}}
   <form id="vcs-form" action="{{ url_for('vcs') }}" method="POST">
-  {{ macros.option_grid(options=options) }}
+  {{ macros.option_grid(options, user_data.get("items", [])) }}
   </form>
   {#- END: Option Grid -#}
 
