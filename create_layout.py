@@ -151,4 +151,5 @@ def create_layout_from_ordered_links(links):
 
     layout.steps.append(step)
 
+
   return layout
