@@ -90,6 +90,7 @@
 import os
 import in_toto.models.link
 import in_toto.models.layout
+import in_toto.models.metdata
 
 def create_material_matchrules(links, index):
   """Create generic material rules (3 variants)
@@ -151,4 +152,6 @@ def create_layout_from_ordered_links(links):
 
     layout.steps.append(step)
 
-  return layout
+  layout_metadata = in_toto.models.metadata.Metablock(signed=layout)
+
+  return layout_metadata

@@ -59,7 +59,6 @@ from flask_wtf.csrf import CSRFProtect
 
 import in_toto.util
 import in_toto.models.link
-import in_toto.models.mock_link
 import in_toto.models.layout
 import in_toto.artifact_rules
 import securesystemslib.keys
@@ -870,9 +869,21 @@ def ajax_upload_link():
   # store them to database
   for link_filename, link_file in link_file_tuples:
     try:
-      link_dict = json.loads(link_file.read())
-      # FIXME: in-toto links have no format validator (yet!)
-      link = in_toto.models.mock_link.MockLink.read(link_dict)
+      link_metadata_dict = json.loads(link_file.read())
+      link_dict = link_metadata_dict.get("signed")
+      if not isinstance(link_dict, dict):
+        raise ValueError("Wrong metdata format")
+
+      # FIXME: There is a bug in in_toto_mock that causes the returned link
+      # be wrapped twice in a Metablock. The bug is fixed but not yet merged
+      # github.com/in-toto/in-toto/commit/4d34fd914d0a0dfac30eaa7af1590ff53161477e
+      # Let's work around this bug by unwrapping a second time. If it is not
+      # double wrapped we default to parsing a valid Link, as returned e.g. by
+      # in_toto_run
+      link_dict = link_dict.get("signed", link_dict)
+
+      # Instantiate a link object form the link dictionary
+      link = in_toto.models.link.Link.read(link_dict)
 
       link_db_item = {
         "step_name": link.name,
@@ -974,8 +985,9 @@ def download_layout():
   for step in session_ssc.get("steps", []):
     for link_data in session_chaining.get("items", []):
       if link_data["step_name"] == step["name"]:
-        link = in_toto.models.mock_link.MockLink.read(json.loads(
-            link_data["link_str"] ))
+        link_str = json.loads(link_data["link_str"])
+        link = in_toto.models.link.Link.read(link_str)
+
         links.append(link)
 
   # Create basic layout with steps based on links and simple artifact rules
