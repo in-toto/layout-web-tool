@@ -59,13 +59,13 @@ from flask_wtf.csrf import CSRFProtect
 
 import in_toto.util
 import in_toto.models.link
-import in_toto.models.mock_link
 import in_toto.models.layout
+import in_toto.models.metadata
 import in_toto.artifact_rules
 import securesystemslib.keys
 
 import tooldb
-import reverse_layout
+import create_layout
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
 mongo = PyMongo(app)
@@ -870,9 +870,21 @@ def ajax_upload_link():
   # store them to database
   for link_filename, link_file in link_file_tuples:
     try:
-      link_dict = json.loads(link_file.read())
-      # FIXME: in-toto links have no format validator (yet!)
-      link = in_toto.models.mock_link.MockLink.read(link_dict)
+      link_metadata_dict = json.loads(link_file.read())
+      link_dict = link_metadata_dict.get("signed")
+      if not isinstance(link_dict, dict):
+        raise ValueError("Wrong metadata format")
+
+      # FIXME: There is a bug in in_toto_mock that causes the returned link
+      # be wrapped twice in a Metablock. The bug is fixed but not yet merged
+      # github.com/in-toto/in-toto/commit/4d34fd914d0a0dfac30eaa7af1590ff53161477e
+      # Let's work around this bug by unwrapping a second time. If it is not
+      # double wrapped we default to parsing a valid Link, as returned e.g. by
+      # in_toto_run
+      link_dict = link_dict.get("signed", link_dict)
+
+      # Instantiate a link object form the link dictionary
+      link = in_toto.models.link.Link.read(link_dict)
 
       link_db_item = {
         "step_name": link.name,
@@ -964,7 +976,7 @@ def download_layout():
   FIXME:
     - Enhance layout creation
     - Factor out layout creation functionality that's implemented here, e.g. to
-      reverse_layout.py
+      create_layout.py
   """
   # Iterate over items in ssc session subdocument and create an ordered list
   # of related link objects retrieved from the chaining session subdocument
@@ -974,12 +986,13 @@ def download_layout():
   for step in session_ssc.get("steps", []):
     for link_data in session_chaining.get("items", []):
       if link_data["step_name"] == step["name"]:
-        link = in_toto.models.mock_link.MockLink.read(json.loads(
-            link_data["link_str"] ))
+        link_str = json.loads(link_data["link_str"])
+        link = in_toto.models.link.Link.read(link_str)
+
         links.append(link)
 
   # Create basic layout with steps based on links and simple artifact rules
-  layout = reverse_layout.create_layout_from_ordered_links(links)
+  layout = create_layout.create_layout_from_ordered_links(links)
 
   # Add pubkeys to layout
   functionary_keyids = {}
@@ -1027,9 +1040,11 @@ def download_layout():
   layout.validate()
   layout_name = "untitled-" + str(time.time()).replace(".", "") + ".layout"
 
+  layout_metadata = in_toto.models.metadata.Metablock(signed=layout)
+
   # Dump layout to memory file and server to user
   layout_fp = StringIO.StringIO()
-  layout_fp.write("{}".format(layout))
+  layout_fp.write("{}".format(layout_metadata))
   layout_fp.seek(0)
   return send_file(layout_fp,
       mimetype="application/json", as_attachment=True,
