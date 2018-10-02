@@ -68,13 +68,16 @@ import tooldb
 import create_layout
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
-mongo = PyMongo(app)
 csrf = CSRFProtect(app)
 
 app.config.update(dict(
     DEBUG=True,
+    MONGO_URI="mongodb://localhost:27017/wizard",
     SECRET_KEY="do not use the development key in production!!!",
 ))
+
+mongo = PyMongo(app)
+
 
 # Supply a config file at "instance/config.py" that carries
 # e.g. your deployment secret key
