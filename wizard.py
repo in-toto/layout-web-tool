@@ -1031,10 +1031,10 @@ def download_layout():
   for inspection_data in inspections:
     inspection = in_toto.models.layout.Inspection(
         name=inspection_data["name"],
-        run=inspection_data["cmd"],
         material_matchrules=[
           ["MATCH", "*", "WITH", "PRODUCTS", "FROM", inspection_data["based_on"]]
         ])
+    inspection.set_run_from_string(inspection_data["cmd"])
 
     layout.inspect.append(inspection)
 
