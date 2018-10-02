@@ -452,7 +452,7 @@ def packaging():
 @app.route("/software-supply-chain", methods=["GET", "POST"])
 @with_session_id
 def software_supply_chain():
-  """Step 5.
+  """Step 5. a.
   On get generate and serve software supply chain data (ssc graph) based
   on form data posted from previous pages and stored to session
   (c.f. helper `session_to_graph`).
@@ -493,7 +493,7 @@ def software_supply_chain():
     # Persist and redirect to next page
     _persist_session_subdocument_ts({"ssc": ssc_data})
     return redirect(url_for("functionaries"))
-
+    # return redirect(url_for("inspections"))
 
 
   # Query all session data (posted on vcs, building, qa, ... pages)
@@ -528,6 +528,16 @@ def software_supply_chain():
 
   return render_template("software_supply_chain.html",
       ssc_data=ssc_data, show_refresh=show_refresh_dialog)
+
+
+# @app.route("/inspections", methods=["GET", "POST"])
+# @with_session_id
+# def inspections():
+#   """Step 5. b.
+#   Add inspections
+
+#   """
+#   return render_template("inspections.html", inspections={})
 
 
 @app.route("/functionaries", methods=["GET"])

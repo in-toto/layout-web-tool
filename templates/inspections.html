@@ -1,0 +1,61 @@
+{#-#################################################################
+<File Name>
+  inspections.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Dec 18, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Shows generated software supply chain graph (steps and inspection) as visual
+  D3 graph and as modifiable and sortable form elements.
+
+#################################################################-#}
+
+{% import '_macros.html' as macros %}
+{% import '_ssc_macros.html' as ssc_macros %}
+{% extends "base.html" %}
+
+{#- BEGIN: Rendered content -#}
+{% block content %}
+  {{ macros.progress_bar(value=62) }}
+  <hr>
+  <h1>Supply chain inspections</h1>
+  {#- BEGIN: Postable Form Content -#}
+  <div class="ssc-items mt-5">
+    {#- Hidden form add templates (not posted) -#}
+    {{ ssc_macros.item_form("inspection", template=true) }}
+    <form id="inspections-form" method="POST" action="{{ url_for('inspections')}}">
+      <h2 class="mt-4 mb-2">These are the commands we will run upon in-toto verification</h2>
+        <p>We call these commands <i>in-toto inspections</i>. Learn more about
+          inspections on the <a href="https://github.com/in-toto/in-toto-inspections">
+          in-toto inspections GitHub page</a>.</p>
+
+      <div class="ssc-inspections sort-container mb-2">
+        {% for inspection in inspections %}
+          {{ ssc_macros.item_form("inspection", item=inspection) }}
+        {% endfor %}
+      </div>
+      <button type="button" data-templatesource=".ssc-inspection" data-templatedest=".ssc-inspections" class="add-btn btn-outline-primary btn">Add Inspection</button>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
+  </div>
+  {#- END: Postable Form Content -#}
+  {#- BEGIN: Navigation Footer (Previous/Next) -#}
+  <hr>
+  <div class="row no-gutters justify-content-between">
+    <div class="col-3">
+      <a class="btn btn-outline-primary btn-block" href="{{ url_for('software_supply_chain')}}">Previous</a>
+    </div>
+    <div class="col-3">
+      <input type="submit" form="inspections-form" class="btn btn-outline-primary btn-block" value="Next">
+    </div>
+  </div>
+  {#- END: Navigation Footer (Previous/Next) -#}
+{% endblock %}
+{#- END: Rendered content -#}
