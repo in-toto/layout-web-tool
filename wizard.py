@@ -57,11 +57,9 @@ from flask import (Flask, render_template, session, redirect, url_for, request,
 from flask_pymongo import PyMongo
 from flask_wtf.csrf import CSRFProtect
 
-import in_toto.util
 import in_toto.models.link
 import in_toto.models.layout
 import in_toto.models.metadata
-import in_toto.artifact_rules
 import securesystemslib.keys
 
 import tooldb
