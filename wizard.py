@@ -1031,7 +1031,7 @@ def download_layout():
   for inspection_data in inspections:
     inspection = in_toto.models.layout.Inspection(
         name=inspection_data["name"],
-        material_matchrules=[
+        expected_materials=[
           ["MATCH", "*", "WITH", "PRODUCTS", "FROM", inspection_data["based_on"]]
         ])
     inspection.set_run_from_string(inspection_data["cmd"])
