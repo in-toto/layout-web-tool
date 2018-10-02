@@ -1,0 +1,55 @@
+{#-#################################################################
+<File Name>
+  inspections.html
+
+<Author>
+  Lukas Puehringer <lukas.puehringer@nyu.edu>
+
+<Started>
+  Dec 18, 2017
+
+<Copyright>
+  See LICENSE for licensing information.
+
+<Purpose>
+  Define a macro for software supply chain items (steps or inspections)
+
+#################################################################-#}
+
+{% macro item_form(type, item=None, template=False) %}
+<div class="ssc-item ssc-{{type}} mb-2 {{'template' if template}}" draggable="true">
+  <div class="form-group row no-gutters">
+    <div class="col-md-1 pr-md-2 align-self-center text-center">
+      <span class="drag-handle" title="Drag the handle to re-order steps and inspections of your software supply chain">|||</span>
+    </div>
+    <div class="col-md-2 pr-md-2">
+      <label class="small">Name</label>
+      <input type="text" class="form-control form-control-sm" name="{{type}}_name[]" value="{{ item.name if item }}">
+    </div>
+    {% if type == "inspection" %}
+    {#- TODO: A selectize input box that updates when step names are changed/ steps are added would be nice here -#}
+    <div class="col-md-2 pr-md-2">
+      <label class="small">Based on Step (optional)</label>
+      <input type="text" class="form-control form-control-sm" name="{{type}}_step_name[]" value="{{ item.based_on if item }}">
+    </div>
+    {% endif %}
+    <div class="col-md-6 pr-md-2">
+      <label class="small">{{'Expected' if type == 'step' else 'Executed'}} Command </label>
+      <input type="text" class="form-control form-control-sm" name="{{type}}_cmd[]" value="{{ item.cmd if item }}">
+    </div>
+    <div class="col-md-1 mt-2 align-self-end">
+      <button type="button" data-toremove=".ssc-{{type}}" class="rm-btn btn btn-outline-danger btn-sm">Remove</button>
+    </div>
+    {% if type == "step" %}
+    <div class="form-check col-md-11 offset-md-1 mt-2">
+      <label class="form-check-label">
+        <input type="hidden" name="step_modifies[]" value="{{'true' if not item or item.modifies else 'false'}}">
+        <input class="form-check-input step-modifies-checkbox" type="checkbox" {{"checked" if not item or item.modifies}}>
+        This step changes files (modifying step)
+      </label>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endmacro %}

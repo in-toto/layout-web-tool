@@ -16,47 +16,11 @@
   D3 graph and as modifiable and sortable form elements.
 
 #################################################################-#}
-{% import '_macros.html' as macros %}
+{% import "_macros.html" as macros %}
+{% import "_ssc_macros.html" as ssc_macros %}
 {% extends "base.html" %}
 
 {#- BEGIN: Software Supply Chain item (step and inspection) form macro -#}
-{% macro item_form(type, item=None, template=False) %}
-<div class="ssc-item ssc-{{type}} mb-2 {{'template' if template}}" draggable="true">
-  <div class="form-group row no-gutters">
-    <div class="col-md-1 pr-md-2 align-self-center text-center">
-      <span class="drag-handle" title="Drag the handle to re-order steps and inspections of your software supply chain">|||</span>
-    </div>
-    <div class="col-md-2 pr-md-2">
-      <label class="small">Name</label>
-      <input type="text" class="form-control form-control-sm" name="{{type}}_name[]" value="{{ item.name if item }}">
-    </div>
-    {% if type == "inspection" %}
-    {#- TODO: A selectize input box that updates when step names are changed/ steps are added would be nice here -#}
-    <div class="col-md-2 pr-md-2">
-      <label class="small">Based on Step (optional)</label>
-      <input type="text" class="form-control form-control-sm" name="{{type}}_step_name[]" value="{{ item.based_on if item }}">
-    </div>
-    {% endif %}
-    <div class="col-md-6 pr-md-2">
-      <label class="small">{{'Expected' if type == 'step' else 'Executed'}} Command </label>
-      <input type="text" class="form-control form-control-sm" name="{{type}}_cmd[]" value="{{ item.cmd if item }}">
-    </div>
-    <div class="col-md-1 mt-2 align-self-end">
-      <button type="button" data-toremove=".ssc-{{type}}" class="rm-btn btn btn-outline-danger btn-sm">Remove</button>
-    </div>
-    {% if type == "step" %}
-    <div class="form-check col-md-11 offset-md-1 mt-2">
-      <label class="form-check-label">
-        <input type="hidden" name="step_modifies[]" value="{{'true' if not item or item.modifies else 'false'}}">
-        <input class="form-check-input step-modifies-checkbox" type="checkbox" {{"checked" if not item or item.modifies}}>
-        This step changes files (modifying step)
-      </label>
-    </div>
-    {% endif %}
-  </div>
-
-</div>
-{% endmacro %}
 {#- END: Software Supply Chain item (step and inspection) form macro -#}
 
 {#- BEGIN: Rendered content -#}
@@ -118,8 +82,8 @@
   {#- BEGIN: Postable Form Content -#}
   <div class="ssc-items mt-5">
     {#- Hidden form add templates (not posted) -#}
-    {{ item_form("step", template=true) }}
-    {{ item_form("inspection", template=true) }}
+    {{ ssc_macros.item_form("step", template=true) }}
+    {{ ssc_macros.item_form("inspection", template=true) }}
     <form id="ssc-form" method="POST" action="{{ url_for('software_supply_chain')}}">
       <h2 class="mt-4 mb-2">These are the commands you run as part of your software supply chain</h2>
         <p>We distinguish between <i>modifying</i> and <i>non-modifying </i> steps.
@@ -128,7 +92,7 @@
 
       <div class="ssc-steps sort-container mb-2">
         {% for step in ssc_data.steps %}
-          {{ item_form("step", item=step) }}
+          {{ ssc_macros.item_form("step", item=step) }}
         {% endfor %}
       </div>
       <button type="button" data-templatesource=".ssc-step" data-templatedest=".ssc-steps" class="add-btn btn-outline-primary btn">Add Step</button>
