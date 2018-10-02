@@ -12,7 +12,7 @@
   See LICENSE for licensing information.
 
 <Purpose>
-  Shows generated software supply chain graph (steps and inspection) as visual
+  Shows generated software supply chain graph (steps) as visual
   D3 graph and as modifiable and sortable form elements.
 
 #################################################################-#}
@@ -133,17 +133,6 @@
       </div>
       <button type="button" data-templatesource=".ssc-step" data-templatedest=".ssc-steps" class="add-btn btn-outline-primary btn">Add Step</button>
 
-      <h2 class="mt-4 mb-2">These are the commands we will run upon in-toto verification</h2>
-        <p>We call these commands <i>in-toto inspections</i>. Learn more about
-          inspections on the <a href="https://github.com/in-toto/in-toto-inspections">
-          in-toto inspections GitHub page</a>.</p>
-
-      <div class="ssc-inspections sort-container mb-2">
-        {% for inspection in ssc_data.inspections %}
-          {{ item_form("inspection", item=inspection) }}
-        {% endfor %}
-      </div>
-      <button type="button" data-templatesource=".ssc-inspection" data-templatedest=".ssc-inspections" class="add-btn btn-outline-primary btn">Add Inspection</button>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     </form>
   </div>
