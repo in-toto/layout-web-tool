@@ -74,12 +74,12 @@ app.config.update(dict(
     SECRET_KEY="do not use the development key in production!!!",
 ))
 
-mongo = PyMongo(app)
-
 
 # Supply a config file at "instance/config.py" that carries
 # e.g. your deployment secret key
 app.config.from_pyfile("config.py")
+
+mongo = PyMongo(app)
 
 # Reload if a template has changed (only for development, i.e. in DEBUG mode)
 app.jinja_env.auto_reload = app.config["DEBUG"]
