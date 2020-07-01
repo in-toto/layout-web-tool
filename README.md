@@ -23,8 +23,7 @@ user session data (for usage analysis)
 
 ```shell
 # Start `mongod` (if not already running)
-# Note: `service` won't be available in the future
-sudo service mongod start
+sudo systemctl start mongod
 
 # Install backend (c.f. requirements.txt)
 pip install -r requirements.txt

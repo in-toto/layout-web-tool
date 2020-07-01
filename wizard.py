@@ -48,7 +48,7 @@
 import os
 import uuid
 import time
-import StringIO
+import io
 import tarfile
 
 from functools import wraps
@@ -68,6 +68,7 @@ import tooldb
 import create_layout
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
+app.config["MONGO_URI"] = "mongodb://localhost:27017/layout_webtool_database"
 mongo = PyMongo(app)
 csrf = CSRFProtect(app)
 
@@ -361,7 +362,7 @@ def ajax_flash_messages(response):
   show_messages(repsonse.messages).
   """
 
-  if (request.is_xhr and
+  if (request.headers.get("X-Requested-With") == "XMLHttpRequest" and
       response.headers.get("Content-Type") == "application/json"):
     response_data = json.loads(response.get_data())
     response_data["messages"] = get_flashed_messages(with_categories=True)
@@ -1043,7 +1044,7 @@ def download_layout():
   layout_metadata = in_toto.models.metadata.Metablock(signed=layout)
 
   # Dump layout to memory file and server to user
-  layout_fp = StringIO.StringIO()
+  layout_fp = io.StringIO()
   layout_fp.write("{}".format(layout_metadata))
   layout_fp.seek(0)
   return send_file(layout_fp,
