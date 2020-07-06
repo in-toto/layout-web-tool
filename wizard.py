@@ -57,28 +57,29 @@ from flask import (Flask, render_template, session, redirect, url_for, request,
 from flask_pymongo import PyMongo
 from flask_wtf.csrf import CSRFProtect
 
-import in_toto.util
 import in_toto.models.link
 import in_toto.models.layout
 import in_toto.models.metadata
-import in_toto.artifact_rules
 import securesystemslib.keys
 
 import tooldb
 import create_layout
 
 app = Flask(__name__, static_url_path="", instance_relative_config=True)
-mongo = PyMongo(app)
 csrf = CSRFProtect(app)
 
 app.config.update(dict(
     DEBUG=True,
+    MONGO_URI="mongodb://localhost:27017/wizard",
     SECRET_KEY="do not use the development key in production!!!",
 ))
+
 
 # Supply a config file at "instance/config.py" that carries
 # e.g. your deployment secret key
 app.config.from_pyfile("config.py")
+
+mongo = PyMongo(app)
 
 # Reload if a template has changed (only for development, i.e. in DEBUG mode)
 app.jinja_env.auto_reload = app.config["DEBUG"]
@@ -1030,10 +1031,10 @@ def download_layout():
   for inspection_data in inspections:
     inspection = in_toto.models.layout.Inspection(
         name=inspection_data["name"],
-        run=inspection_data["cmd"],
-        material_matchrules=[
+        expected_materials=[
           ["MATCH", "*", "WITH", "PRODUCTS", "FROM", inspection_data["based_on"]]
         ])
+    inspection.set_run_from_string(inspection_data["cmd"])
 
     layout.inspect.append(inspection)
 

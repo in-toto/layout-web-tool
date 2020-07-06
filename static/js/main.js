@@ -649,13 +649,6 @@ function draw_graph(graph_data) {
   // Query the inner SVG group element that wraps the graph
   var inner = svg.append("g");
 
-  // Set up drag/drop/zoom support
-  var zoom = d3.behavior.zoom().on("zoom", function() {
-        inner.attr("transform", "translate(" + d3.event.translate + ")" +
-                                    "scale(" + d3.event.scale + ")");
-      });
-  svg.call(zoom);
-
   // Create the renderer ...
   var render = new dagreD3.render();
 
@@ -663,14 +656,14 @@ function draw_graph(graph_data) {
   render(inner, dag);
 
   // Scale and Center graph...
-
+  //
   // Get the SVG's container to access its width and height, i.e.
   // where the svg is visible
   var $outer = $(".svg-container");
 
   // Get width and height of the graph
   // Note: D3 elements are lists of objects having the DOM element at idx 0
-  var inner_rect = inner[0][0].getBoundingClientRect();
+  var inner_rect = inner.node().getBoundingClientRect();
 
   // Define a fixed padding between graph and viewport (px)
   var padding = 50;
@@ -684,8 +677,9 @@ function draw_graph(graph_data) {
   var top = ($outer.height() - inner_rect.height * scale) / 2;
   var left = ($outer.width() - inner_rect.width * scale) / 2;
 
-  // Do the actual translate and scale
-  zoom.translate([left, top]).scale(scale).event(svg);
+
+  inner.attr("transform", "translate("+ left+", " + top+ ") scale("+ scale +")");
+
 
   // Extend D3 selection's prototype to make an element first child
   d3.selection.prototype.toFront = function() {

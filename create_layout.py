@@ -30,7 +30,7 @@
                     link.command
             threshold:
                     default value
-            material_matchrules/product_matchrules:
+            expected_materials/expected_products:
                     currently uses simple approach (see below)
                     FIXME: Should use more complex approach (see ideas below)
             inspections:
@@ -40,30 +40,30 @@
 
 
   ** Infer step artifact rules (simple approach) **
-    ** material_matchrules **
+    ** expected_materials **
 
       IF no materials were recorded
-        material_matchrules: [["DISALLOW", "*"]]
+        expected_materials: [["DISALLOW", "*"]]
 
       ELSE IF materials were recorded and it is the first step
-        material_matchrules: [["ALLOW", "*"]]
+        expected_materials: [["ALLOW", "*"]]
 
       ELSE
-        material_matchrules: [["MATCH", "*", "WITH", "PRODUCTS", "FROM", <PREVIOUS STEP>]
+        expected_materials: [["MATCH", "*", "WITH", "PRODUCTS", "FROM", <PREVIOUS STEP>]
 
 
-    ** product_matchrules **
+    ** expected_products **
 
       IF no products were recorded
-        product_matchrules: [["DISALLOW", "*"]]
+        expected_products: [["DISALLOW", "*"]]
 
       ELSE products were recorded:
-        product_matchrules: [["ALLOW", "*"]]
+        expected_products: [["ALLOW", "*"]]
 
 
   ** Ideas for more complexity: **
     - explicitly, ALLOW or MATCH files by name instead of "*", e.g.:
-      material_matchrules = \
+      expected_materials = \
           [["ALLOW", material] for material in links[index].materials.keys()]
 
     - for MATCH rules
@@ -91,47 +91,48 @@ import os
 import in_toto.models.link
 import in_toto.models.layout
 
-def create_material_matchrules(links, index):
+def create_material_rules(links, index):
   """Create generic material rules (3 variants)
 
-  * No materials recorded -> disallow any artifact
-  * Materials recorded (first step) -> allow artifacts that existed beforehand
-  * Materials recorded (latter step) -> match from previous products
-
+  * MATCH available materials with products from previous step (links must be an
+  ordered list) and
+  * ALLOW available materials if it is the first step in the
+  list
   Returns a list of material rules
   NOTE: Read header docstring for ideas for more complexity.  """
 
-  material_matchrules = []
+  expected_materials = []
 
-  if not links[index].materials:
-    material_matchrules = [["DISALLOW", "*"]]
-
-  elif index == 0 and links[index].materials:
-    material_matchrules = [["ALLOW", "*"]]
+  if index == 0:
+    for material_name in links[index].materials.keys():
+      expected_materials.append(["ALLOW", material_name])
+    expected_materials.append(["DISALLOW", "*"])
 
   else:
-    material_matchrules = [
+    expected_materials = [
         ["MATCH", "*", "WITH", "PRODUCTS", "FROM", links[index - 1].name]]
 
-  return material_matchrules
+  return expected_materials
 
 
-def create_product_matchrules(links, index):
+def create_product_rules(links, index):
   """Create generic material rules (2 variants)
 
-  * No products recorded -> disallow any artifact
-  * Products recorded  -> allow all artifacts
+  * ALLOW available products
+  * DISALLOW everything else
 
   Returns a list of product rules
   NOTE: Read header docstring for ideas for more complexity.  """
 
-  if not links[index].products:
-    product_matchrules = [["DISALLOW", "*"]]
 
-  else:
-    product_matchrules = [["ALLOW", "*"]]
+  expected_products = []
 
-  return product_matchrules
+  for product_name in links[index].materials.keys():
+    expected_products.append(["ALLOW", product_name])
+
+  expected_products.append(["DISALLOW", "*"])
+
+  return expected_products
 
 
 def create_layout_from_ordered_links(links):
@@ -145,8 +146,8 @@ def create_layout_from_ordered_links(links):
   for index, link in enumerate(links):
     step_name = link.name
     step = in_toto.models.layout.Step(name=step_name,
-      material_matchrules=create_material_matchrules(links, index),
-      product_matchrules=create_product_matchrules(links, index),
+      expected_materials=create_material_rules(links, index),
+      expected_products=create_product_rules(links, index),
       expected_command=link.command)
 
     layout.steps.append(step)
