@@ -362,7 +362,7 @@ def ajax_flash_messages(response):
   show_messages(repsonse.messages).
   """
 
-  if (request.is_xhr and
+  if (request.headers.get("X-Requested-With") == "XMLHttpRequest"  and
       response.headers.get("Content-Type") == "application/json"):
     response_data = json.loads(response.get_data())
     response_data["messages"] = get_flashed_messages(with_categories=True)
