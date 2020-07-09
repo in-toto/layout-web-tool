@@ -1,4 +1,4 @@
 Flask
 Flask-PyMongo
 Flask-WTF
--e git://github.com/in-toto/in-toto.git@v0.2.3.dev5#egg=in-totov0.2.3.dev5
+in-toto==0.5.0
