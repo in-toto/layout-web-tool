@@ -13,7 +13,7 @@ deployed at [in-toto.engineering.nyu.edu](https://in-toto.engineering.nyu.edu/) 
 ### Installation
 
 **Requirements**
-- [Python 2.7 (with development headers)](https://www.python.org) --
+- [Python](https://www.python.org) --
 backend
 - [npm](https://www.npmjs.com/) -- frontend dependencies
 - [Ruby](https://www.ruby-lang.org/en/documentation/installation/) and [SASS](http://sass-lang.com/install) -- CSS preprocessor
@@ -23,8 +23,7 @@ user session data (for usage analysis)
 
 ```shell
 # Start `mongod` (if not already running)
-# Note: `service` won't be available in the future
-sudo service mongod start
+sudo systemctl start mongod
 
 # Install backend (c.f. requirements.txt)
 pip install -r requirements.txt

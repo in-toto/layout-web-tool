@@ -116,7 +116,7 @@ def create_material_rules(links, index):
 
 
 def create_product_rules(links, index):
-  """Create generic material rules (2 variants)
+  """Create generic product rules (2 variants)
 
   * ALLOW available products
   * DISALLOW everything else
