@@ -182,19 +182,18 @@ def create_product_rules(current_link):
     a list of product rules
   """
 
-
   expected_products_rules = []
   # Deleted artifacts won't show up in the product queue
   unchanged_artifacts, modified_artifacts, added_artifacts, _ = \
       changes_between_snapshots(current_link.materials, current_link.products)
 
-  for artifact in unchanged_artifacts:
+  for artifact in sorted(unchanged_artifacts):
     # ALLOW unchanged artifacts
     expected_products_rules.append(["ALLOW", artifact])
-  for artifact in modified_artifacts:
+  for artifact in sorted(modified_artifacts):
     # MODIFY modified artifacts
     expected_products_rules.append(["MODIFY", artifact])
-  for artifact in added_artifacts:
+  for artifact in sorted(added_artifacts):
     # CREATE added artifacts
     expected_products_rules.append(["CREATE", artifact])
   # DISALLOW everything else
