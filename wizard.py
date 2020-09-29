@@ -655,7 +655,7 @@ def ajax_upload_key():
   try:
     # We try to load the public key to check the format
     key = securesystemslib.keys.import_rsakey_from_public_pem(
-        functionary_key.read())
+        functionary_key.read().decode("ascii"))
 
     securesystemslib.formats.PUBLIC_KEY_SCHEMA.check_match(key)
     file_name = functionary_key.filename
@@ -700,6 +700,10 @@ def ajax_upload_key():
           "alert-success")
 
     # TODO: Throw more rocks at query_result
+
+  except UnicodeDecodeError:
+    flash("Could not decode the key. The key contains non-ascii characters.")
+    return jsonify({"error": True})
 
   except Exception as e:
     flash("Could not store uploaded file. Error: {}".format(e),
