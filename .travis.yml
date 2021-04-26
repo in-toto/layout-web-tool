@@ -2,7 +2,9 @@ language: python
 python:
   - "3.8"
 cache: pip
+before_install:
+  - sudo apt-get update && sudo apt-get -y install chromium-chromedriver && sudo apt-get remove google-chrome-stable
 install:
   - pip install -r requirements.txt
 script:
-  python -m unittest tests.test_create_layout
+  python tests/run_tests.py
