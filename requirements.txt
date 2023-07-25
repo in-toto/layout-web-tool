@@ -1,6 +1,6 @@
 Flask==2.3.2
 Flask-PyMongo==2.3.0
 Flask-WTF==0.14.3
-in-toto==0.5.0
+in-toto==2.0.0
 Flask-Testing
 selenium
