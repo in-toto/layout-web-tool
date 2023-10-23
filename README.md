@@ -4,10 +4,7 @@ A Flask-based web app to guide project owners through creating an
 *in-toto layout*.
 
 More information about *in-toto* and *in-toto layouts* can be found at the
-project website
-[in-toto.io](https://in-toto.io). A beta version of this web app is
-deployed at [in-toto.engineering.nyu.edu](https://in-toto.engineering.nyu.edu/) and mockups can be found at
-[`editor-and-wizard-wip/mockups`](https://github.com/in-toto/layout-web-tool/blob/editor-and-wizard-wip/mockups/layout-wizard.pdf).
+project website [in-toto.io](https://in-toto.io).
 
 
 ### Installation
